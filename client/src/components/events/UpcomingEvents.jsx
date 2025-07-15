@@ -3,56 +3,17 @@ import Container from "../layout/Container";
 import EventCard from "../common/EventCard";
 import SectionHeader from "../common/SectionHeader";
 import { Icon } from "@iconify/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { upcomingEvents } from "../../data/EventsData";
 
-const upcomingEvents = [
-  {
-    background: "/images/hero.png",
-    title: "Pre Summit Mixer Bengaluru 2025",
-    date: "24th Jan 2025",
-    location: "Bengaluru",
-    category: "Networking",
-  },
-  {
-    background: "/images/hero.png",
-    title: "XEV FIN SUMMIT ON SUMMITS",
-    date: "22nd Feb 2025",
-    location: "Dharamshala",
-    category: "Summit",
-  },
-  {
-    background: "/images/hero.png",
-    title: "Tech Innovation Workshop",
-    date: "15th March 2025",
-    location: "Mumbai",
-    category: "Workshop",
-  },
-  {
-    background: "/images/hero.png",
-    title: "Business Strategy Conclave",
-    date: "8th April 2025",
-    location: "Delhi",
-    category: "Conference",
-  },
-  {
-    background: "/images/hero.png",
-    title: "Startup Pitch Competition",
-    date: "20th May 2025",
-    location: "Pune",
-    category: "Competition",
-  },
-  {
-    background: "/images/hero.png",
-    title: "Digital Marketing Summit",
-    date: "12th June 2025",
-    location: "Hyderabad",
-    category: "Summit",
-  },
-];
-
-export default function UpcomingEvents() {
+export default function UpcomingEvents({ initialCategoryFilter }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(
+    initialCategoryFilter
+      ? initialCategoryFilter.charAt(0).toUpperCase() +
+          initialCategoryFilter.slice(1)
+      : "All"
+  );
 
   const categories = [
     "All",
@@ -62,6 +23,18 @@ export default function UpcomingEvents() {
     "Competition",
     "Networking",
   ];
+
+  // Update selected category when initialCategoryFilter changes
+  useEffect(() => {
+    if (initialCategoryFilter) {
+      const formattedCategory =
+        initialCategoryFilter.charAt(0).toUpperCase() +
+        initialCategoryFilter.slice(1);
+      if (categories.includes(formattedCategory)) {
+        setSelectedCategory(formattedCategory);
+      }
+    }
+  }, [initialCategoryFilter]);
 
   const filteredEvents = upcomingEvents.filter((event) => {
     const matchesSearch =
@@ -149,6 +122,7 @@ export default function UpcomingEvents() {
                   title={event.title}
                   date={event.date}
                   location={event.location}
+                  slug={event.slug}
                 />
               </div>
             </div>

@@ -12,11 +12,11 @@ export const footerNavLinks = [
     {
         title: "Resources",
         links: [
-            { label: "Interviews", href: "/resources/interviews" },
-            { label: "Weekly Digest", href: "/resources/weekly-digest" },
-            { label: "Monthly Digest", href: "/resources/monthly-digest" },
-            { label: "Whitepapers", href: "/resources/whitepapers" },
-            { label: "Downloads", href: "/resources/downloads" },
+            { label: "All Resources", href: "/resources" },
+            { label: "Whitepapers", href: "/resources?type=whitepaper" },
+            { label: "Articles", href: "/resources?type=article" },
+            { label: "Reports", href: "/resources?type=report" },
+            { label: "Downloads", href: "/resources?downloads=true" },
         ],
     },
     {
@@ -50,6 +50,6 @@ export const navbarLinks = [
     { label: "Services", href: "#", hasDropdown: true },
     { label: "Communities", href: "#", hasDropdown: true },
     { label: "Events", href: "#", hasDropdown: true },
-    { label: "Resources", href: "#", hasDropdown: true },
+    { label: "Resources", href: "/resources" },
     { label: "Careers", href: "/careers" },
 ];

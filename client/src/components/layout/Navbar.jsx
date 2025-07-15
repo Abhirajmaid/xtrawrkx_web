@@ -17,42 +17,12 @@ export default function Navbar() {
   // State for dynamic right column in events dropdown
   const [selectedEventMiddle, setSelectedEventMiddle] = useState(0);
 
-  // Mock right lists for each middle item
-  const eventsRightLists = [
-    [
-      {
-        label: "Pre-Summit Mixer Hyderabad",
-        slug: "/events/pre-summit-mixer-hyderabad",
-      },
-      {
-        label: "Pre-Summit Mixer Ahmedabad",
-        slug: "/events/pre-summit-mixer-ahmedabad",
-      },
-      {
-        label: "Pre-Summit Mixer Bhubaneshwar",
-        slug: "/events/pre-summit-mixer-bhubaneshwar",
-      },
-      {
-        label: "Pre-Summit Mixer Chandhighar",
-        slug: "/events/pre-summit-mixer-chandhighar",
-      },
-    ],
-    [
-      { label: "Summit 2024 Mumbai", slug: "/events/summit-2024-mumbai" },
-      { label: "Summit 2024 Delhi", slug: "/events/summit-2024-delhi" },
-      { label: "Summit 2024 Bangalore", slug: "/events/summit-2024-bangalore" },
-    ],
-    [
-      {
-        label: "International Visit Tokyo",
-        slug: "/events/international-visit-tokyo",
-      },
-      {
-        label: "International Visit Berlin",
-        slug: "/events/international-visit-berlin",
-      },
-    ],
-  ];
+  // Get events by category for dynamic right column
+  const getEventsForCategory = (categoryIndex) => {
+    const categories = Object.keys(eventsDropdownData.eventsByCategory);
+    const selectedCategory = categories[categoryIndex];
+    return eventsDropdownData.eventsByCategory[selectedCategory] || [];
+  };
 
   // Close dropdown on outside click or scroll
   useEffect(() => {
@@ -106,13 +76,20 @@ export default function Navbar() {
           {servicesDropdownData.middleList.map((item) => (
             <li
               key={item.label}
-              className="flex items-center justify-between py-1 border-b border-gray-100 last:border-b-0 group cursor-pointer hover:text-brand-primary transition"
+              className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0 group cursor-pointer hover:text-brand-primary transition"
             >
               <a
                 href={item.slug}
-                className="flex-1 pl-2 transition-all duration-200 border-l-4 border-transparent group-hover:border-brand-primary group-hover:pl-5 hover:no-underline text-sm"
+                className="flex-1 pl-2 transition-all duration-200 border-l-4 border-transparent group-hover:border-brand-primary group-hover:pl-5 hover:no-underline"
               >
-                {item.label}
+                <div className="block">
+                  <span className="block text-sm font-medium">
+                    {item.label}
+                  </span>
+                  <span className="text-xs text-gray-500 group-hover:text-brand-primary/70">
+                    {item.category} • {item.subCompany}
+                  </span>
+                </div>
               </a>
               <Icon
                 icon="solar:arrow-right-up-linear"
@@ -128,17 +105,24 @@ export default function Navbar() {
         <div className="text-xl font-normal mb-2 font-primary">
           {servicesDropdownData.rightTitle}
         </div>
-        <ul className="space-y-2">
+        <ul className="space-y-2 mb-6">
           {servicesDropdownData.rightList.map((item, idx) => (
             <li
               key={item.label + idx}
-              className="flex items-center justify-between py-1 border-b border-gray-100 last:border-b-0 group cursor-pointer hover:text-brand-primary transition"
+              className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0 group cursor-pointer hover:text-brand-primary transition"
             >
               <a
                 href={item.slug}
-                className="flex-1 pl-2 transition-all duration-200 border-l-4 border-transparent group-hover:border-brand-primary group-hover:pl-5 hover:no-underline text-sm"
+                className="flex-1 pl-2 transition-all duration-200 border-l-4 border-transparent group-hover:border-brand-primary group-hover:pl-5 hover:no-underline"
               >
-                {item.label}
+                <div className="block">
+                  <span className="block text-sm font-medium">
+                    {item.label}
+                  </span>
+                  <span className="text-xs text-gray-500 group-hover:text-brand-primary/70">
+                    {item.price} • {item.subtitle}
+                  </span>
+                </div>
               </a>
               <Icon
                 icon="solar:arrow-right-up-linear"
@@ -148,6 +132,12 @@ export default function Navbar() {
             </li>
           ))}
         </ul>
+        <Button
+          text="View All Modals"
+          type="secondary"
+          className="w-full"
+          link="/modals"
+        />
       </div>
     </div>
   );
@@ -228,7 +218,7 @@ export default function Navbar() {
           {eventsDropdownData.middleList.map((item, idx) => (
             <li
               key={item.label}
-              className={`flex items-center justify-between py-1 border-b border-gray-100 last:border-b-0 group cursor-pointer hover:text-brand-primary transition ${
+              className={`flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0 group cursor-pointer hover:text-brand-primary transition ${
                 selectedEventMiddle === idx
                   ? "text-brand-primary font-semibold"
                   : ""
@@ -236,9 +226,12 @@ export default function Navbar() {
               onMouseEnter={() => setSelectedEventMiddle(idx)}
               onClick={() => setSelectedEventMiddle(idx)}
             >
-              <span className="flex-1 pl-2 transition-all duration-200 border-l-4 border-transparent group-hover:border-brand-primary group-hover:pl-5">
-                {item.label}
-              </span>
+              <div className="flex-1 pl-2 transition-all duration-200 border-l-4 border-transparent group-hover:border-brand-primary group-hover:pl-5">
+                <span className="block">{item.label}</span>
+                <span className="text-xs text-gray-500 group-hover:text-brand-primary/70">
+                  {item.count} event{item.count !== 1 ? "s" : ""}
+                </span>
+              </div>
               <Icon
                 icon="solar:arrow-right-up-linear"
                 width="22"
@@ -254,24 +247,37 @@ export default function Navbar() {
           {eventsDropdownData.rightTitle}
         </div>
         <ul className="space-y-2">
-          {eventsRightLists[selectedEventMiddle].map((item, idx) => (
-            <li
-              key={item.label + idx}
-              className="flex items-center justify-between py-1 border-b border-gray-100 last:border-b-0 group cursor-pointer hover:text-brand-primary transition"
-            >
-              <a
-                href={item.slug}
-                className="flex-1 pl-2 transition-all duration-200 border-l-4 border-transparent group-hover:border-brand-primary group-hover:pl-5 hover:no-underline"
+          {getEventsForCategory(selectedEventMiddle).length > 0 ? (
+            getEventsForCategory(selectedEventMiddle).map((item, idx) => (
+              <li
+                key={item.label + idx}
+                className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0 group cursor-pointer hover:text-brand-primary transition"
               >
-                {item.label}
-              </a>
-              <Icon
-                icon="solar:arrow-right-up-linear"
-                width="22"
-                className="opacity-70 group-hover:text-brand-primary"
-              />
+                <a
+                  href={item.slug}
+                  className="flex-1 pl-2 transition-all duration-200 border-l-4 border-transparent group-hover:border-brand-primary group-hover:pl-5 hover:no-underline"
+                >
+                  <div className="block">
+                    <span className="block text-sm font-medium">
+                      {item.label}
+                    </span>
+                    <span className="text-xs text-gray-500 group-hover:text-brand-primary/70">
+                      {item.date} • {item.location}
+                    </span>
+                  </div>
+                </a>
+                <Icon
+                  icon="solar:arrow-right-up-linear"
+                  width="22"
+                  className="opacity-70 group-hover:text-brand-primary"
+                />
+              </li>
+            ))
+          ) : (
+            <li className="py-2 text-sm text-gray-500 italic">
+              No events available in this category
             </li>
-          ))}
+          )}
         </ul>
       </div>
     </div>

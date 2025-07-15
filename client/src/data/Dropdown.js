@@ -1,25 +1,25 @@
+import { eventsData } from "./EventsData";
+import servicesData, { engagementModels } from "./ServicesData";
+
+// Create dynamic services dropdown from servicesData
+const servicesDropdownList = servicesData.map(service => ({
+    label: service.name,
+    slug: `/services/${service.slug}`,
+    category: service.category,
+    subCompany: service.subCompany
+}));
+
 export const servicesDropdownData = {
     description:
-        "EY helps clients create long-term value for all stakeholders. Enabled by data and technology, our services and solutions provide trust through assurance and help clients transform, grow and operate.",
+        "Comprehensive business solutions from funding and manufacturing to consulting and product development. Accelerate your growth with our expert services across multiple domains.",
     leftTitle: "Services",
     middleTitle: "What we do",
-    middleList: [
-        { label: "Funding & Financing", slug: "/services/funding-financing" },
-        { label: "Sourcing & Supplychain", slug: "/services/sourcing-supplychain" },
-        { label: "Manufacturing", slug: "/services/manufacturing" },
-        { label: "Prototyping", slug: "/services/prototyping" },
-        { label: "Sales & BD", slug: "/services/sales-bd" },
-        { label: "Franchise & Dealer development", slug: "/services/franchise-dealer-development" },
-        { label: "Engineering", slug: "/services/engineering" },
-        { label: "Product Design", slug: "/services/product-design" },
-        { label: "Org Dev & hiring", slug: "/services/org-dev-hiring" },
-        { label: "Marketing & PR", slug: "/services/marketing-pr" },
-    ],
-    rightTitle: "How we do it",
+    middleList: servicesDropdownList,
+    rightTitle: "How we work",
     rightList: [
-        { label: "Complementary Support", slug: "/modals/complementary-support" },
-        { label: "Membership - Advisory", slug: "/modals/membership-advisory" },
-        { label: "Consulting", slug: "/modals/consulting" },
+        { label: "Complementary Support", slug: "/modals/complementary-support", price: "$0", subtitle: "Best for starting up" },
+        { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
+        { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
     ],
 };
 
@@ -36,21 +36,30 @@ export const communitiesDropdownData = {
     ],
 };
 
+// Group events by category for the dropdown
+const eventsByCategory = eventsData.reduce((acc, event) => {
+    if (!acc[event.category]) {
+        acc[event.category] = [];
+    }
+    acc[event.category].push({
+        label: event.title,
+        slug: `/events/${event.slug}`,
+        date: event.date,
+        location: event.location
+    });
+    return acc;
+}, {});
+
 export const eventsDropdownData = {
     leftTitle: "Events",
     description:
-        "EY helps clients create long-term value for all stakeholders. Enabled by data and technology, our services and solutions provide trust through assurance and help clients transform, grow and operate.",
-    middleTitle: "What we conduct",
-    middleList: [
-        { label: "XEN.FiN-Mixers", slug: "/events/xen-fin-mixers" },
-        { label: "XEV.FiN Summit on Summits", slug: "/events/xev-fin-summit" },
-        { label: "XEN - International Visits", slug: "/events/xen-international-visits" },
-    ],
-    rightTitle: "Our events",
-    rightList: [
-        { label: "Pre-Summit Mixer Hyderabad", slug: "/events/pre-summit-mixer-hyderabad" },
-        { label: "Pre-Summit Mixer Ahmedabad", slug: "/events/pre-summit-mixer-ahmedabad" },
-        { label: "Pre-Summit Mixer Bhubaneshwar", slug: "/events/pre-summit-mixer-bhubaneshwar" },
-        { label: "Pre-Summit Mixer Chandhighar", slug: "/events/pre-summit-mixer-chandhighar" },
-    ],
+        "Join us for exciting events, workshops, and summits. Connect with industry leaders, learn from experts, and be part of the electric vehicle and sustainable finance revolution.",
+    middleTitle: "Event Categories",
+    middleList: Object.keys(eventsByCategory).map(category => ({
+        label: category,
+        slug: `/events?category=${category.toLowerCase()}`,
+        count: eventsByCategory[category].length
+    })),
+    rightTitle: "Upcoming Events",
+    eventsByCategory: eventsByCategory,
 };

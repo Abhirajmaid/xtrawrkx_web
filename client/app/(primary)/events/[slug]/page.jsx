@@ -1,0 +1,343 @@
+"use client";
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import Section from "@/src/components/layout/Section";
+import Container from "@/src/components/layout/Container";
+import Button from "@/src/components/common/Button";
+import { Icon } from "@iconify/react";
+import { eventsData } from "@/src/data/EventsData";
+
+export default function EventPage({ params }) {
+  const { slug } = params;
+
+  // Find the event by slug
+  const event = eventsData.find((e) => e.slug === slug);
+
+  if (!event) {
+    notFound();
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <Section className="relative w-full h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden p-0">
+        {/* Background image */}
+        <div className="absolute inset-0 w-full h-full">
+          <Image
+            src={event.heroImage || event.background}
+            alt={event.title}
+            fill
+            className="object-cover object-center"
+            priority
+          />
+          {/* Overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/60" />
+        </div>
+
+        {/* Event Info Overlay */}
+        <Container className="relative z-20 text-center text-white">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-6 py-2 rounded-full text-sm font-semibold mb-6">
+            <Icon icon="mdi:calendar-star" width={20} />
+            {event.category}
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
+            {event.title}
+          </h1>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-lg mb-8">
+            <div className="flex items-center gap-2">
+              <Icon icon="mdi:calendar-month-outline" width={24} />
+              <span>{event.date}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Icon icon="mdi:map-marker-outline" width={24} />
+              <span>{event.location}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Icon icon="mdi:clock-outline" width={24} />
+              <span>{event.time}</span>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              text="Register Now"
+              type="primary"
+              className="bg-gradient-to-r from-brand-primary to-brand-secondary"
+            />
+            <Button
+              text="Add to Calendar"
+              type="secondary"
+              className="bg-white/20 backdrop-blur-sm hover:bg-white/30"
+            />
+          </div>
+        </Container>
+      </Section>
+
+      {/* Event Details Section */}
+      <Section className="py-20">
+        <Container>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* Main Content */}
+            <div className="lg:col-span-2">
+              {/* About Event */}
+              <div className="mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                  About This Event
+                </h2>
+                <div className="prose prose-lg max-w-none text-gray-700">
+                  <p>{event.description}</p>
+                  {event.longDescription && (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: event.longDescription,
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Agenda */}
+              {event.agenda && (
+                <div className="mb-12">
+                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                    Event Agenda
+                  </h2>
+                  <div className="space-y-4">
+                    {event.agenda.map((item, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 rounded-lg p-6 border-l-4 border-brand-primary"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-xl font-semibold text-gray-900">
+                            {item.title}
+                          </h3>
+                          <span className="text-brand-primary font-medium">
+                            {item.time}
+                          </span>
+                        </div>
+                        <p className="text-gray-600">{item.description}</p>
+                        {item.speaker && (
+                          <p className="text-sm text-gray-500 mt-2">
+                            Speaker: {item.speaker}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Speakers */}
+              {event.speakers && (
+                <div className="mb-12">
+                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                    Featured Speakers
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {event.speakers.map((speaker, index) => (
+                      <div
+                        key={index}
+                        className="bg-white rounded-lg p-6 shadow-lg border"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            {speaker.name.charAt(0)}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">
+                              {speaker.name}
+                            </h3>
+                            <p className="text-gray-600">{speaker.title}</p>
+                            <p className="text-sm text-gray-500">
+                              {speaker.company}
+                            </p>
+                          </div>
+                        </div>
+                        {speaker.bio && (
+                          <p className="text-gray-600 mt-4 text-sm">
+                            {speaker.bio}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              {/* Event Info Card */}
+              <div className="bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-2xl p-6 mb-8 sticky top-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">
+                  Event Information
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Icon
+                      icon="mdi:calendar-month-outline"
+                      className="text-brand-primary"
+                      width={24}
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900">Date</p>
+                      <p className="text-gray-600">{event.date}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Icon
+                      icon="mdi:clock-outline"
+                      className="text-brand-primary"
+                      width={24}
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900">Time</p>
+                      <p className="text-gray-600">{event.time}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Icon
+                      icon="mdi:map-marker-outline"
+                      className="text-brand-primary"
+                      width={24}
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900">Location</p>
+                      <p className="text-gray-600">{event.location}</p>
+                      {event.venue && (
+                        <p className="text-sm text-gray-500">{event.venue}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {event.price && (
+                    <div className="flex items-center gap-3">
+                      <Icon
+                        icon="mdi:currency-usd"
+                        className="text-brand-primary"
+                        width={24}
+                      />
+                      <div>
+                        <p className="font-medium text-gray-900">Price</p>
+                        <p className="text-gray-600">{event.price}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {event.capacity && (
+                    <div className="flex items-center gap-3">
+                      <Icon
+                        icon="mdi:account-group"
+                        className="text-brand-primary"
+                        width={24}
+                      />
+                      <div>
+                        <p className="font-medium text-gray-900">Capacity</p>
+                        <p className="text-gray-600">
+                          {event.capacity} attendees
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <Button
+                    text="Register Now"
+                    type="primary"
+                    className="w-full mb-3"
+                  />
+                  <Button
+                    text="Share Event"
+                    type="secondary"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="bg-white rounded-2xl p-6 shadow-lg border">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Need Help?
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Have questions about this event? Get in touch with our team.
+                </p>
+                <Button
+                  text="Contact Us"
+                  type="secondary"
+                  link="/contact-us"
+                  className="w-full"
+                />
+              </div>
+            </div>
+          </div>
+        </Container>
+      </Section>
+
+      {/* Related Events */}
+      <Section className="py-20 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
+        <Container>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Related Events
+            </h2>
+            <p className="text-xl text-gray-600">
+              Discover more events you might be interested in
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {eventsData
+              .filter((e) => e.slug !== slug && e.category === event.category)
+              .slice(0, 3)
+              .map((relatedEvent, index) => (
+                <div
+                  key={index}
+                  className="group transform transition-all duration-300 hover:scale-105"
+                >
+                  <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div className="relative h-48">
+                      <Image
+                        src={relatedEvent.background}
+                        alt={relatedEvent.title}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute top-4 left-4 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        {relatedEvent.category}
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="font-bold text-gray-900 mb-2">
+                        {relatedEvent.title}
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                        <div className="flex items-center gap-1">
+                          <Icon icon="mdi:calendar" width={16} />
+                          <span>{relatedEvent.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Icon icon="mdi:map-marker" width={16} />
+                          <span>{relatedEvent.location}</span>
+                        </div>
+                      </div>
+                      <Button
+                        text="View Details"
+                        type="secondary"
+                        link={`/events/${relatedEvent.slug}`}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </Container>
+      </Section>
+    </div>
+  );
+}

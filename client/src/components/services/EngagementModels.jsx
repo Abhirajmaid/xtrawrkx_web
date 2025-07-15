@@ -3,7 +3,8 @@ import Section from "../layout/Section";
 import Container from "../layout/Container";
 import { Icon } from "@iconify/react";
 import SectionHeader from "../common/SectionHeader";
-import { engagementModels } from "../../data/ServicesData";
+import Button from "../common/Button";
+import { modalsData } from "../../data/ModalsData";
 
 const EngagementModels = () => {
   return (
@@ -16,10 +17,11 @@ const EngagementModels = () => {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {engagementModels.map((model, index) => (
-            <div
+          {modalsData.map((model, index) => (
+            <a
               key={index}
-              className={`relative bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 ${
+              href={`/modals/${model.slug}`}
+              className={`relative bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer block ${
                 model.popular
                   ? "border-2 border-brand-primary z-10 scale-105"
                   : "border border-gray-200"
@@ -27,7 +29,7 @@ const EngagementModels = () => {
             >
               {/* Most Popular Banner */}
               {model.popular && (
-                <div className="absolute top-0 left-0 w-full bg-brand-primary text-white text-center py-2 text-xs font-semibold tracking-wide z-20">
+                <div className="absolute top-0 left-0 w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-white text-center py-2 text-xs font-semibold tracking-wide z-20">
                   Most Popular ★
                 </div>
               )}
@@ -72,15 +74,15 @@ const EngagementModels = () => {
 
               {/* Get Started Button */}
               <div className="px-6 py-4 border-b border-gray-100">
-                <button
-                  className={`w-full py-3 rounded-full font-medium transition-colors ${
+                <div
+                  className={`w-full py-3 rounded-full font-medium transition-colors text-center ${
                     model.popular || model.headerStyle === "primary"
-                      ? "bg-brand-primary text-white hover:bg-brand-primary/90"
+                      ? "bg-gradient-to-r from-brand-primary to-brand-secondary text-white hover:from-brand-primary/90 hover:to-brand-secondary/90"
                       : "bg-gray-100 text-gray-900 hover:bg-gray-200"
                   }`}
                 >
                   Get started
-                </button>
+                </div>
               </div>
 
               {/* Features */}
@@ -89,7 +91,7 @@ const EngagementModels = () => {
                   What you get:
                 </h4>
                 <ul className="space-y-2">
-                  {model.features.map((feature, featureIndex) => (
+                  {model.features.slice(0, 5).map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start">
                       <span className="text-brand-primary mr-3 mt-0.5">
                         <Icon icon="solar:check-circle-bold" width={18} />
@@ -97,10 +99,29 @@ const EngagementModels = () => {
                       <span className="text-gray-700 text-sm">{feature}</span>
                     </li>
                   ))}
+                  {model.features.length > 5 && (
+                    <li className="flex items-start">
+                      <span className="text-brand-primary mr-3 mt-0.5">
+                        <Icon icon="solar:plus-circle-bold" width={18} />
+                      </span>
+                      <span className="text-gray-500 text-sm italic">
+                        +{model.features.length - 5} more features
+                      </span>
+                    </li>
+                  )}
                 </ul>
               </div>
-            </div>
+            </a>
           ))}
+        </div>
+
+        {/* View All Modals Button */}
+        <div className="flex justify-center mt-12">
+          <Button
+            text="View All Engagement Models"
+            type="primary"
+            link="/modals"
+          />
         </div>
       </Container>
     </Section>

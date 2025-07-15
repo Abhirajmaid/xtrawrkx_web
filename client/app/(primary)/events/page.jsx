@@ -5,8 +5,12 @@ import UpcomingEvents from "@/src/components/events/UpcomingEvents";
 import PastEvents from "@/src/components/events/PastEvents";
 import React from "react";
 import EventSection from "@/src/components/home/EventSection";
+import { useSearchParams } from "next/navigation";
 
 const page = () => {
+  const searchParams = useSearchParams();
+  const categoryFilter = searchParams.get("category");
+
   return (
     <div className="min-h-screen bg-white">
       <Hero
@@ -18,7 +22,7 @@ const page = () => {
         buttonLink="/contact-us"
       />
       <EventSection />
-      <UpcomingEvents />
+      <UpcomingEvents initialCategoryFilter={categoryFilter} />
       <PastEvents />
       <Marquee />
     </div>

@@ -7,7 +7,7 @@ export default function Hero({ title, description }) {
       {/* Background image, always the same */}
       <div className="absolute inset-0 w-full h-full">
         <Image
-          src="/images/Group 50.jpg"
+          src="/images/hero.jpg"
           alt="Hero background"
           fill
           className="object-cover object-right scale-100 md:object-right z-0"

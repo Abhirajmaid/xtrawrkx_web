@@ -1,0 +1,12 @@
+Create a file named .env.local in the client directory with this content:
+
+# Use static data (no Firebase setup required)
+NEXT_PUBLIC_USE_CMS_DATA=false
+
+# Admin emails (comma-separated)
+NEXT_PUBLIC_ADMIN_EMAILS=admin@xtrawrkx.com,test@example.com
+
+After creating this file, restart your development server with:
+npm run dev
+
+Then go to http://localhost:3000/admin/login 

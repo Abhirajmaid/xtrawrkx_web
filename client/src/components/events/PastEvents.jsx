@@ -5,6 +5,7 @@ import SectionHeader from "../common/SectionHeader";
 import { Icon } from "@iconify/react";
 import { useState } from "react";
 
+// Mock past events data - in a real app, this would come from the same data source
 const pastEvents = [
   {
     background: "/images/hero.png",
@@ -12,6 +13,7 @@ const pastEvents = [
     date: "15th Dec 2024",
     location: "Mumbai",
     category: "Summit",
+    slug: "annual-business-summit-2024",
   },
   {
     background: "/images/hero.png",
@@ -19,6 +21,7 @@ const pastEvents = [
     date: "28th Nov 2024",
     location: "Bengaluru",
     category: "Conference",
+    slug: "tech-leaders-conference-2024",
   },
   {
     background: "/images/hero.png",
@@ -26,6 +29,7 @@ const pastEvents = [
     date: "10th Oct 2024",
     location: "Delhi",
     category: "Workshop",
+    slug: "innovation-growth-workshop-2024",
   },
   {
     background: "/images/hero.png",
@@ -33,6 +37,7 @@ const pastEvents = [
     date: "22nd Sep 2024",
     location: "Pune",
     category: "Networking",
+    slug: "startup-ecosystem-meetup-2024",
   },
   {
     background: "/images/hero.png",
@@ -40,6 +45,7 @@ const pastEvents = [
     date: "8th Aug 2024",
     location: "Hyderabad",
     category: "Summit",
+    slug: "digital-transformation-summit-2024",
   },
   {
     background: "/images/hero.png",
@@ -47,6 +53,7 @@ const pastEvents = [
     date: "18th Jul 2024",
     location: "Chennai",
     category: "Workshop",
+    slug: "leadership-excellence-workshop-2024",
   },
 ];
 
@@ -147,6 +154,7 @@ export default function PastEvents() {
                   title={event.title}
                   date={event.date}
                   location={event.location}
+                  slug={event.slug}
                 />
               </div>
             </div>

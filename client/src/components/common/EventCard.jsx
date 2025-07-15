@@ -7,6 +7,7 @@ export default function EventCard({
   title,
   location,
   date,
+  slug,
 }) {
   return (
     <div
@@ -49,6 +50,7 @@ export default function EventCard({
         type="secondary"
         className="absolute left-1/2 bottom-4 cursor-pointer -translate-x-1/2 w-[92%]"
         text="View More"
+        link={slug ? `/events/${slug}` : "#"}
       />
     </div>
   );
