@@ -3,6 +3,8 @@ import { Icon } from "@iconify/react";
 import Button from "../common/Button";
 
 const ResourceCard = ({ resource, layout = "grid" }) => {
+  resource.image = "/images/hero.jpg";
+
   const getTypeIcon = (type) => {
     switch (type) {
       case "whitepaper":

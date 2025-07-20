@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Section from "../../../src/components/layout/Section";
 import Container from "../../../src/components/layout/Container";
@@ -18,7 +18,8 @@ import {
 } from "../../../src/data/ResourcesData";
 import Hero from "@/src/components/common/Hero";
 
-const ResourcesPage = () => {
+// Separate component that uses useSearchParams
+const ResourcesContent = () => {
   const searchParams = useSearchParams();
   const [selectedType, setSelectedType] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -89,13 +90,7 @@ const ResourcesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <Hero
-        title="Resources"
-        description="Discover insights, research, and expertise across whitepapers, articles, and reports"
-      />
-
+    <>
       {/* Statistics Section */}
       <ResourcesStats resourceStats={resourceStats} />
 
@@ -130,6 +125,22 @@ const ResourcesPage = () => {
           />
         </Container>
       </Section>
+    </>
+  );
+};
+
+const ResourcesPage = () => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <Hero
+        title="Resources"
+        description="Discover insights, research, and expertise across whitepapers, articles, and reports"
+      />
+
+      <Suspense fallback={<div>Loading resources...</div>}>
+        <ResourcesContent />
+      </Suspense>
     </div>
   );
 };
