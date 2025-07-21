@@ -8,6 +8,7 @@ export default function Button({
   className = "",
   link,
   onClick,
+  disabled = false,
   ...props
 }) {
   const baseClass =
@@ -17,23 +18,29 @@ export default function Button({
       ? "btn-secondary"
       : "";
 
-  if (link) {
+  const disabledClass = disabled ? "opacity-50 cursor-not-allowed" : "";
+
+  if (link && !disabled) {
     return (
-      <Link href={link} passHref legacyBehavior>
-        <a className={`${baseClass} ${className}`} onClick={onClick} {...props}>
-          {text}
-          <span className="btn-icon">
-            <Icon icon="solar:arrow-right-up-linear" width="18" height="18" />
-          </span>
-        </a>
+      <Link
+        href={link}
+        className={`${baseClass} ${className} ${disabledClass}`}
+        onClick={onClick}
+        {...props}
+      >
+        {text}
+        <span className="btn-icon">
+          <Icon icon="solar:arrow-right-up-linear" width="18" height="18" />
+        </span>
       </Link>
     );
   }
 
   return (
     <button
-      className={`${baseClass} ${className}`}
+      className={`${baseClass} ${className} ${disabledClass}`}
       onClick={onClick}
+      disabled={disabled}
       {...props}
     >
       {text}

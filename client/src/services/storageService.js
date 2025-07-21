@@ -8,33 +8,20 @@ import {
     getMetadata
 } from 'firebase/storage';
 import { storage } from '../config/firebase';
-import { CloudinaryService, CloudinaryImageService, CloudinaryDocumentService } from './cloudinaryService';
-
-// Configuration - Set to 'cloudinary' or 'firebase'
-const STORAGE_PROVIDER = process.env.NEXT_PUBLIC_STORAGE_PROVIDER || 'firebase';
 
 export class StorageService {
     // Check if storage provider is configured
     static isConfigured() {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            return CloudinaryService.isConfigured();
-        } else {
-            return typeof window !== 'undefined' && storage !== null;
-        }
+        return typeof window !== 'undefined' && storage !== null;
     }
 
     // Get current provider
     static getProvider() {
-        return STORAGE_PROVIDER;
+        return 'firebase';
     }
 
     // Upload file with progress tracking
     static async uploadFile(file, path, onProgress = null) {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            return await CloudinaryService.uploadFileWithProgress(file, path, onProgress);
-        }
-
-        // Original Firebase implementation
         try {
             const storageRef = ref(storage, path);
 
@@ -86,11 +73,6 @@ export class StorageService {
 
     // Upload multiple files
     static async uploadMultipleFiles(files, basePath, onProgress = null) {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            return await CloudinaryService.uploadMultipleFiles(files, basePath, onProgress);
-        }
-
-        // Original Firebase implementation
         try {
             const uploads = files.map((file, index) => {
                 const fileName = `${Date.now()}_${index}_${file.name}`;
@@ -108,14 +90,9 @@ export class StorageService {
     }
 
     // Delete file
-    static async deleteFile(pathOrPublicId) {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            return await CloudinaryService.deleteFile(pathOrPublicId);
-        }
-
-        // Original Firebase implementation
+    static async deleteFile(path) {
         try {
-            const storageRef = ref(storage, pathOrPublicId);
+            const storageRef = ref(storage, path);
             await deleteObject(storageRef);
         } catch (error) {
             throw new Error(`Delete failed: ${error.message}`);
@@ -123,16 +100,9 @@ export class StorageService {
     }
 
     // Get file metadata
-    static async getFileMetadata(pathOrPublicId) {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            // Cloudinary metadata is included in the upload response
-            // For existing files, you'd need to make an API call
-            throw new Error('Cloudinary metadata retrieval not implemented yet');
-        }
-
-        // Original Firebase implementation
+    static async getFileMetadata(path) {
         try {
-            const storageRef = ref(storage, pathOrPublicId);
+            const storageRef = ref(storage, path);
             const metadata = await getMetadata(storageRef);
             return metadata;
         } catch (error) {
@@ -141,14 +111,9 @@ export class StorageService {
     }
 
     // List files in directory
-    static async listFiles(pathOrFolder) {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            return await CloudinaryService.listFiles(pathOrFolder);
-        }
-
-        // Original Firebase implementation
+    static async listFiles(path) {
         try {
-            const storageRef = ref(storage, pathOrFolder);
+            const storageRef = ref(storage, path);
             const result = await listAll(storageRef);
 
             const files = await Promise.all(
@@ -195,15 +160,8 @@ export class StorageService {
         return file.size <= maxSizeInBytes;
     }
 
-    // Resize image (client-side) - Firebase only
+    // Resize image (client-side)
     static async resizeImage(file, maxWidth, maxHeight, quality = 0.8) {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            // Cloudinary handles resizing server-side
-            console.warn('Client-side resizing not needed with Cloudinary. Use transformation options instead.');
-            return file;
-        }
-
-        // Original Firebase implementation
         return new Promise((resolve) => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -245,18 +203,6 @@ export class ImageService extends StorageService {
     static maxSizeInMB = 5;
 
     static async uploadImage(file, folder = 'images', resize = true) {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            return await CloudinaryImageService.uploadImage(file, folder, {
-                transformation: resize ? {
-                    width: 1920,
-                    height: 1080,
-                    crop: 'limit',
-                    quality: 'auto'
-                } : undefined
-            });
-        }
-
-        // Original Firebase implementation
         // Validate file type
         if (!this.validateFileType(file, this.allowedTypes)) {
             throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.');
@@ -281,11 +227,6 @@ export class ImageService extends StorageService {
     }
 
     static async uploadMultipleImages(files, folder = 'images') {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            return await CloudinaryImageService.uploadMultipleImages(files, folder);
-        }
-
-        // Original Firebase implementation
         const validFiles = files.filter(file => {
             const isValidType = this.validateFileType(file, this.allowedTypes);
             const isValidSize = this.validateFileSize(file, this.maxSizeInMB);
@@ -320,11 +261,6 @@ export class DocumentService extends StorageService {
     static maxSizeInMB = 10;
 
     static async uploadDocument(file, folder = 'documents') {
-        if (STORAGE_PROVIDER === 'cloudinary') {
-            return await CloudinaryDocumentService.uploadDocument(file, folder);
-        }
-
-        // Original Firebase implementation
         // Validate file type
         if (!this.validateFileType(file, this.allowedTypes)) {
             throw new Error('Invalid file type. Only PDF, Word, Excel, and text files are allowed.');

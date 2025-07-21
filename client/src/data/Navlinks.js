@@ -3,10 +3,13 @@ export const footerNavLinks = [
         title: "Xtrawrkx",
         links: [
             { label: "About", href: "/about" },
-            { label: "Careers", href: "/careers" },
-            { label: "Investors", href: "/investors" },
-            { label: "Partners", href: "/partners" },
-            { label: "Affiliates", href: "/affiliates" },
+            { label: "Gallery", href: "/gallery" },
+            { label: "Services", href: "/services" },
+            { label: "Contact Us", href: "/contact-us" },
+            { label: "Communities", href: "/communities" },
+            { label: "Events", href: "/events" },
+            { label: "Sitemap", href: "/sitemap" },
+            // { label: "Careers", href: "/careers" },
         ],
     },
     {
@@ -22,9 +25,12 @@ export const footerNavLinks = [
     {
         title: "Events",
         links: [
-            { label: "XSOS 2024", href: "/events/xsos-2024" },
-            { label: "XSOS 2025", href: "/events/xsos-2025" },
-            { label: "XSOS 2026", href: "/events/xsos-2026" },
+            { label: "All Events", href: "/events" },
+            { label: "Pre Summit Mixer", href: "/events/pre-summit-mixer-bengaluru-2025" },
+            { label: "XEV FIN Summit", href: "/events/xev-fin-summit-on-summits" },
+            { label: "Tech Workshop", href: "/events/tech-innovation-workshop" },
+            { label: "Community Meetup", href: "/events/community-networking-meetup" },
+            { label: "Xevtg HR Fair", href: "/events/xevtg-hr-fair-2024" },
         ],
     },
     {
@@ -33,23 +39,24 @@ export const footerNavLinks = [
             { label: "XEV.FiN", href: "/communities/xev-fin" },
             { label: "XEN", href: "/communities/xen" },
             { label: "XEVTG", href: "/communities/xevtg" },
+            { label: "xD&D", href: "/communities/xd-d" },
         ],
     },
 ];
 
 export const footerBottomLinks = [
-    { label: "Terms of Service", href: "/terms-of-service" },
     { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Terms of Service", href: "/terms-of-service" },
     { label: "Sitemap", href: "/sitemap" },
-    { label: "Privacy Choices", href: "/privacy-choices" },
 ];
 
 export const navbarLinks = [
-    { label: "Home", href: "/" },
-    { label: "About", href: "/about" },
-    { label: "Services", href: "#", hasDropdown: true },
-    { label: "Communities", href: "#", hasDropdown: true },
-    { label: "Events", href: "#", hasDropdown: true },
-    { label: "Resources", href: "/resources" },
-    { label: "Careers", href: "/careers" },
+    { label: "Home", href: "/", hasDropdown: false },
+    { label: "About", href: "/about", hasDropdown: false },
+    { label: "Services", href: "/services", hasDropdown: true },
+    { label: "Communities", href: "/communities", hasDropdown: true },
+    { label: "Events", href: "/events", hasDropdown: true },
+    { label: "Resources", href: "/resources", hasDropdown: false },
+    { label: "Gallery", href: "/gallery", hasDropdown: false },
+    // { label: "Contact", href: "/contact-us", hasDropdown: false },
 ];

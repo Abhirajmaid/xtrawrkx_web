@@ -1,15 +1,19 @@
 "use client";
 import { notFound } from "next/navigation";
+import { use } from "react";
 import Image from "next/image";
 import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import Button from "@/src/components/common/Button";
 import { Icon } from "@iconify/react";
-import servicesData, { engagementModels } from "@/src/data/ServicesData";
+import servicesData from "@/src/data/ServicesData";
 import ServiceCard from "@/src/components/common/ServiceCard";
+import { useBookMeetModal } from "@/src/hooks/useBookMeetModal";
 
 export default function ServicePage({ params }) {
-  const { slug } = params;
+  const resolvedParams = use(params);
+  const { slug } = resolvedParams;
+  const { openModal } = useBookMeetModal();
 
   // Find the service by slug
   const service = servicesData.find((s) => s.slug === slug);
@@ -58,317 +62,104 @@ export default function ServicePage({ params }) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              text="Get Started"
+              text="Schedule Call"
               type="primary"
               className="bg-gradient-to-r from-brand-primary to-brand-secondary"
-              link="/contact-us"
+              onClick={openModal}
             />
             <Button
               text="Download Brochure"
               type="secondary"
               className="bg-white/20 backdrop-blur-sm hover:bg-white/30"
+              link={service.brochureUrl || "/brochures/sample.pdf"}
+              target="_blank"
+              rel="noopener noreferrer"
             />
           </div>
         </Container>
       </Section>
 
       {/* Service Details Section */}
-      <Section className="py-20">
+      <Section className="py-16 bg-gray-50">
         <Container>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Main Content */}
-            <div className="lg:col-span-2">
-              {/* Service Overview */}
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                  Service Overview
-                </h2>
-                <div className="prose prose-lg max-w-none text-gray-700">
-                  <p className="text-lg leading-relaxed mb-6">
-                    {service.description}
-                  </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Service Overview */}
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Service Overview
+              </h2>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                {service.description}
+              </p>
 
-                  {/* Key Highlights */}
-                  {service.highlights && service.highlights.length > 0 && (
-                    <div className="bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-2xl p-6 mb-8">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                        Key Highlights
-                      </h3>
-                      <ul className="space-y-3">
-                        {service.highlights.map((highlight, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <Icon
-                              icon="mdi:check-circle"
-                              className="text-brand-primary mt-0.5 flex-shrink-0"
-                              width={20}
-                            />
-                            <span className="text-gray-700">{highlight}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Tags */}
-                  {service.tags && service.tags.length > 0 && (
-                    <div className="mb-8">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                        Related Topics
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {service.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-brand-primary hover:text-white transition-colors cursor-pointer"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Case Studies */}
-              {service.caseStudies && service.caseStudies.length > 0 && (
-                <div className="mb-12">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                    Case Studies
-                  </h2>
-                  <div className="space-y-6">
-                    {service.caseStudies.map((caseStudy, index) => (
-                      <div
-                        key={index}
-                        className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100"
-                      >
-                        <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                          {caseStudy.title}
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          {caseStudy.summary}
-                        </p>
-                        {caseStudy.url && (
-                          <Button
-                            text="Read Full Case Study"
-                            type="secondary"
-                            link={caseStudy.url}
-                            className="text-sm"
-                          />
-                        )}
-                      </div>
+              {service.highlights && service.highlights.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    Key Highlights
+                  </h3>
+                  <ul className="space-y-3">
+                    {service.highlights.map((highlight, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <Icon
+                          icon="solar:check-circle-bold"
+                          className="text-green-500 mt-1"
+                          width={20}
+                        />
+                        <span className="text-gray-700">{highlight}</span>
+                      </li>
                     ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Testimonials */}
-              {service.testimonials && service.testimonials.length > 0 && (
-                <div className="mb-12">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                    Client Testimonials
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {service.testimonials.map((testimonial, index) => (
-                      <div
-                        key={index}
-                        className="bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-2xl p-6"
-                      >
-                        <div className="flex items-start gap-4">
-                          <Icon
-                            icon="mdi:format-quote-close"
-                            className="text-brand-primary flex-shrink-0 mt-1"
-                            width={24}
-                          />
-                          <div>
-                            <p className="text-gray-700 italic mb-4">
-                              "{testimonial.quote}"
-                            </p>
-                            <div>
-                              <p className="font-semibold text-gray-900">
-                                {testimonial.author}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                {testimonial.company}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Partners */}
-              {service.partners && service.partners.length > 0 && (
-                <div className="mb-12">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                    Technology Partners
-                  </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {service.partners.map((partner, index) => (
-                      <div
-                        key={index}
-                        className="bg-white rounded-lg p-4 shadow-md border border-gray-100 text-center hover:shadow-lg transition-shadow"
-                      >
-                        <div className="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <span className="text-2xl font-bold text-gray-600">
-                            {partner.name.charAt(0)}
-                          </span>
-                        </div>
-                        <h3 className="font-medium text-gray-900 text-sm">
-                          {partner.name}
-                        </h3>
-                        {partner.url && (
-                          <a
-                            href={partner.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-brand-primary hover:underline mt-1 block"
-                          >
-                            Visit Website
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  </ul>
                 </div>
               )}
             </div>
 
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              {/* Service Info Card */}
-              <div className="bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-2xl p-6 mb-8 sticky top-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">
-                  Service Information
-                </h3>
+            {/* Service Info */}
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                Get Started Today
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Ready to transform your business? Let's discuss how our{" "}
+                {service.name} service can help you achieve your goals.
+              </p>
 
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Icon
-                      icon="mdi:tag"
-                      className="text-brand-primary"
-                      width={24}
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900">Category</p>
-                      <p className="text-gray-600">{service.category}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Icon
-                      icon="mdi:office-building"
-                      className="text-brand-primary"
-                      width={24}
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900">Delivered by</p>
-                      <p className="text-gray-600">{service.subCompany}</p>
-                    </div>
-                  </div>
-
-                  {service.featured && (
-                    <div className="flex items-center gap-3">
-                      <Icon
-                        icon="mdi:star"
-                        className="text-brand-primary"
-                        width={24}
-                      />
-                      <div>
-                        <p className="font-medium text-gray-900">Status</p>
-                        <p className="text-gray-600">Featured Service</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {service.updatedAt && (
-                    <div className="flex items-center gap-3">
-                      <Icon
-                        icon="mdi:calendar-clock"
-                        className="text-brand-primary"
-                        width={24}
-                      />
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          Last Updated
-                        </p>
-                        <p className="text-gray-600">
-                          {new Date(service.updatedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <Button
-                    text="Get Started"
-                    type="primary"
-                    className="w-full mb-3"
-                    link="/contact-us"
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <Icon
+                    icon="solar:phone-bold"
+                    className="text-brand-primary"
+                    width={20}
                   />
-                  <Button
-                    text="Schedule Consultation"
-                    type="secondary"
-                    className="w-full"
-                    link="/contact-us"
+                  <span className="text-gray-700">Free consultation call</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Icon
+                    icon="solar:clock-circle-bold"
+                    className="text-brand-primary"
+                    width={20}
                   />
+                  <span className="text-gray-700">
+                    Quick response within 24 hours
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Icon
+                    icon="solar:shield-check-bold"
+                    className="text-brand-primary"
+                    width={20}
+                  />
+                  <span className="text-gray-700">
+                    Tailored solutions for your needs
+                  </span>
                 </div>
               </div>
 
-              {/* Engagement Models */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg border mb-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
-                  How We Work
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Choose the engagement model that fits your needs best.
-                </p>
-                <div className="space-y-3">
-                  {engagementModels.map((model, index) => (
-                    <div
-                      key={index}
-                      className="border border-gray-200 rounded-lg p-3 hover:border-brand-primary transition-colors"
-                    >
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-gray-900">
-                          {model.name}
-                        </h4>
-                        <span className="text-sm font-semibold text-brand-primary">
-                          {model.price}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600">{model.subtitle}</p>
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  text="View All Models"
-                  type="secondary"
-                  link="/modals"
-                  className="w-full mt-4"
-                />
-              </div>
-
-              {/* Contact Info */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg border">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
-                  Need Help?
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Have questions about this service? Get in touch with our
-                  experts.
-                </p>
-                <Button
-                  text="Contact Us"
-                  type="secondary"
-                  link="/contact-us"
-                  className="w-full"
-                />
-              </div>
+              <Button
+                text="Get Free Consultation"
+                type="primary"
+                className="w-full"
+                onClick={openModal}
+              />
             </div>
           </div>
         </Container>
@@ -376,32 +167,21 @@ export default function ServicePage({ params }) {
 
       {/* Related Services */}
       {relatedServices.length > 0 && (
-        <Section className="py-20 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
+        <Section className="py-16 bg-white">
           <Container>
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                Related Services
-              </h2>
-              <p className="text-xl text-gray-600">
-                Discover more services that might interest you
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {relatedServices.map((relatedService, index) => (
-                <div
-                  key={index}
-                  className="group transform transition-all duration-300 hover:scale-105"
-                >
-                  <ServiceCard
-                    name={relatedService.name}
-                    image={relatedService.image}
-                    description={relatedService.description}
-                    link={`/services/${relatedService.slug}`}
-                    isFavorite={relatedService.isFavorite}
-                    onFavorite={() => {}}
-                  />
-                </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+              Related Services
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {relatedServices.map((relatedService) => (
+                <ServiceCard
+                  key={relatedService.id}
+                  name={relatedService.name}
+                  image={relatedService.image}
+                  description={relatedService.description}
+                  link={relatedService.link}
+                  buttonText="Learn More"
+                />
               ))}
             </div>
           </Container>

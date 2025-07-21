@@ -1,5 +1,6 @@
 "use client";
 import { notFound } from "next/navigation";
+import { use } from "react";
 import Image from "next/image";
 import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
@@ -8,7 +9,7 @@ import { Icon } from "@iconify/react";
 import { eventsData } from "@/src/data/EventsData";
 
 export default function EventPage({ params }) {
-  const { slug } = params;
+  const { slug } = use(params);
 
   // Find the event by slug
   const event = eventsData.find((e) => e.slug === slug);
@@ -61,12 +62,116 @@ export default function EventPage({ params }) {
             <Button
               text="Register Now"
               type="primary"
+              link={`/events/${slug}/register`}
               className="bg-gradient-to-r from-brand-primary to-brand-secondary"
             />
             <Button
               text="Add to Calendar"
               type="secondary"
               className="bg-white/20 backdrop-blur-sm hover:bg-white/30"
+              onClick={() => {
+                try {
+                  // Parse the event date - remove ordinal indicators (st, nd, rd, th)
+                  const cleanDateString = event.date.replace(
+                    /(\d+)(st|nd|rd|th)/,
+                    "$1"
+                  );
+                  const eventDate = new Date(cleanDateString);
+
+                  // Check if date is valid
+                  if (isNaN(eventDate.getTime())) {
+                    console.error(
+                      "Invalid date format:",
+                      event.date,
+                      "cleaned:",
+                      cleanDateString
+                    );
+                    alert("Unable to add to calendar: Invalid date format");
+                    return;
+                  }
+
+                  // Parse event time if available, otherwise default to 9 AM
+                  const startDate = new Date(eventDate);
+                  if (event.time) {
+                    // Try to parse the time (e.g., "6:00 PM - 9:00 PM" or "9:00 AM - 6:00 PM")
+                    const timeMatch = event.time.match(
+                      /(\d{1,2}):(\d{2})\s*(AM|PM)/i
+                    );
+                    if (timeMatch) {
+                      let hours = parseInt(timeMatch[1]);
+                      const minutes = parseInt(timeMatch[2]);
+                      const period = timeMatch[3].toUpperCase();
+
+                      if (period === "PM" && hours !== 12) {
+                        hours += 12;
+                      } else if (period === "AM" && hours === 12) {
+                        hours = 0;
+                      }
+
+                      startDate.setHours(hours, minutes, 0, 0);
+                    } else {
+                      startDate.setHours(9, 0, 0, 0); // Default to 9 AM
+                    }
+                  } else {
+                    startDate.setHours(9, 0, 0, 0); // Default to 9 AM
+                  }
+
+                  // Set end time based on event time or default to 2 hours later
+                  const endDate = new Date(startDate);
+                  if (event.time && event.time.includes(" - ")) {
+                    // Try to parse end time
+                    const endTimeMatch = event.time.match(
+                      /- (\d{1,2}):(\d{2})\s*(AM|PM)/i
+                    );
+                    if (endTimeMatch) {
+                      let endHours = parseInt(endTimeMatch[1]);
+                      const endMinutes = parseInt(endTimeMatch[2]);
+                      const endPeriod = endTimeMatch[3].toUpperCase();
+
+                      if (endPeriod === "PM" && endHours !== 12) {
+                        endHours += 12;
+                      } else if (endPeriod === "AM" && endHours === 12) {
+                        endHours = 0;
+                      }
+
+                      endDate.setHours(endHours, endMinutes, 0, 0);
+                    } else {
+                      endDate.setTime(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+                    }
+                  } else {
+                    endDate.setTime(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+                  }
+
+                  // Format dates for Google Calendar (YYYYMMDDTHHMMSSZ)
+                  const formatDate = (date) => {
+                    return (
+                      date.toISOString().replace(/[-:]/g, "").split(".")[0] +
+                      "Z"
+                    );
+                  };
+
+                  const calendarEvent = {
+                    title: event.title,
+                    start: formatDate(startDate),
+                    end: formatDate(endDate),
+                    description: event.description || "",
+                    location: event.location || "",
+                  };
+
+                  const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+                    calendarEvent.title
+                  )}&dates=${calendarEvent.start}/${
+                    calendarEvent.end
+                  }&details=${encodeURIComponent(
+                    calendarEvent.description
+                  )}&location=${encodeURIComponent(calendarEvent.location)}`;
+
+                  window.open(googleCalendarUrl, "_blank");
+                } catch (error) {
+                  console.error("Error creating calendar event:", error);
+                  alert("Unable to add to calendar. Please try again.");
+                }
+              }}
             />
           </div>
         </Container>
@@ -87,6 +192,7 @@ export default function EventPage({ params }) {
                   <p>{event.description}</p>
                   {event.longDescription && (
                     <div
+                      className="not-prose"
                       dangerouslySetInnerHTML={{
                         __html: event.longDescription,
                       }}
@@ -246,9 +352,10 @@ export default function EventPage({ params }) {
 
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <Button
-                    text="Register Now"
+                    text="Company Registration"
                     type="primary"
                     className="w-full mb-3"
+                    link={`/events/${event.slug}/register`}
                   />
                   <Button
                     text="Share Event"

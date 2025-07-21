@@ -1,19 +1,22 @@
-import Image from "next/image";
 import Section from "../layout/Section";
 import Button from "../common/Button";
 import { Icon } from "@iconify/react";
+import { useBookMeetModal } from "../../hooks/useBookMeetModal";
 
 export default function HomeHero() {
+  const { openModal } = useBookMeetModal();
+
   return (
     <Section className="relative bg-[#E3E3E3] w-full h-[105vh] min-h-[700px] flex flex-col items-center justify-center !overflow-x-hidden p-0">
-      {/* Background image */}
+      {/* Background video */}
       <div className="absolute inset-0 w-full h-full z-0">
-        <Image
-          src="/images/homeHero.png"
-          alt="Home Hero background"
-          fill
-          className=" object-top"
-          priority
+        <video
+          src="/mountain_vid.webm"
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover object-top"
         />
       </div>
 
@@ -24,7 +27,7 @@ export default function HomeHero() {
           <p>From Complexity to Clarity</p>
           <p>We Build What Matters.</p>
         </div>
-        <Button text="GET STARTED" type="primary" />
+        <Button text="GET STARTED" type="primary" onClick={openModal} />
       </div>
 
       {/* Action cards at bottom */}

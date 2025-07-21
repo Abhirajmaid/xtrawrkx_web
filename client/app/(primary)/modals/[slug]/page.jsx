@@ -1,23 +1,37 @@
 "use client";
+import React, { useState, useEffect, use } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import Button from "@/src/components/common/Button";
 import { Icon } from "@iconify/react";
-import { useState } from "react";
-import modalsData, { getModalBySlug } from "@/src/data/ModalsData";
+import { modalsData } from "../../../../src/data/ModalsData";
 
 export default function SingleModalPage({ params }) {
-  const { slug } = params;
+  const { slug } = use(params);
   const [openFaq, setOpenFaq] = useState(null);
 
   // Find the modal by slug
-  const modal = getModalBySlug(slug);
+  const modal = modalsData.find((m) => m.slug === slug);
 
   if (!modal) {
     notFound();
   }
+
+  // State for testimonial carousel
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  // Auto-advance testimonials
+  useEffect(() => {
+    if (modal.testimonials && modal.testimonials.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentTestimonial((prev) => (prev + 1) % modal.testimonials.length);
+      }, 4000);
+
+      return () => clearInterval(interval);
+    }
+  }, [modal.testimonials]);
 
   // Get other modals for comparison
   const otherModals = modalsData.filter((m) => m.slug !== slug);
@@ -213,11 +227,7 @@ export default function SingleModalPage({ params }) {
                     <div
                       className="flex transition-transform duration-500 ease-in-out"
                       style={{
-                        transform: `translateX(-${
-                          (((Date.now() / 4000) | 0) %
-                            modal.testimonials.length) *
-                          100
-                        }%)`,
+                        transform: `translateX(-${currentTestimonial * 100}%)`,
                         width: `${modal.testimonials.length * 100}%`,
                       }}
                     >
@@ -255,12 +265,11 @@ export default function SingleModalPage({ params }) {
                     {/* Dots indicator */}
                     <div className="flex justify-center mt-6 space-x-2">
                       {modal.testimonials.map((_, index) => (
-                        <div
+                        <button
                           key={index}
+                          onClick={() => setCurrentTestimonial(index)}
                           className={`w-2 h-2 rounded-full transition-colors duration-300 ${
-                            ((Date.now() / 4000) | 0) %
-                              modal.testimonials.length ===
-                            index
+                            currentTestimonial === index
                               ? "bg-brand-primary"
                               : "bg-gray-300"
                           }`}

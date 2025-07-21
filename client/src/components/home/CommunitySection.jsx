@@ -64,6 +64,7 @@ export default function CommunitySection() {
             type="secondary"
             text="Explore The Communities"
             className="mt-2 w-[45%] text-lg"
+            link="/communities"
           />
         </div>
       </Container>

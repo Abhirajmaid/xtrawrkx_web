@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Icon } from "@iconify/react";
 import Button from "../common/Button";
 
@@ -35,10 +36,12 @@ const ResourceCard = ({ resource, layout = "grid" }) => {
     return (
       <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
         <div className="relative h-48">
-          <img
+          <Image
             src={resource.image}
             alt={resource.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           <div className="absolute top-4 left-4">
             <span
@@ -63,37 +66,23 @@ const ResourceCard = ({ resource, layout = "grid" }) => {
           )}
         </div>
         <div className="p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-brand-primary font-medium">
-              {resource.category}
-            </span>
-            <span className="text-sm text-gray-500">{resource.readTime}</span>
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 flex-1">
+              {resource.title}
+            </h3>
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
-            {resource.title}
-          </h3>
-          <p className="text-gray-600 mb-4 line-clamp-3">{resource.excerpt}</p>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-sm text-gray-500">
-              <Icon icon="solar:user-bold" width={16} className="mr-1" />
-              {resource.author}
-            </div>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span className="flex items-center">
-                <Icon icon="solar:eye-bold" width={16} className="mr-1" />
-                {resource.views.toLocaleString()}
+          <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+            {resource.description}
+          </p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {resource.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+              >
+                {tag}
               </span>
-              {resource.downloads > 0 && (
-                <span className="flex items-center">
-                  <Icon
-                    icon="solar:download-bold"
-                    width={16}
-                    className="mr-1"
-                  />
-                  {resource.downloads.toLocaleString()}
-                </span>
-              )}
-            </div>
+            ))}
           </div>
           <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center justify-between">
@@ -120,10 +109,12 @@ const ResourceCard = ({ resource, layout = "grid" }) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <div className="relative h-40">
-        <img
+        <Image
           src={resource.image}
           alt={resource.title}
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />
         <div className="absolute top-3 left-3">
           <span
@@ -148,40 +139,18 @@ const ResourceCard = ({ resource, layout = "grid" }) => {
         )}
       </div>
       <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-brand-primary font-medium">
-            {resource.category}
-          </span>
-          <span className="text-sm text-gray-500">{resource.readTime}</span>
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+        <h3 className="text-md font-semibold text-gray-900 mb-2 line-clamp-2">
           {resource.title}
         </h3>
-        <p className="text-gray-600 mb-3 line-clamp-2">{resource.excerpt}</p>
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-          <span className="flex items-center">
-            <Icon icon="solar:user-bold" width={14} className="mr-1" />
-            {resource.author}
-          </span>
-          <span>{resource.publishedDate}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-sm text-gray-500">
-            <span className="flex items-center">
-              <Icon icon="solar:eye-bold" width={14} className="mr-1" />
-              {resource.views.toLocaleString()}
-            </span>
-            {resource.downloads > 0 && (
-              <span className="flex items-center">
-                <Icon icon="solar:download-bold" width={14} className="mr-1" />
-                {resource.downloads.toLocaleString()}
-              </span>
-            )}
-          </div>
+        <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+          {resource.description}
+        </p>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500">{resource.publishedDate}</span>
           <Button
-            text={resource.downloadUrl ? "Download" : "Read"}
-            type="secondary"
-            size="sm"
+            text={resource.downloadUrl ? "Download" : "Read More"}
+            type="primary"
+            size="xs"
             link={
               resource.downloadUrl
                 ? resource.downloadUrl

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { use } from "react";
 import { notFound } from "next/navigation";
 import Section from "../../../../src/components/layout/Section";
 import Container from "../../../../src/components/layout/Container";
@@ -15,7 +15,8 @@ import {
 } from "../../../../src/data/ResourcesData";
 
 const SingleResourcePage = ({ params }) => {
-  const resource = getResourceBySlug(params.slug);
+  const { slug } = use(params);
+  const resource = getResourceBySlug(slug);
 
   if (!resource) {
     notFound();

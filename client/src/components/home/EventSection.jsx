@@ -1,3 +1,4 @@
+"use client";
 import Section from "../layout/Section";
 import Container from "../layout/Container";
 import EventCard from "../common/EventCard";

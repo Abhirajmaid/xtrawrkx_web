@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { footerNavLinks, footerBottomLinks } from "../../data/Navlinks";
 
@@ -28,7 +29,12 @@ export default function Footer() {
               <ul className="space-y-1 text-brand-dark font-primary">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href}>{link.label}</a>
+                    <Link
+                      href={link.href}
+                      className="hover:text-brand-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -49,9 +55,13 @@ export default function Footer() {
         {/* Links */}
         <div className="flex flex-wrap gap-6 text-brand-dark font-primary text-sm justify-center">
           {footerBottomLinks.map((link) => (
-            <a key={link.label} href={link.href}>
+            <Link
+              key={link.label}
+              href={link.href}
+              className="hover:text-brand-primary transition-colors"
+            >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
         {/* Socials */}

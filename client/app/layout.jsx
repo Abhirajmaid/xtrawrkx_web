@@ -44,6 +44,17 @@ export const metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo.png", sizes: "32x32", type: "image/png" }, // Fallback to logo
+    ],
+    apple: [{ url: "/logo.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/site.webmanifest",
+  other: {
+    "google-site-verification": "your-google-verification-code", // Add your actual verification code
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -90,6 +101,17 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+        <link rel="canonical" href="https://xtrawrkx.com" />
+        {/* Favicon links with fallbacks */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+        <meta name="theme-color" content="#2563eb" />
+        <meta name="msapplication-TileColor" content="#2563eb" />
+        <meta name="msapplication-TileImage" content="/logo.png" />
+      </head>
       <body
         className={`${poppins.variable} ${newsreader.variable} antialiased`}
       >

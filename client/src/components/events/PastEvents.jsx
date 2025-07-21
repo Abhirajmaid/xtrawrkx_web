@@ -2,6 +2,7 @@ import Section from "../layout/Section";
 import Container from "../layout/Container";
 import EventCard from "../common/EventCard";
 import SectionHeader from "../common/SectionHeader";
+import Button from "../common/Button";
 import { Icon } from "@iconify/react";
 import { useState } from "react";
 
@@ -206,10 +207,12 @@ export default function PastEvents() {
 
         {/* Call to Action */}
         <div className="text-center mt-16">
-          <div className="inline-flex items-center gap-4 bg-gradient-to-r from-slate-600 to-gray-700 text-white px-8 py-4 rounded-full font-semibold text-lg hover:shadow-lg transition-all cursor-pointer">
-            <span>View Event Gallery</span>
-            <Icon icon="mdi:arrow-right" width={24} />
-          </div>
+          <Button
+            text="View Event Gallery"
+            type="primary"
+            link="/gallery?category=events"
+            className="text-lg px-8 py-4 w-fit mx-auto bg-gradient-to-r from-slate-600 to-gray-700 hover:from-slate-700 hover:to-gray-800"
+          />
         </div>
       </Container>
     </Section>

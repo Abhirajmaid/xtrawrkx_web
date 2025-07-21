@@ -1,5 +1,6 @@
 import { eventsData } from "./EventsData";
 import servicesData, { engagementModels } from "./ServicesData";
+import { communitiesData } from "./CommunityData";
 
 // Create dynamic services dropdown from servicesData
 const servicesDropdownList = servicesData.map(service => ({
@@ -23,16 +24,47 @@ export const servicesDropdownData = {
     ],
 };
 
+// Enhanced communities dropdown with detailed information
+const enhancedCommunitiesDropdownList = communitiesData.map(community => ({
+    label: community.fullName,
+    shortName: community.name,
+    slug: `/communities/${community.slug}`,
+    category: community.category,
+    members: community.members,
+    description: community.description,
+    icon: community.icon,
+    color: community.color,
+    primaryFeature: community.features[0] // Get the first/main feature
+}));
+
 export const communitiesDropdownData = {
     leftTitle: "Communities",
     description:
-        "EY helps clients create long-term value for all stakeholders. Enabled by data and technology, our services and solutions provide trust through assurance and help clients transform, grow and operate.",
+        "Join specialized communities designed for the EV ecosystem. From hardware startups to finance networks, connect with industry experts and accelerate your growth.",
     middleTitle: "Our Communities",
-    middleList: [
-        { label: "Xtrawrkx Electric Vehicle Finance Network", slug: "/communities/ev-finance-network" },
-        { label: "Xtrawrkx Entrepreneurship Network", slug: "/communities/entrepreneurship-network" },
-        { label: "Xtrawrkx EV Talent Group", slug: "/communities/ev-talent-group" },
-        { label: "Prototyping", slug: "/communities/prototyping" },
+    middleList: enhancedCommunitiesDropdownList,
+    rightTitle: "Quick Stats",
+    rightList: [
+        {
+            label: "Total Members",
+            value: "2500+",
+            subtitle: "Active professionals across all communities"
+        },
+        {
+            label: "Expert Consultants",
+            value: "40+",
+            subtitle: "Available for XEN members"
+        },
+        {
+            label: "Investment Network",
+            value: "250+",
+            subtitle: "Angel investors & VCs in XEV.FiN"
+        },
+        {
+            label: "Success Rate",
+            value: "88%",
+            subtitle: "XEVTG job placement rate"
+        }
     ],
 };
 
