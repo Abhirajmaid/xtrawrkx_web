@@ -16,7 +16,7 @@ export default function HomeHero() {
           muted
           loop
           playsInline
-          className="w-full h-full object-cover object-top"
+          className="w-full h-full object-cover object-top translate-y-[-80px] scale-115"
         />
       </div>
 
