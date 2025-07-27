@@ -163,15 +163,14 @@ class BaseDatabaseService {
         }
     }
 
-    // Delete document
-    async delete(collectionName, id) {
+    // Delete a document
+    async delete(id) {
         try {
-            const docRef = doc(db, collectionName, id);
+            const docRef = doc(db, this.collectionName, id);
             await deleteDoc(docRef);
-            return { success: true };
         } catch (error) {
-            console.error(`Error deleting document from ${collectionName}:`, error);
-            throw new Error(`Failed to delete ${collectionName.slice(0, -1)}: ${error.message}`);
+            console.error(`Error deleting document from ${this.collectionName}:`, error);
+            throw new Error(`Failed to delete document: ${error.message}`);
         }
     }
 
@@ -452,6 +451,63 @@ export class ServiceService extends BaseDatabaseService {
     }
 }
 
+// Gallery Service
+export class GalleryService extends BaseDatabaseService {
+    constructor() {
+        super('gallery');
+    }
+
+    // Create gallery item
+    async createGalleryItem(galleryData) {
+        return this.create(galleryData);
+    }
+
+    // Get all gallery items
+    async getGalleryItems() {
+        return this.getAll('date', 'desc');
+    }
+
+    // Get gallery item by ID
+    async getGalleryItemById(id) {
+        return this.getById(id);
+    }
+
+    // Get gallery items by category
+    async getGalleryItemsByCategory(category) {
+        return this.getByField('category', category, 'date', 'desc');
+    }
+
+    // Get featured gallery items
+    async getFeaturedGalleryItems() {
+        return this.getByField('featured', true, 'date', 'desc');
+    }
+
+    // Update gallery item
+    async updateGalleryItem(id, updateData) {
+        return this.update(id, updateData);
+    }
+
+    // Delete gallery item
+    async deleteGalleryItem(id) {
+        return this.delete(id);
+    }
+
+    // Search gallery items
+    async searchGalleryItems(searchTerm) {
+        try {
+            const allItems = await this.getGalleryItems();
+            return allItems.filter(item =>
+                item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+        } catch (error) {
+            console.error('Error searching gallery items:', error);
+            throw error;
+        }
+    }
+}
+
 // Event Registration Service
 export class EventRegistrationService extends BaseDatabaseService {
     constructor() {
@@ -510,6 +566,7 @@ export class EventRegistrationService extends BaseDatabaseService {
 export const eventService = new EventService();
 export const resourceService = new ResourceService();
 export const serviceService = new ServiceService();
+export const galleryService = new GalleryService();
 export const eventRegistrationService = new EventRegistrationService();
 
 // Export for compatibility

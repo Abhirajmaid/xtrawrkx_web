@@ -6,8 +6,10 @@ import { Icon } from "@iconify/react";
 const GalleryItem = ({ item }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (date) => {
+    // Handle both Date objects and date strings
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return dateObj.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -24,6 +26,12 @@ const GalleryItem = ({ item }) => {
     return colors[category] || "bg-gray-100 text-gray-800";
   };
 
+  // Ensure we have a valid image URL
+  const imageUrl =
+    typeof item.image === "string" && item.image.trim() !== ""
+      ? item.image
+      : "/images/hero.png";
+
   return (
     <>
       {/* Gallery Item Card */}
@@ -33,7 +41,7 @@ const GalleryItem = ({ item }) => {
       >
         <div className="relative h-96 overflow-hidden">
           <Image
-            src={item.image}
+            src={imageUrl}
             alt={item.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -60,21 +68,23 @@ const GalleryItem = ({ item }) => {
           <h3 className="font-bold text-lg text-gray-900 mb-4 line-clamp-2">
             {item.title}
           </h3>
-          <div className="flex flex-wrap gap-2">
-            {item.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
-            {item.tags.length > 3 && (
-              <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-                +{item.tags.length - 3}
-              </span>
-            )}
-          </div>
+          {item.tags && item.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {item.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+              {item.tags.length > 3 && (
+                <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
+                  +{item.tags.length - 3}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -109,7 +119,7 @@ const GalleryItem = ({ item }) => {
             <div className="p-6">
               <div className="relative h-64 md:h-96 min-w-[500px] mb-6 rounded-lg overflow-hidden">
                 <Image
-                  src={item.image}
+                  src={imageUrl}
                   alt={item.title}
                   fill
                   className="object-cover"
@@ -129,16 +139,26 @@ const GalleryItem = ({ item }) => {
                     {formatDate(item.date)}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {item.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
+                {item.description && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Description
+                    </h4>
+                    <p className="text-gray-700">{item.description}</p>
+                  </div>
+                )}
+                {item.tags && item.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {item.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

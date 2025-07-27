@@ -257,7 +257,7 @@ export default function EventSection() {
 
         {/* Desktop Carousel */}
         <div
-          className="hidden md:block relative flex items-center justify-center min-h-[420px] h-[520px]"
+          className="hidden md:flex relative items-center justify-center min-h-[420px] h-[520px]"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >

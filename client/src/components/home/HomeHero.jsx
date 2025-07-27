@@ -9,7 +9,7 @@ export default function HomeHero() {
   return (
     <Section className="relative bg-[#E3E3E3] w-full h-[100vh] min-h-[600px] md:h-[105vh] md:min-h-[700px] flex flex-col items-center justify-center !overflow-x-hidden p-0">
       {/* Background video */}
-      <div className="absolute inset-0 w-full h-full z-0">
+      <div className="static md:absolute inset-0 w-full h-full z-0">
         <video
           src="/mountain_vid.webm"
           autoPlay
@@ -25,7 +25,7 @@ export default function HomeHero() {
       <div
         className="
           z-30 flex flex-col items-center w-full max-w-3xl px-4
-          absolute left-1/2 -translate-x-1/2 bottom-10
+          left-1/2 -translate-x-1/2 bottom-10
           md:bottom-20
           md:left-1/2 md:-translate-x-1/2
           sm:bottom-10

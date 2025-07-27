@@ -6,12 +6,15 @@ import Container from "../layout/Container";
 import SectionHeader from "../common/SectionHeader";
 import GalleryFilter from "./GalleryFilter";
 import GalleryItem from "./GalleryItem";
-import { galleryItems } from "../../data/GalleryData";
+import { galleryService } from "../../services/databaseService";
 
 const GalleryGrid = () => {
   const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Handle URL parameters for filtering
   useEffect(() => {
@@ -23,6 +26,25 @@ const GalleryGrid = () => {
       setSelectedCategory(categoryParam);
     }
   }, [searchParams]);
+
+  // Load gallery items from Firebase
+  useEffect(() => {
+    loadGalleryItems();
+  }, []);
+
+  const loadGalleryItems = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const items = await galleryService.getGalleryItems();
+      setGalleryItems(items);
+    } catch (error) {
+      console.error("Error loading gallery items:", error);
+      setError("Failed to load gallery items. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter gallery items based on selected category and search query
   const filteredItems = useMemo(() => {
@@ -39,12 +61,65 @@ const GalleryGrid = () => {
 
       return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, galleryItems]);
 
   const handleClearFilters = () => {
     setSelectedCategory("all");
     setSearchQuery("");
   };
+
+  if (loading) {
+    return (
+      <Section className="bg-white">
+        <Container>
+          <SectionHeader title="Our Gallery" label="Moments" className="mb-6" />
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading gallery items...</p>
+            </div>
+          </div>
+        </Container>
+      </Section>
+    );
+  }
+
+  if (error) {
+    return (
+      <Section className="bg-white">
+        <Container>
+          <SectionHeader title="Our Gallery" label="Moments" className="mb-6" />
+          <div className="text-center py-12">
+            <div className="text-red-600 mb-4">
+              <svg
+                className="w-16 h-16 mx-auto mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Unable to load gallery
+            </h3>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={loadGalleryItems}
+              className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </Container>
+      </Section>
+    );
+  }
 
   return (
     <Section className="bg-white">
@@ -74,11 +149,11 @@ const GalleryGrid = () => {
               <GalleryItem key={item.id} item={item} />
             ))}
           </div>
-        ) : (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
+        ) : galleryItems.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
               <svg
-                className="w-10 h-10 text-gray-400"
+                className="w-16 h-16 mx-auto"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -91,16 +166,24 @@ const GalleryGrid = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No items found
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No gallery items yet
             </h3>
-            <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              We couldn't find any gallery items matching your current filters.
-              Try adjusting your search criteria.
+            <p className="text-gray-600">
+              Check back later for new gallery content.
+            </p>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No items match your criteria
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Try adjusting your search or filter criteria.
             </p>
             <button
               onClick={handleClearFilters}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
               Clear Filters
             </button>
