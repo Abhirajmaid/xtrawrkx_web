@@ -190,7 +190,7 @@ const XenPage = ({ community }) => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <Section className="relative w-full h-[95vh] min-h-[600px] flex items-center justify-center overflow-hidden p-0">
+      <Section className="relative w-full h-[100vh] min-h-[600px] flex items-center justify-center overflow-hidden p-0">
         <div className="absolute inset-0 w-full h-full">
           <Image
             src="/images/hero_services.png"

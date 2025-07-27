@@ -10,13 +10,28 @@ import {
   ResourceFilter,
   ResourcesGrid,
 } from "../../../src/components/resources";
-import {
-  resourcesData,
-  getFeaturedResources,
-  getResourcesByType,
-  getResourcesByCategory,
-} from "../../../src/data/ResourcesData";
+import { resourceService } from "../../../src/services/databaseService";
 import Hero from "@/src/components/common/Hero";
+
+// Resource categories for filtering
+const resourceCategories = [
+  "All",
+  "Finance",
+  "Technology",
+  "Manufacturing",
+  "Market Analysis",
+  "Sustainability",
+  "Regulatory",
+  "Investment",
+];
+
+// Resource types
+const resourceTypes = [
+  { value: "all", label: "All Resources" },
+  { value: "whitepaper", label: "Whitepapers" },
+  { value: "article", label: "Articles" },
+  { value: "report", label: "Reports" },
+];
 
 // Separate component that uses useSearchParams
 const ResourcesContent = () => {
@@ -24,6 +39,32 @@ const ResourcesContent = () => {
   const [selectedType, setSelectedType] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [resources, setResources] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load resources from Firebase
+  useEffect(() => {
+    const loadResources = async () => {
+      try {
+        setLoading(true);
+        const resourcesData = await resourceService.getResources();
+        // Only show published resources on the public site
+        const publishedResources = resourcesData.filter(
+          (resource) => (resource.status || "published") === "published"
+        );
+        setResources(publishedResources);
+        setError(null);
+      } catch (error) {
+        console.error("Error loading resources:", error);
+        setError("Failed to load resources. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadResources();
+  }, []);
 
   // Handle URL parameters for filtering
   useEffect(() => {
@@ -42,11 +83,14 @@ const ResourcesContent = () => {
     }
   }, [searchParams]);
 
-  const featuredResources = getFeaturedResources();
+  // Get featured resources
+  const featuredResources = useMemo(() => {
+    return resources.filter((resource) => resource.featured);
+  }, [resources]);
 
   // Filter resources based on selected filters and search query
   const filteredResources = useMemo(() => {
-    let filtered = resourcesData;
+    let filtered = resources;
 
     // Filter by type
     if (selectedType !== "all") {
@@ -68,20 +112,23 @@ const ResourcesContent = () => {
           resource.title.toLowerCase().includes(query) ||
           resource.description.toLowerCase().includes(query) ||
           resource.author.toLowerCase().includes(query) ||
-          resource.tags.some((tag) => tag.toLowerCase().includes(query))
+          (resource.tags &&
+            resource.tags.some((tag) => tag.toLowerCase().includes(query)))
       );
     }
 
     return filtered;
-  }, [selectedType, selectedCategory, searchQuery]);
+  }, [resources, selectedType, selectedCategory, searchQuery]);
 
   // Get resource counts by type for statistics
-  const resourceStats = {
-    total: resourcesData.length,
-    whitepapers: getResourcesByType("whitepaper").length,
-    articles: getResourcesByType("article").length,
-    reports: getResourcesByType("report").length,
-  };
+  const resourceStats = useMemo(() => {
+    return {
+      total: resources.length,
+      whitepapers: resources.filter((r) => r.type === "whitepaper").length,
+      articles: resources.filter((r) => r.type === "article").length,
+      reports: resources.filter((r) => r.type === "report").length,
+    };
+  }, [resources]);
 
   const handleClearFilters = () => {
     setSelectedType("all");
@@ -89,13 +136,67 @@ const ResourcesContent = () => {
     setSearchQuery("");
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Hero
+          title="Resources"
+          description="Discover insights, research, and expertise across whitepapers, articles, and reports"
+        />
+        <Section className="bg-white py-16">
+          <Container>
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-200 h-64 rounded-lg"
+                  ></div>
+                ))}
+              </div>
+            </div>
+          </Container>
+        </Section>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Hero
+          title="Resources"
+          description="Discover insights, research, and expertise across whitepapers, articles, and reports"
+        />
+        <Section className="bg-white py-16">
+          <Container>
+            <div className="text-center py-12">
+              <div className="text-red-500 text-xl font-semibold mb-4">
+                {error}
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </Container>
+        </Section>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Statistics Section */}
       <ResourcesStats resourceStats={resourceStats} />
 
       {/* Featured Resources Section */}
-      <FeaturedResources />
+      {featuredResources.length > 0 && (
+        <FeaturedResources featuredResources={featuredResources} />
+      )}
 
       {/* All Resources Section */}
       <Section className="bg-white py-16">
@@ -115,12 +216,14 @@ const ResourcesContent = () => {
             onTypeChange={setSelectedType}
             onCategoryChange={setSelectedCategory}
             onSearchChange={setSearchQuery}
+            resourceTypes={resourceTypes}
+            resourceCategories={resourceCategories}
           />
 
           {/* Resources Grid */}
           <ResourcesGrid
             resources={filteredResources}
-            totalResources={resourcesData.length}
+            totalResources={resources.length}
             onClearFilters={handleClearFilters}
           />
         </Container>

@@ -1,0 +1,128 @@
+// Utility functions for handling dates and Firestore timestamps
+
+/**
+ * Safely converts various date formats to a JavaScript Date object
+ * @param {Date|Object|string|number} timestamp - The timestamp to convert
+ * @returns {Date|null} - JavaScript Date object or null if invalid
+ */
+export const convertToDate = (timestamp) => {
+    if (!timestamp) {
+        return null;
+    }
+
+    // If it's already a Date object, return it
+    if (timestamp instanceof Date) {
+        return timestamp;
+    }
+
+    // If it's a Firestore Timestamp with toDate method
+    if (timestamp && typeof timestamp.toDate === 'function') {
+        try {
+            return timestamp.toDate();
+        } catch (error) {
+            console.warn('Error converting Firestore timestamp:', error);
+            return null;
+        }
+    }
+
+    // If it's a Firestore-like object with seconds and nanoseconds
+    if (timestamp && typeof timestamp === 'object' && timestamp.seconds !== undefined) {
+        try {
+            return new Date(timestamp.seconds * 1000);
+        } catch (error) {
+            console.warn('Error converting timestamp object:', error);
+            return null;
+        }
+    }
+
+    // If it's a string, try to parse it as a date
+    if (typeof timestamp === 'string') {
+        const date = new Date(timestamp);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    // If it's a number (Unix timestamp), convert it
+    if (typeof timestamp === 'number') {
+        return new Date(timestamp);
+    }
+
+    console.warn('Unknown timestamp format:', timestamp);
+    return null;
+};
+
+/**
+ * Formats a timestamp to a localized date string
+ * @param {Date|Object|string|number} timestamp - The timestamp to format
+ * @param {Object} options - Intl.DateTimeFormat options
+ * @returns {string} - Formatted date string
+ */
+export const formatDate = (timestamp, options = {}) => {
+    const date = convertToDate(timestamp);
+    if (!date) {
+        return '';
+    }
+
+    try {
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            ...options
+        });
+    } catch (error) {
+        console.warn('Error formatting date:', error);
+        return '';
+    }
+};
+
+/**
+ * Formats a timestamp to a relative time string (e.g., "2 days ago")
+ * @param {Date|Object|string|number} timestamp - The timestamp to format
+ * @returns {string} - Relative time string
+ */
+export const formatRelativeTime = (timestamp) => {
+    const date = convertToDate(timestamp);
+    if (!date) {
+        return '';
+    }
+
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) {
+        return 'Today';
+    } else if (diffInDays === 1) {
+        return 'Yesterday';
+    } else if (diffInDays < 7) {
+        return `${diffInDays} days ago`;
+    } else if (diffInDays < 30) {
+        const weeks = Math.floor(diffInDays / 7);
+        return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+    } else if (diffInDays < 365) {
+        const months = Math.floor(diffInDays / 30);
+        return months === 1 ? '1 month ago' : `${months} months ago`;
+    } else {
+        const years = Math.floor(diffInDays / 365);
+        return years === 1 ? '1 year ago' : `${years} years ago`;
+    }
+};
+
+/**
+ * Formats a timestamp for input fields (YYYY-MM-DD format)
+ * @param {Date|Object|string|number} timestamp - The timestamp to format
+ * @returns {string} - Date string in YYYY-MM-DD format
+ */
+export const formatDateForInput = (timestamp) => {
+    const date = convertToDate(timestamp);
+    if (!date) {
+        return '';
+    }
+
+    try {
+        return date.toISOString().split('T')[0];
+    } catch (error) {
+        console.warn('Error formatting date for input:', error);
+        return '';
+    }
+}; 

@@ -1,383 +1,446 @@
-"use client";
 import {
     collection,
     doc,
+    getDocs,
+    getDoc,
     addDoc,
     updateDoc,
     deleteDoc,
-    getDoc,
-    getDocs,
     query,
     where,
     orderBy,
     limit,
-    startAfter,
-    onSnapshot,
-    writeBatch
+    serverTimestamp,
+    getCountFromServer
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
-export class DatabaseService {
-    // Generic CRUD operations
+// Helper function to safely convert Firestore timestamps to Date objects
+const convertFirestoreTimestampToDate = (timestamp) => {
+    if (!timestamp) {
+        return null;
+    }
 
-    // Create document
-    static async create(collectionName, data) {
+    // If it's already a Date object, return it
+    if (timestamp instanceof Date) {
+        return timestamp;
+    }
+
+    // If it's a Firestore Timestamp with toDate method
+    if (timestamp && typeof timestamp.toDate === 'function') {
         try {
-            const docRef = await addDoc(collection(db, collectionName), {
-                ...data,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            });
-            return docRef.id;
+            return timestamp.toDate();
         } catch (error) {
-            throw new Error(`Failed to create document: ${error.message}`);
+            console.warn('Error converting Firestore timestamp:', error);
+            return null;
         }
     }
 
-    // Read single document
-    static async read(collectionName, docId) {
+    // If it's a string, try to parse it as a date
+    if (typeof timestamp === 'string') {
+        const date = new Date(timestamp);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    // If it's a number (Unix timestamp), convert it
+    if (typeof timestamp === 'number') {
+        return new Date(timestamp);
+    }
+
+    // If it has seconds and nanoseconds (Firestore Timestamp-like object)
+    if (timestamp && timestamp.seconds !== undefined) {
+        return new Date(timestamp.seconds * 1000);
+    }
+
+    console.warn('Unknown timestamp format:', timestamp);
+    return null;
+};
+
+// Base Database Service
+class BaseDatabaseService {
+    constructor(collectionName) {
+        this.collectionName = collectionName;
+    }
+
+    // Create a new document
+    async create(data) {
         try {
-            const docRef = doc(db, collectionName, docId);
+            const docData = {
+                ...data,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+            const docRef = await addDoc(collection(db, this.collectionName), docData);
+            return {
+                id: docRef.id,
+                ...data,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+        } catch (error) {
+            console.error(`Error creating document in ${this.collectionName}:`, error);
+            throw new Error(`Failed to create ${this.collectionName.slice(0, -1)}: ${error.message}`);
+        }
+    }
+
+    // Get all documents
+    async getAll(orderField = 'createdAt', orderDirection = 'desc') {
+        try {
+            const q = query(
+                collection(db, this.collectionName),
+                orderBy(orderField, orderDirection)
+            );
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                date: convertFirestoreTimestampToDate(doc.data().date),
+                registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
+            }));
+        } catch (error) {
+            console.error(`Error getting documents from ${this.collectionName}:`, error);
+            throw new Error(`Failed to fetch ${this.collectionName}: ${error.message}`);
+        }
+    }
+
+    // Get document by ID
+    async getById(id) {
+        try {
+            const docRef = doc(db, this.collectionName, id);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                return { id: docSnap.id, ...docSnap.data() };
+                return {
+                    id: docSnap.id,
+                    ...docSnap.data(),
+                    createdAt: convertFirestoreTimestampToDate(docSnap.data().createdAt),
+                    updatedAt: convertFirestoreTimestampToDate(docSnap.data().updatedAt),
+                    date: convertFirestoreTimestampToDate(docSnap.data().date),
+                    registrationDeadline: convertFirestoreTimestampToDate(docSnap.data().registrationDeadline)
+                };
             } else {
-                throw new Error('Document not found');
+                return null;
             }
         } catch (error) {
-            throw new Error(`Failed to read document: ${error.message}`);
+            console.error(`Error getting document from ${this.collectionName}:`, error);
+            throw new Error(`Failed to fetch ${this.collectionName.slice(0, -1)}: ${error.message}`);
         }
     }
 
     // Update document
-    static async update(collectionName, docId, data) {
+    async update(id, data) {
         try {
-            const docRef = doc(db, collectionName, docId);
-            await updateDoc(docRef, {
+            const docRef = doc(db, this.collectionName, id);
+            const updateData = {
                 ...data,
-                updatedAt: new Date().toISOString()
-            });
+                updatedAt: serverTimestamp()
+            };
+            await updateDoc(docRef, updateData);
+            return {
+                id,
+                ...data,
+                updatedAt: new Date()
+            };
         } catch (error) {
-            throw new Error(`Failed to update document: ${error.message}`);
+            console.error(`Error updating document in ${this.collectionName}:`, error);
+            throw new Error(`Failed to update ${this.collectionName.slice(0, -1)}: ${error.message}`);
         }
     }
 
     // Delete document
-    static async delete(collectionName, docId) {
+    async delete(collectionName, id) {
         try {
-            const docRef = doc(db, collectionName, docId);
+            const docRef = doc(db, collectionName, id);
             await deleteDoc(docRef);
+            return { success: true };
         } catch (error) {
-            throw new Error(`Failed to delete document: ${error.message}`);
+            console.error(`Error deleting document from ${collectionName}:`, error);
+            throw new Error(`Failed to delete ${collectionName.slice(0, -1)}: ${error.message}`);
         }
     }
 
-    // Get all documents from collection
-    static async getAll(collectionName, orderByField = 'createdAt', orderDirection = 'desc') {
+    // Get documents by field
+    async getByField(field, value, orderField = 'createdAt', orderDirection = 'desc') {
         try {
             const q = query(
-                collection(db, collectionName),
-                orderBy(orderByField, orderDirection)
+                collection(db, this.collectionName),
+                where(field, '==', value),
+                orderBy(orderField, orderDirection)
             );
-            const querySnapshot = await getDocs(q);
-
-            return querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-        } catch (error) {
-            throw new Error(`Failed to get documents: ${error.message}`);
-        }
-    }
-
-    // Get documents with pagination
-    static async getPaginated(collectionName, pageSize = 10, lastDoc = null, orderByField = 'createdAt') {
-        try {
-            let q = query(
-                collection(db, collectionName),
-                orderBy(orderByField, 'desc'),
-                limit(pageSize)
-            );
-
-            if (lastDoc) {
-                q = query(q, startAfter(lastDoc));
-            }
-
-            const querySnapshot = await getDocs(q);
-            const documents = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            return {
-                documents,
-                lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1],
-                hasMore: querySnapshot.docs.length === pageSize
-            };
-        } catch (error) {
-            throw new Error(`Failed to get paginated documents: ${error.message}`);
-        }
-    }
-
-    // Query documents with filters
-    static async query(collectionName, filters = [], orderByField = 'createdAt', orderDirection = 'desc') {
-        try {
-            let q = collection(db, collectionName);
-
-            // Apply filters
-            filters.forEach(filter => {
-                q = query(q, where(filter.field, filter.operator, filter.value));
-            });
-
-            // Apply ordering
-            q = query(q, orderBy(orderByField, orderDirection));
-
             const querySnapshot = await getDocs(q);
             return querySnapshot.docs.map(doc => ({
                 id: doc.id,
-                ...doc.data()
+                ...doc.data(),
+                createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                date: convertFirestoreTimestampToDate(doc.data().date),
+                registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
             }));
         } catch (error) {
-            throw new Error(`Failed to query documents: ${error.message}`);
+            console.error(`Error getting documents by ${field} from ${this.collectionName}:`, error);
+            throw new Error(`Failed to fetch ${this.collectionName}: ${error.message}`);
         }
     }
 
-    // Real-time listener
-    static onSnapshot(collectionName, callback, filters = [], orderByField = 'createdAt') {
+    // Get count of documents
+    async getCount() {
         try {
-            let q = collection(db, collectionName);
+            const q = query(collection(db, this.collectionName));
+            const snapshot = await getCountFromServer(q);
+            return snapshot.data().count;
+        } catch (error) {
+            console.error(`Error getting count from ${this.collectionName}:`, error);
+            return 0;
+        }
+    }
 
-            // Apply filters
-            filters.forEach(filter => {
-                q = query(q, where(filter.field, filter.operator, filter.value));
-            });
+    // Get documents with limit
+    async getWithLimit(limitCount = 10, orderField = 'createdAt', orderDirection = 'desc') {
+        try {
+            const q = query(
+                collection(db, this.collectionName),
+                orderBy(orderField, orderDirection),
+                limit(limitCount)
+            );
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                date: convertFirestoreTimestampToDate(doc.data().date),
+                registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
+            }));
+        } catch (error) {
+            console.error(`Error getting limited documents from ${this.collectionName}:`, error);
+            throw new Error(`Failed to fetch ${this.collectionName}: ${error.message}`);
+        }
+    }
+}
 
-            // Apply ordering
-            q = query(q, orderBy(orderByField, 'desc'));
+// Event Service
+export class EventService extends BaseDatabaseService {
+    constructor() {
+        super('events');
+    }
 
-            return onSnapshot(q, (querySnapshot) => {
-                const documents = querySnapshot.docs.map(doc => ({
+    // Create event
+    async createEvent(eventData) {
+        return this.create(eventData);
+    }
+
+    // Get all events
+    async getEvents() {
+        return this.getAll('date', 'desc');
+    }
+
+    // Get event by slug
+    async getEventBySlug(slug) {
+        const events = await this.getByField('slug', slug);
+        return events.length > 0 ? events[0] : null;
+    }
+
+    // Get upcoming events
+    async getUpcomingEvents() {
+        try {
+            const now = new Date();
+            const q = query(
+                collection(db, this.collectionName),
+                where('date', '>', now),
+                orderBy('date', 'asc')
+            );
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                date: convertFirestoreTimestampToDate(doc.data().date),
+                registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
+            }));
+        } catch (error) {
+            console.error('Error getting upcoming events:', error);
+            throw new Error(`Failed to fetch upcoming events: ${error.message}`);
+        }
+    }
+
+    // Get past events
+    async getPastEvents() {
+        try {
+            const now = new Date();
+            const q = query(
+                collection(db, this.collectionName),
+                where('date', '<=', now),
+                orderBy('date', 'desc')
+            );
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                date: convertFirestoreTimestampToDate(doc.data().date),
+                registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
+            }));
+        } catch (error) {
+            console.error('Error getting past events:', error);
+            throw new Error(`Failed to fetch past events: ${error.message}`);
+        }
+    }
+
+    // Update event status
+    async updateEventStatus(id, status) {
+        return this.update(id, { status });
+    }
+
+    // Get events by category
+    async getEventsByCategory(category) {
+        return this.getByField('category', category, 'date', 'desc');
+    }
+
+    // Get featured events
+    async getFeaturedEvents() {
+        return this.getByField('featured', true, 'date', 'desc');
+    }
+}
+
+// Resource Service
+export class ResourceService extends BaseDatabaseService {
+    constructor() {
+        super('resources');
+    }
+
+    // Create resource
+    async createResource(resourceData) {
+        return this.create(resourceData);
+    }
+
+    // Get all resources
+    async getResources() {
+        return this.getAll('createdAt', 'desc');
+    }
+
+    // Get resource by slug
+    async getResourceBySlug(slug) {
+        const resources = await this.getByField('slug', slug);
+        return resources.length > 0 ? resources[0] : null;
+    }
+
+    // Get resources by type
+    async getResourcesByType(type) {
+        return this.getByField('type', type, 'createdAt', 'desc');
+    }
+
+    // Get resources by category
+    async getResourcesByCategory(category) {
+        return this.getByField('category', category, 'createdAt', 'desc');
+    }
+
+    // Get featured resources
+    async getFeaturedResources() {
+        return this.getByField('featured', true, 'createdAt', 'desc');
+    }
+}
+
+// Service Service (for business services)
+export class ServiceService extends BaseDatabaseService {
+    constructor() {
+        super('services');
+    }
+
+    // Create service
+    async createService(serviceData) {
+        return this.create(serviceData);
+    }
+
+    // Get all services
+    async getServices() {
+        return this.getAll('name', 'asc');
+    }
+
+    // Get service by slug
+    async getServiceBySlug(slug) {
+        const services = await this.getByField('slug', slug);
+        return services.length > 0 ? services[0] : null;
+    }
+
+    // Get services by category
+    async getServicesByCategory(category) {
+        return this.getByField('category', category, 'name', 'asc');
+    }
+
+    // Get services by sub-company
+    async getServicesBySubCompany(subCompany) {
+        return this.getByField('subCompany', subCompany, 'name', 'asc');
+    }
+
+    // Get featured services
+    async getFeaturedServices() {
+        return this.getByField('featured', true, 'name', 'asc');
+    }
+}
+
+// Event Registration Service
+export class EventRegistrationService extends BaseDatabaseService {
+    constructor() {
+        super('event_registrations');
+    }
+
+    // Create registration
+    async createRegistration(registrationData) {
+        return this.create(registrationData);
+    }
+
+    // Get all registrations
+    async getRegistrations() {
+        return this.getAll('createdAt', 'desc');
+    }
+
+    // Get registrations by event ID
+    async getRegistrationsByEventId(eventId) {
+        return this.getByField('eventId', eventId, 'createdAt', 'desc');
+    }
+
+    // Get registration by email and event ID
+    async getRegistrationByEmailAndEvent(email, eventId) {
+        try {
+            const q = query(
+                collection(db, this.collectionName),
+                where('email', '==', email),
+                where('eventId', '==', eventId)
+            );
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const doc = querySnapshot.docs[0];
+                return {
                     id: doc.id,
-                    ...doc.data()
-                }));
-                callback(documents);
-            });
+                    ...doc.data(),
+                    createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                    updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                    date: convertFirestoreTimestampToDate(doc.data().date),
+                    registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
+                };
+            }
+            return null;
         } catch (error) {
-            throw new Error(`Failed to set up real-time listener: ${error.message}`);
+            console.error('Error getting registration by email and event:', error);
+            throw new Error(`Failed to fetch registration: ${error.message}`);
         }
     }
 
-    // Batch operations
-    static async batchWrite(operations) {
-        try {
-            const batch = writeBatch(db);
-
-            operations.forEach(operation => {
-                const docRef = doc(db, operation.collection, operation.id);
-
-                switch (operation.type) {
-                    case 'create':
-                        batch.set(docRef, {
-                            ...operation.data,
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString()
-                        });
-                        break;
-                    case 'update':
-                        batch.update(docRef, {
-                            ...operation.data,
-                            updatedAt: new Date().toISOString()
-                        });
-                        break;
-                    case 'delete':
-                        batch.delete(docRef);
-                        break;
-                }
-            });
-
-            await batch.commit();
-        } catch (error) {
-            throw new Error(`Failed to execute batch operation: ${error.message}`);
-        }
-    }
-
-    // Search documents (simple text search)
-    static async search(collectionName, searchField, searchTerm) {
-        try {
-            const q = query(
-                collection(db, collectionName),
-                where(searchField, '>=', searchTerm),
-                where(searchField, '<=', searchTerm + '\uf8ff'),
-                orderBy(searchField)
-            );
-
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-        } catch (error) {
-            throw new Error(`Failed to search documents: ${error.message}`);
-        }
-    }
-
-    // Get document count
-    static async getCount(collectionName, filters = []) {
-        try {
-            let q = collection(db, collectionName);
-
-            // Apply filters
-            filters.forEach(filter => {
-                q = query(q, where(filter.field, filter.operator, filter.value));
-            });
-
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.size;
-        } catch (error) {
-            throw new Error(`Failed to get document count: ${error.message}`);
-        }
+    // Update registration status
+    async updateRegistrationStatus(id, status) {
+        return this.update(id, { status });
     }
 }
 
-// Collection-specific services
-export class ResourceService extends DatabaseService {
-    static collectionName = 'resources';
+// Create singleton instances
+export const eventService = new EventService();
+export const resourceService = new ResourceService();
+export const serviceService = new ServiceService();
+export const eventRegistrationService = new EventRegistrationService();
 
-    static async createResource(resourceData) {
-        return await this.create(this.collectionName, resourceData);
-    }
-
-    static async getResources() {
-        return await this.getAll(this.collectionName, 'publishedDate', 'desc');
-    }
-
-    static async getResourceBySlug(slug) {
-        const resources = await this.query(this.collectionName, [
-            { field: 'slug', operator: '==', value: slug }
-        ]);
-        return resources[0] || null;
-    }
-
-    static async getFeaturedResources() {
-        return await this.query(this.collectionName, [
-            { field: 'featured', operator: '==', value: true }
-        ]);
-    }
-
-    static async getResourcesByType(type) {
-        return await this.query(this.collectionName, [
-            { field: 'type', operator: '==', value: type }
-        ]);
-    }
-
-    static async getResourcesByCategory(category) {
-        return await this.query(this.collectionName, [
-            { field: 'category', operator: '==', value: category }
-        ]);
-    }
-}
-
-export class ServiceService extends DatabaseService {
-    static collectionName = 'services';
-
-    static async createService(serviceData) {
-        return await this.create(this.collectionName, serviceData);
-    }
-
-    static async getServices() {
-        return await this.getAll(this.collectionName, 'name', 'asc');
-    }
-
-    static async getServiceBySlug(slug) {
-        const services = await this.query(this.collectionName, [
-            { field: 'slug', operator: '==', value: slug }
-        ]);
-        return services[0] || null;
-    }
-
-    static async getFeaturedServices() {
-        return await this.query(this.collectionName, [
-            { field: 'featured', operator: '==', value: true }
-        ]);
-    }
-}
-
-export class EventService extends DatabaseService {
-    static collectionName = 'events';
-
-    static async createEvent(eventData) {
-        return await this.create(this.collectionName, {
-            ...eventData,
-            status: eventData.status || 'upcoming'
-        });
-    }
-
-    static async getEvents() {
-        return await this.getAll(this.collectionName, 'date', 'desc');
-    }
-
-    static async getEventBySlug(slug) {
-        const events = await this.query(this.collectionName, [
-            { field: 'slug', operator: '==', value: slug }
-        ]);
-        return events[0] || null;
-    }
-
-    static async getEventsByCategory(category) {
-        return await this.query(this.collectionName, [
-            { field: 'category', operator: '==', value: category }
-        ], 'date', 'desc');
-    }
-
-    static async getEventsByStatus(status) {
-        return await this.query(this.collectionName, [
-            { field: 'status', operator: '==', value: status }
-        ], 'date', 'desc');
-    }
-
-    static async getUpcomingEvents() {
-        return await this.query(this.collectionName, [
-            { field: 'status', operator: '==', value: 'upcoming' }
-        ], 'date', 'asc');
-    }
-
-    static async getPastEvents() {
-        return await this.query(this.collectionName, [
-            { field: 'status', operator: '==', value: 'completed' }
-        ], 'date', 'desc');
-    }
-
-    static async updateEventStatus(eventId, status) {
-        return await this.update(this.collectionName, eventId, { status });
-    }
-
-    static async searchEvents(searchTerm) {
-        // Get all events and filter client-side for search
-        const allEvents = await this.getAll(this.collectionName, 'date', 'desc');
-        return allEvents.filter(event =>
-            event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.category.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }
-
-    static async getEventsByDateRange(startDate, endDate) {
-        return await this.query(this.collectionName, [
-            { field: 'date', operator: '>=', value: startDate },
-            { field: 'date', operator: '<=', value: endDate }
-        ], 'date', 'asc');
-    }
-
-    // Real-time listeners for events
-    static subscribeToEvents(callback) {
-        return this.onSnapshot(this.collectionName, callback, [], 'date');
-    }
-
-    static subscribeToUpcomingEvents(callback) {
-        return this.onSnapshot(this.collectionName, callback, [
-            { field: 'status', operator: '==', value: 'upcoming' }
-        ], 'date');
-    }
-} 
+// Export for compatibility
+export { EventService as default }; 

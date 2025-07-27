@@ -98,6 +98,23 @@
     @apply inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-brand-secondary rounded-xl shadow-sm transition-all duration-300 hover:bg-brand-secondary/90 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brand-secondary/20 focus:ring-offset-2 disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed cursor-pointer;
   }
 
+  /* Button Size Modifiers */
+  .btn-sm {
+    @apply px-3 py-1 text-sm;
+  }
+
+  .btn-sm .btn-icon {
+    @apply px-1.5 py-1.5;
+  }
+
+  .btn-lg {
+    @apply px-6 py-2 text-lg;
+  }
+
+  .btn-lg .btn-icon {
+    @apply px-3 py-3;
+  }
+
   /* Input Components */
   .input {
     @apply block w-full px-4 py-3.5 text-sm text-brand-foreground bg-white/50 border-2 border-brand-gray-light/50 rounded-xl transition-all duration-200 placeholder:text-brand-gray focus:outline-none focus:border-brand-primary/30 focus:bg-white hover:border-brand-gray disabled:bg-gray-50 disabled:cursor-not-allowed;

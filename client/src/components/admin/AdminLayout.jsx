@@ -33,12 +33,12 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
       href: "/admin/users",
       icon: "solar:users-group-rounded-bold",
     },
-    {
-      name: "Analytics",
-      href: "/admin/analytics",
-      icon: "solar:chart-square-bold",
-    },
-    { name: "Settings", href: "/admin/settings", icon: "solar:settings-bold" },
+    // {
+    //   name: "Analytics",
+    //   href: "/admin/analytics",
+    //   icon: "solar:chart-square-bold",
+    // },
+    // { name: "Settings", href: "/admin/settings", icon: "solar:settings-bold" },
   ];
 
   return (

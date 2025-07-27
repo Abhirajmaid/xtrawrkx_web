@@ -3,10 +3,11 @@ import Section from "../layout/Section";
 import Container from "../layout/Container";
 import SectionHeader from "../common/SectionHeader";
 import ResourceCard from "./ResourceCard";
-import { getFeaturedResources } from "../../data/ResourcesData";
 
-const FeaturedResources = () => {
-  const featuredResources = getFeaturedResources();
+const FeaturedResources = ({ featuredResources = [] }) => {
+  if (!featuredResources || featuredResources.length === 0) {
+    return null;
+  }
 
   return (
     <Section className="bg-gray-50 py-16">

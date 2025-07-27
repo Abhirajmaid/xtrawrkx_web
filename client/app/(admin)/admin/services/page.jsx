@@ -4,7 +4,7 @@ import { Icon } from "@iconify/react";
 import AdminLayout from "@/src/components/admin/AdminLayout";
 import ProtectedRoute from "@/src/components/admin/ProtectedRoute";
 import { ServiceService } from "@/src/services/databaseService";
-import { uploadFile } from "@/src/services/storageService";
+import { uploadImage } from "@/src/services/cloudinaryService";
 
 export default function ServiceManagement() {
   const [services, setServices] = useState([]);
@@ -911,13 +911,16 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
 
     try {
       setUploading(true);
-      const url = await uploadFile(file, "services");
+      const result = await uploadImage(file, {
+        folder: "services",
+      });
       setFormData((prev) => ({
         ...prev,
-        image: url,
+        image: result.url,
       }));
     } catch (error) {
       console.error("Error uploading file:", error);
+      alert(`Upload failed: ${error.message}`);
     } finally {
       setUploading(false);
     }

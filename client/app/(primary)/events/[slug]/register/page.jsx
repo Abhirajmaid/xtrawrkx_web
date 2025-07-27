@@ -6,6 +6,10 @@ import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import Button from "@/src/components/common/Button";
 import { eventsData, getEventBySlug } from "@/src/data/EventsData";
+import {
+  eventRegistrationService,
+  eventService,
+} from "@/src/services/databaseService";
 
 const communityOptions = [
   { id: "none", name: "Not a member", discount: 0, freeSlots: 0 },
@@ -230,29 +234,112 @@ export default function CompanyEventRegistration({ params }) {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
       const pricing = calculatePricing();
+
+      // Prepare registration data for database
+      const registrationData = {
+        // Event Information
+        eventId: event.id || event.slug, // Use event ID if available, fallback to slug
+        eventTitle: event.title,
+        eventDate: event.date,
+        eventLocation: event.location,
+
+        // Company Information
+        companyName: formData.companyName,
+        companyEmail: formData.companyEmail,
+        companyPhone: formData.companyPhone,
+        companyAddress: formData.companyAddress,
+        industry: formData.industry,
+        companySize: formData.companySize,
+        companyCommunity: formData.companyCommunity,
+
+        // Primary Contact
+        primaryContactName: formData.primaryContactName,
+        primaryContactEmail: formData.primaryContactEmail,
+        primaryContactPhone: formData.primaryContactPhone,
+        primaryContactDesignation: formData.primaryContactDesignation,
+
+        // Personnel List
+        personnel: formData.personnel.filter((p) => p.isAttending),
+
+        // Additional Information
+        specialRequests: formData.specialRequests,
+        emergencyContact: formData.emergencyContact,
+        emergencyPhone: formData.emergencyPhone,
+
+        // Pricing Information
+        totalCost: pricing.totalCost,
+        baseAmount: pricing.baseAmount,
+        discountAmount: pricing.discountAmount,
+        freeSlots: pricing.freeSlots,
+        attendingCount: pricing.attendingCount,
+
+        // Agreement
+        termsAccepted: formData.termsAccepted,
+        privacyAccepted: formData.privacyAccepted,
+
+        // Registration Status
+        status: "pending", // Can be changed to "confirmed" if payment is processed
+        paymentStatus: "pending",
+      };
+
+      // Save registration to database
+      const registrationId = await eventRegistrationService.createRegistration(
+        registrationData
+      );
+
+      console.log("Registration saved with ID:", registrationId);
       console.log("Company registration submitted:", {
         event: event.title,
         company: formData.companyName,
         personnel: formData.personnel.filter((p) => p.isAttending),
         pricing,
+        registrationId,
       });
 
       alert(
         `Registration successful! Your company has been registered for ${
           event.title
-        }. Total cost: ₹${pricing.totalCost.toLocaleString()}`
+        }. Registration ID: ${registrationId}. Total cost: ₹${pricing.totalCost.toLocaleString()}\n\nYou will receive a confirmation email shortly with payment instructions.`
       );
 
-      // Redirect or reset form
+      // Reset form after successful submission
+      setFormData({
+        companyName: "",
+        companyEmail: "",
+        companyPhone: "",
+        companyAddress: "",
+        industry: "",
+        companySize: "",
+        companyCommunity: "none",
+        primaryContactName: "",
+        primaryContactEmail: "",
+        primaryContactPhone: "",
+        primaryContactDesignation: "",
+        personnel: [
+          {
+            id: 1,
+            name: "",
+            email: "",
+            phone: "",
+            designation: "",
+            dietaryRequirements: "No restrictions",
+            isAttending: true,
+          },
+        ],
+        specialRequests: "",
+        emergencyContact: "",
+        emergencyPhone: "",
+        termsAccepted: false,
+        privacyAccepted: false,
+      });
+
+      // Optionally redirect back to event page
       // router.push(`/events/${slug}`);
     } catch (error) {
       console.error("Registration error:", error);
       alert(
-        "There was an error processing your registration. Please try again."
+        "There was an error processing your registration. Please try again. If the problem persists, please contact support."
       );
     } finally {
       setIsSubmitting(false);

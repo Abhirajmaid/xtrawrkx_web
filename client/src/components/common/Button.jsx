@@ -5,10 +5,13 @@ import Link from "next/link";
 export default function Button({
   text,
   type = "primary",
+  size = "md",
   className = "",
   link,
   onClick,
   disabled = false,
+  icon,
+  hideArrow = false,
   ...props
 }) {
   const baseClass =
@@ -18,35 +21,49 @@ export default function Button({
       ? "btn-secondary"
       : "";
 
+  const sizeClass = size === "sm" ? "btn-sm" : size === "lg" ? "btn-lg" : "";
   const disabledClass = disabled ? "opacity-50 cursor-not-allowed" : "";
+
+  const buttonContent = (
+    <>
+      {icon && (
+        <Icon
+          icon={icon}
+          width={size === "sm" ? 16 : size === "lg" ? 20 : 18}
+          height={size === "sm" ? 16 : size === "lg" ? 20 : 18}
+          className="mr-2"
+        />
+      )}
+      {text}
+      {!hideArrow && (
+        <span className="btn-icon">
+          <Icon icon="solar:arrow-right-up-linear" width="18" height="18" />
+        </span>
+      )}
+    </>
+  );
 
   if (link && !disabled) {
     return (
       <Link
         href={link}
-        className={`${baseClass} ${className} ${disabledClass}`}
+        className={`${baseClass} ${sizeClass} ${className} ${disabledClass}`}
         onClick={onClick}
         {...props}
       >
-        {text}
-        <span className="btn-icon">
-          <Icon icon="solar:arrow-right-up-linear" width="18" height="18" />
-        </span>
+        {buttonContent}
       </Link>
     );
   }
 
   return (
     <button
-      className={`${baseClass} ${className} ${disabledClass}`}
+      className={`${baseClass} ${sizeClass} ${className} ${disabledClass}`}
       onClick={onClick}
       disabled={disabled}
       {...props}
     >
-      {text}
-      <span className="btn-icon">
-        <Icon icon="solar:arrow-right-up-linear" width="18" height="18" />
-      </span>
+      {buttonContent}
     </button>
   );
 }

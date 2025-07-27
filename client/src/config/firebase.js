@@ -1,4 +1,9 @@
 // Firebase configuration - with fallback values for development
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getAnalytics } from 'firebase/analytics';
+
 const firebaseConfig = {
     apiKey: "AIzaSyCRyooUo6KheeDUEuEV9Add_XozmN_p--0",
     authDomain: "xtrawrkx.firebaseapp.com",
@@ -18,62 +23,42 @@ const isFirebaseConfigured = () => {
         firebaseConfig.appId;
 };
 
-// Initialize Firebase only if properly configured
+// Initialize Firebase
 let app = null;
 let auth = null;
 let db = null;
-let storage = null;
 let analytics = null;
 
-// Only import Firebase if we're in a browser environment
-if (typeof window !== 'undefined') {
-    try {
-        // Dynamic imports to prevent server-side issues
-        const { initializeApp } = require('firebase/app');
-        const { getAuth } = require('firebase/auth');
-        const { getFirestore } = require('firebase/firestore');
-        const { getStorage } = require('firebase/storage');
+try {
+    if (isFirebaseConfigured()) {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
 
-        if (isFirebaseConfigured()) {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            storage = getStorage(app);
-
-            // Initialize Analytics only if measurement ID is provided
-            if (firebaseConfig.measurementId) {
-                const { getAnalytics } = require('firebase/analytics');
-                analytics = getAnalytics(app);
-            }
-        } else {
-            console.warn('Firebase configuration is incomplete. Using static data fallback.');
+        // Initialize Analytics only if measurement ID is provided and in browser
+        if (firebaseConfig.measurementId && typeof window !== 'undefined') {
+            analytics = getAnalytics(app);
         }
-    } catch (error) {
-        console.error('Firebase initialization error:', error);
-        console.warn('Firebase services will not be available. The app will use static data fallback.');
+
+        console.log('Firebase initialized successfully');
+    } else {
+        console.warn('Firebase configuration is incomplete. Check your environment variables.');
+        throw new Error('Firebase configuration is incomplete');
     }
+} catch (error) {
+    console.error('Firebase initialization error:', error);
+    throw new Error(`Failed to initialize Firebase: ${error.message}`);
 }
 
-// Export services with null checks
-export { auth, db, storage, analytics };
-export default app;
+// Validate that db is properly initialized
+if (!db) {
+    throw new Error('Firestore database is not initialized. Check your Firebase configuration.');
+}
 
-// Helper function to check if Firebase is available
+// Check if Firebase is available
 export const isFirebaseAvailable = () => {
-    return typeof window !== 'undefined' && app !== null && auth !== null && db !== null && storage !== null;
+    return !!db && !!auth;
 };
 
-// Helper function to get Firebase configuration status
-export const getFirebaseStatus = () => {
-    return {
-        configured: isFirebaseConfigured(),
-        initialized: app !== null,
-        clientSide: typeof window !== 'undefined',
-        services: {
-            auth: auth !== null,
-            firestore: db !== null,
-            storage: storage !== null,
-            analytics: analytics !== null
-        }
-    };
-}; 
+// Export services with validation (removed storage)
+export { auth, db, analytics }; 

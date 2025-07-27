@@ -1,6 +1,5 @@
 import React from "react";
 import { Icon } from "@iconify/react";
-import { resourceTypes, resourceCategories } from "../../data/ResourcesData";
 
 const ResourceFilter = ({
   selectedType,
@@ -9,6 +8,8 @@ const ResourceFilter = ({
   onTypeChange,
   onCategoryChange,
   onSearchChange,
+  resourceTypes = [],
+  resourceCategories = [],
 }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">

@@ -1,6 +1,7 @@
 import React from "react";
 import { Icon } from "@iconify/react";
 import Button from "../common/Button";
+import { formatDate } from "../../utils/dateUtils";
 
 const ResourceSidebar = ({ resource }) => {
   const handleShare = (platform) => {
@@ -62,7 +63,9 @@ const ResourceSidebar = ({ resource }) => {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Published:</span>
-            <span className="font-medium">{resource.publishedDate}</span>
+            <span className="font-medium">
+              {formatDate(resource.publishedDate || resource.createdAt)}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Author:</span>

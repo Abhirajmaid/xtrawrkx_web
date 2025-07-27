@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
 import Button from "../common/Button";
+import { formatDate } from "../../utils/dateUtils";
 
 const ResourceCard = ({ resource, layout = "grid" }) => {
   resource.image = "/images/hero.jpg";
@@ -87,7 +88,7 @@ const ResourceCard = ({ resource, layout = "grid" }) => {
           <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">
-                {resource.publishedDate}
+                {formatDate(resource.publishedDate || resource.createdAt)}
               </span>
               <Button
                 text={resource.downloadUrl ? "Download" : "Read More"}
@@ -146,7 +147,9 @@ const ResourceCard = ({ resource, layout = "grid" }) => {
           {resource.description}
         </p>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">{resource.publishedDate}</span>
+          <span className="text-gray-500">
+            {formatDate(resource.publishedDate || resource.createdAt)}
+          </span>
           <Button
             text={resource.downloadUrl ? "Download" : "Read More"}
             type="primary"

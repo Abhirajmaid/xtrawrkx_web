@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Xtrawrkx Web Platform
 
-## Getting Started
+## 🚀 Quick Start
 
-First, run the development server:
+1. **Install dependencies:**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+   ```bash
+   cd client
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Create `.env.local` in the `client` directory:**
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+   ```env
+   # Cloudinary (for all file/image uploads)
+   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
+   NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   # Firebase (for authentication & database)
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-## Learn More
+   # Admin emails (comma-separated)
+   NEXT_PUBLIC_ADMIN_EMAILS=admin@xtrawrkx.com,test@example.com
+   # Use CMS (true/false)
+   NEXT_PUBLIC_USE_CMS_DATA=true
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+   - For **testing only**, you can use:
+     ```env
+     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=demo
+     NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=ml_default
+     ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📝 How Event Data & Images Are Stored
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Event data** is stored in **Firebase Firestore** via the `eventService` (see `src/services/databaseService.js`).
+- **Images** (hero/background) are uploaded to **Cloudinary** using the `uploadImage` function (see `src/services/cloudinaryService.js`).
+- The returned Cloudinary URL is saved in the event's Firestore document under `heroImage` and `background` fields.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Event Creation Flow
+
+1. **Admin fills out the event form** (`/admin/events/new`)
+2. **Image upload:**
+   - When an image is selected, it is uploaded to Cloudinary immediately.
+   - The returned URL is set in the form state.
+3. **On submit:**
+   - The form data (including image URLs) is sent to Firestore via `eventService.createEvent(formData)`.
+
+---
+
+## 🔑 Environment Variables
+
+- All required variables are shown above.
+- Cloudinary **upload preset** must be set to **unsigned** in your Cloudinary dashboard.
+- See comments in `.env.local` for details.
+
+---
+
+## 🛠️ Useful Scripts
+
+- `npm run dev` — Start development server
+- `npm run build` — Build for production
+- `npm run start` — Start production server
+
+---
+
+## 📦 File Uploads: Cloudinary
+
+- All images/files are uploaded to Cloudinary.
+- Only the returned URL is stored in Firestore.
+- No files are stored in Firebase Storage.
+
+---
+
+## 🔒 Authentication
+
+- Admin login uses Firebase Auth.
+- Only emails in `NEXT_PUBLIC_ADMIN_EMAILS` can access admin routes.
+
+---
+
+## 📚 More
+
+- For advanced configuration, see `src/services/cloudinaryService.js` and `src/services/databaseService.js`.
+- For troubleshooting, check browser console and `.env.local` values.
+
+---
+
+**This README is your main setup and usage guide.**
