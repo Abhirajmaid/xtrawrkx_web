@@ -12,16 +12,20 @@ export default function Footer() {
         {/* Columns */}
         <div className="flex flex-1 justify-between flex-wrap gap-8">
           {/* Logo */}
-          <div className="mb-8 md:mb-0 flex-shrink-0">
+          <Link
+            href="/"
+            className="mb-8 md:mb-0 flex-shrink-0"
+            aria-label="Home"
+          >
             <Image
-              src="/logo.png"
+              src="/logo_full.png"
               alt="xtrawrkx"
-              width={72}
-              height={72}
-              className=""
+              width={100}
+              height={100}
+              className="w-20 h-20"
               priority
             />
-          </div>
+          </Link>
           {/* Render columns from data */}
           {footerNavLinks.map((col) => (
             <div key={col.title}>
@@ -67,41 +71,47 @@ export default function Footer() {
         {/* Socials */}
         <div className="flex gap-4">
           <a
-            href="#"
+            href="https://www.linkedin.com/company/xtrawrkx/"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="LinkedIn"
             className="rounded-full bg-brand-dark hover:bg-brand-gray/40 transition-colors w-10 h-10 flex items-center justify-center"
           >
             <Icon icon="mdi:linkedin" width="24" className="text-white" />
           </a>
           <a
-            href="#"
-            aria-label="Facebook"
-            className="rounded-full bg-brand-dark hover:bg-brand-gray/40 transition-colors w-10 h-10 flex items-center justify-center"
-          >
-            <Icon icon="mdi:facebook" width="24" className="text-white" />
-          </a>
-          <a
-            href="#"
+            href="https://www.youtube.com/@xtrawrkx"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="YouTube"
             className="rounded-full bg-brand-dark hover:bg-brand-gray/40 transition-colors w-10 h-10 flex items-center justify-center"
           >
             <Icon icon="mdi:youtube" width="24" className="text-white" />
           </a>
           <a
-            href="#"
+            href="https://x.com/xtrawrkx"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="X"
             className="rounded-full bg-brand-dark hover:bg-brand-gray/40 transition-colors w-10 h-10 flex items-center justify-center"
           >
             <Icon icon="mdi:twitter" width="24" className="text-white" />
           </a>
           <a
-            href="#"
+            href="https://www.instagram.com/xtrawrkx"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="Instagram"
             className="rounded-full bg-brand-dark hover:bg-brand-gray/40 transition-colors w-10 h-10 flex items-center justify-center"
           >
             <Icon icon="mdi:instagram" width="24" className="text-white" />
           </a>
         </div>
+      </div>
+
+      {/* Copyright */}
+      <div className="text-center text-base text-gray-700 mt-10">
+        Copyright © 2025 xtrawrkx - All Rights Reserved.
       </div>
     </footer>
   );

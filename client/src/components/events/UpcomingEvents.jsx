@@ -4,7 +4,8 @@ import EventCard from "../common/EventCard";
 import SectionHeader from "../common/SectionHeader";
 import { Icon } from "@iconify/react";
 import { useState, useEffect } from "react";
-import { upcomingEvents } from "../../data/EventsData";
+import { EventService } from "../../services/databaseService";
+import { formatEventDate } from "../../utils/dateUtils";
 
 export default function UpcomingEvents({ initialCategoryFilter }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,6 +15,9 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
           initialCategoryFilter.slice(1)
       : "All"
   );
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const categories = [
     "All",
@@ -23,6 +27,41 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
     "Competition",
     "Networking",
   ];
+
+  const eventService = new EventService();
+
+  // Fetch upcoming events from Firebase
+  useEffect(() => {
+    const fetchUpcomingEvents = async () => {
+      try {
+        setLoading(true);
+        let events = await eventService.getUpcomingEvents();
+
+        // If no upcoming events found, get all events as fallback
+        if (events.length === 0) {
+          console.log(
+            "No upcoming events found, fetching all events as fallback"
+          );
+          const allEvents = await eventService.getAll();
+          console.log("All events from Firebase:", allEvents);
+          events = allEvents.slice(0, 6); // Show first 6 events
+        }
+
+        console.log("Final upcoming events to display:", events);
+
+        setUpcomingEvents(events);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching upcoming events:", err);
+        setError("Failed to load upcoming events");
+        setUpcomingEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUpcomingEvents();
+  }, []);
 
   // Update selected category when initialCategoryFilter changes
   useEffect(() => {
@@ -106,31 +145,56 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
         </div>
 
         {/* Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEvents.map((event, index) => (
-            <div
-              key={index}
-              className="group transform transition-all duration-300 hover:scale-105 hover:-translate-y-2"
-            >
-              <div className="relative">
-                {/* Category badge */}
-                <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-3 py-1 rounded-full text-xs font-semibold">
-                  {event.category}
+        {loading ? (
+          <div className="text-center py-16">
+            <Icon
+              icon="mdi:loading"
+              className="text-brand-primary mx-auto mb-4 animate-spin"
+              width={64}
+            />
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              Loading events...
+            </h3>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16">
+            <Icon
+              icon="mdi:alert-circle"
+              className="text-red-500 mx-auto mb-4"
+              width={64}
+            />
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              {error}
+            </h3>
+            <p className="text-gray-500">Please try again later</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredEvents.map((event, index) => (
+              <div
+                key={event.id || index}
+                className="group transform transition-all duration-300 hover:scale-105 hover:-translate-y-2"
+              >
+                <div className="relative">
+                  {/* Category badge */}
+                  <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    {event.category}
+                  </div>
+                  <EventCard
+                    background={event.background || "/images/hero.png"}
+                    title={event.title}
+                    date={formatEventDate(event.date) || event.date}
+                    location={event.location}
+                    slug={event.slug}
+                  />
                 </div>
-                <EventCard
-                  background={event.background}
-                  title={event.title}
-                  date={event.date}
-                  location={event.location}
-                  slug={event.slug}
-                />
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Show message if no events found */}
-        {filteredEvents.length === 0 && (
+        {!loading && !error && filteredEvents.length === 0 && (
           <div className="text-center py-16">
             <Icon
               icon="mdi:calendar-remove"
@@ -145,14 +209,6 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
             </p>
           </div>
         )}
-
-        {/* Call to Action */}
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center gap-4 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-8 py-4 rounded-full font-semibold text-lg hover:shadow-lg transition-all cursor-pointer">
-            <span>View All Events</span>
-            <Icon icon="mdi:arrow-right" width={24} />
-          </div>
-        </div>
       </Container>
     </Section>
   );

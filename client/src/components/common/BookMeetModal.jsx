@@ -226,7 +226,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl min-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+      <div className="bg-white rounded-2xl min-w-4xl h-auto overflow-hidden shadow-2xl">
         {/* Modal Header */}
         <div className="bg-brand-primary text-white p-6">
           <div className="flex items-center justify-between">

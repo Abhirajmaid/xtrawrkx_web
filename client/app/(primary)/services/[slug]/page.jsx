@@ -1,35 +1,100 @@
 "use client";
 import { notFound } from "next/navigation";
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 import Image from "next/image";
 import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import Button from "@/src/components/common/Button";
 import { Icon } from "@iconify/react";
-import servicesData from "@/src/data/ServicesData";
 import ServiceCard from "@/src/components/common/ServiceCard";
 import { useBookMeetModal } from "@/src/hooks/useBookMeetModal";
+import { ServiceService } from "@/src/services/databaseService";
 
 export default function ServicePage({ params }) {
   const resolvedParams = use(params);
   const { slug } = resolvedParams;
   const { openModal } = useBookMeetModal();
 
-  // Find the service by slug
-  const service = servicesData.find((s) => s.slug === slug);
+  const [service, setService] = useState(null);
+  const [relatedServices, setRelatedServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!service) {
-    notFound();
+  const serviceService = new ServiceService();
+
+  // Fetch service by slug from Firebase
+  useEffect(() => {
+    const fetchService = async () => {
+      try {
+        setLoading(true);
+        const fetchedService = await serviceService.getServiceBySlug(slug);
+
+        if (!fetchedService) {
+          console.log("Service not found in Firebase");
+          setError("Service not found");
+          setLoading(false);
+          return;
+        }
+
+        setService(fetchedService);
+
+        // Fetch related services from the same category or sub-company
+        const allServices = await serviceService.getServices();
+        const related = allServices
+          .filter(
+            (s) =>
+              s.slug !== slug &&
+              (s.category === fetchedService.category ||
+                s.subCompany === fetchedService.subCompany)
+          )
+          .slice(0, 3);
+        setRelatedServices(related);
+
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching service:", err);
+        setError("Failed to load service");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchService();
+  }, [slug]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading service...</p>
+        </div>
+      </div>
+    );
   }
 
-  // Get related services (same category or sub-company)
-  const relatedServices = servicesData
-    .filter(
-      (s) =>
-        s.slug !== slug &&
-        (s.category === service.category || s.subCompany === service.subCompany)
-    )
-    .slice(0, 3);
+  // Error state
+  if (error || !service) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Icon
+            icon="mdi:alert-circle"
+            width={64}
+            className="text-red-400 mx-auto mb-4"
+          />
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            {error || "Service not found"}
+          </h3>
+          <p className="text-gray-500 mb-4">
+            The service you're looking for doesn't exist or has been removed.
+          </p>
+          <Button href="/services">Back to Services</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -38,7 +103,7 @@ export default function ServicePage({ params }) {
         {/* Background image */}
         <div className="absolute inset-0 w-full h-full">
           <Image
-            src="/images/hero_services.png"
+            src={service.image || "/images/hero_services.png"}
             alt={service.name}
             fill
             className="object-cover object-center"
@@ -177,10 +242,11 @@ export default function ServicePage({ params }) {
                 <ServiceCard
                   key={relatedService.id}
                   name={relatedService.name}
-                  image={relatedService.image}
+                  image={relatedService.image || "/images/hero_services.png"}
                   description={relatedService.description}
-                  link={relatedService.link}
-                  buttonText="Learn More"
+                  link={`/services/${relatedService.slug}`}
+                  isFavorite={relatedService.featured}
+                  onFavorite={() => {}}
                 />
               ))}
             </div>

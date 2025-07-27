@@ -34,13 +34,6 @@ export default function Team() {
                 </div>
                 <div className="flex gap-3">
                   <a
-                    href={member.email}
-                    className="text-gray-700 hover:text-pink-500 transition"
-                    aria-label="Email"
-                  >
-                    <Icon icon="mdi:email-outline" width="22" />
-                  </a>
-                  <a
                     href={member.linkedin}
                     className="text-gray-700 hover:text-pink-500 transition"
                     aria-label="LinkedIn"
@@ -52,9 +45,9 @@ export default function Team() {
             </div>
           ))}
         </div>
-        <div className="max-w-6xl">
+        {/* <div className="max-w-6xl">
           <Button text="Meet Our Team" type="primary" />
-        </div>
+        </div> */}
       </Container>
     </Section>
   );

@@ -4,65 +4,50 @@ import EventCard from "../common/EventCard";
 import SectionHeader from "../common/SectionHeader";
 import Button from "../common/Button";
 import { Icon } from "@iconify/react";
-import { useState } from "react";
-
-// Mock past events data - in a real app, this would come from the same data source
-const pastEvents = [
-  {
-    background: "/images/hero.png",
-    title: "Annual Business Summit 2024",
-    date: "15th Dec 2024",
-    location: "Mumbai",
-    category: "Summit",
-    slug: "annual-business-summit-2024",
-  },
-  {
-    background: "/images/hero.png",
-    title: "Tech Leaders Conference",
-    date: "28th Nov 2024",
-    location: "Bengaluru",
-    category: "Conference",
-    slug: "tech-leaders-conference-2024",
-  },
-  {
-    background: "/images/hero.png",
-    title: "Innovation & Growth Workshop",
-    date: "10th Oct 2024",
-    location: "Delhi",
-    category: "Workshop",
-    slug: "innovation-growth-workshop-2024",
-  },
-  {
-    background: "/images/hero.png",
-    title: "Startup Ecosystem Meetup",
-    date: "22nd Sep 2024",
-    location: "Pune",
-    category: "Networking",
-    slug: "startup-ecosystem-meetup-2024",
-  },
-  {
-    background: "/images/hero.png",
-    title: "Digital Transformation Summit",
-    date: "8th Aug 2024",
-    location: "Hyderabad",
-    category: "Summit",
-    slug: "digital-transformation-summit-2024",
-  },
-  {
-    background: "/images/hero.png",
-    title: "Leadership Excellence Workshop",
-    date: "18th Jul 2024",
-    location: "Chennai",
-    category: "Workshop",
-    slug: "leadership-excellence-workshop-2024",
-  },
-];
+import { useState, useEffect } from "react";
+import { EventService } from "../../services/databaseService";
+import { formatEventDate } from "../../utils/dateUtils";
 
 export default function PastEvents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [pastEvents, setPastEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const categories = ["All", "Summit", "Workshop", "Conference", "Networking"];
+
+  const eventService = new EventService();
+
+  // Fetch past events from Firebase
+  useEffect(() => {
+    const fetchPastEvents = async () => {
+      try {
+        setLoading(true);
+        let events = await eventService.getPastEvents();
+
+        // If no past events found, that's correct - don't show any events
+        if (events.length === 0) {
+          console.log(
+            "No past events found - this is expected if all events are upcoming"
+          );
+        }
+
+        console.log("Final past events to display:", events);
+
+        setPastEvents(events);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching past events:", err);
+        setError("Failed to load past events");
+        setPastEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPastEvents();
+  }, []);
 
   const filteredEvents = pastEvents.filter((event) => {
     const matchesSearch =
@@ -134,36 +119,61 @@ export default function PastEvents() {
         </div>
 
         {/* Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEvents.map((event, index) => (
-            <div
-              key={index}
-              className="group transform transition-all duration-300 hover:scale-105 hover:-translate-y-2"
-            >
-              <div className="relative">
-                {/* Category badge */}
-                <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-slate-600 to-gray-700 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                  {event.category}
+        {loading ? (
+          <div className="text-center py-16">
+            <Icon
+              icon="mdi:loading"
+              className="text-slate-600 mx-auto mb-4 animate-spin"
+              width={64}
+            />
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              Loading past events...
+            </h3>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16">
+            <Icon
+              icon="mdi:alert-circle"
+              className="text-red-500 mx-auto mb-4"
+              width={64}
+            />
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              {error}
+            </h3>
+            <p className="text-gray-500">Please try again later</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredEvents.map((event, index) => (
+              <div
+                key={event.id || index}
+                className="group transform transition-all duration-300 hover:scale-105 hover:-translate-y-2"
+              >
+                <div className="relative">
+                  {/* Category badge */}
+                  <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-slate-600 to-gray-700 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    {event.category}
+                  </div>
+                  {/* Completed badge */}
+                  <div className="absolute top-4 right-4 z-20 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                    <Icon icon="mdi:check-circle" width={14} />
+                    Completed
+                  </div>
+                  <EventCard
+                    background={event.background || "/images/hero.png"}
+                    title={event.title}
+                    date={formatEventDate(event.date) || event.date}
+                    location={event.location}
+                    slug={event.slug}
+                  />
                 </div>
-                {/* Completed badge */}
-                <div className="absolute top-4 right-4 z-20 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                  <Icon icon="mdi:check-circle" width={14} />
-                  Completed
-                </div>
-                <EventCard
-                  background={event.background}
-                  title={event.title}
-                  date={event.date}
-                  location={event.location}
-                  slug={event.slug}
-                />
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Show message if no events found */}
-        {filteredEvents.length === 0 && (
+        {!loading && !error && filteredEvents.length === 0 && (
           <div className="text-center py-16">
             <Icon
               icon="mdi:calendar-remove"

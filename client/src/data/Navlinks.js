@@ -1,6 +1,6 @@
 export const footerNavLinks = [
     {
-        title: "Xtrawrkx",
+        title: "xtrawrkx",
         links: [
             { label: "About", href: "/about" },
             { label: "Gallery", href: "/gallery" },

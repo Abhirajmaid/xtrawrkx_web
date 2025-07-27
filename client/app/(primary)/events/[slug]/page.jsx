@@ -1,22 +1,127 @@
 "use client";
 import { notFound } from "next/navigation";
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 import Image from "next/image";
 import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import Button from "@/src/components/common/Button";
 import { Icon } from "@iconify/react";
-import { eventsData } from "@/src/data/EventsData";
+import { EventService } from "@/src/services/databaseService";
+import { formatEventDate } from "@/src/utils/dateUtils";
 
 export default function EventPage({ params }) {
   const { slug } = use(params);
+  const [event, setEvent] = useState(null);
+  const [relatedEvents, setRelatedEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Find the event by slug
-  const event = eventsData.find((e) => e.slug === slug);
+  const eventService = new EventService();
 
-  if (!event) {
-    notFound();
+  // Function to check if event is completed (past date)
+  const isEventCompleted = (eventDate) => {
+    if (!eventDate) return false;
+
+    const now = new Date();
+    const eventDateTime =
+      eventDate instanceof Date ? eventDate : new Date(eventDate);
+
+    // Set both dates to start of day for comparison
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const eventDay = new Date(
+      eventDateTime.getFullYear(),
+      eventDateTime.getMonth(),
+      eventDateTime.getDate()
+    );
+
+    return eventDay < today;
+  };
+
+  // Fetch event by slug from Firebase
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        setLoading(true);
+        console.log("Fetching event with slug:", slug);
+
+        const fetchedEvent = await eventService.getEventBySlug(slug);
+        console.log("Fetched event:", fetchedEvent);
+
+        if (!fetchedEvent) {
+          console.log("Event not found in Firebase");
+          setError("Event not found");
+          setLoading(false);
+          return;
+        }
+
+        setEvent(fetchedEvent);
+
+        // Fetch related events from the same category
+        try {
+          const allEvents = await eventService.getAll();
+          const related = allEvents
+            .filter(
+              (e) => e.slug !== slug && e.category === fetchedEvent.category
+            )
+            .slice(0, 3);
+          setRelatedEvents(related);
+        } catch (relatedErr) {
+          console.warn("Error fetching related events:", relatedErr);
+          // Don't fail the whole page if related events fail
+          setRelatedEvents([]);
+        }
+
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching event:", err);
+        setError("Failed to load event");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Icon
+            icon="mdi:loading"
+            className="text-brand-primary mx-auto mb-4 animate-spin"
+            width={64}
+          />
+          <h3 className="text-xl font-semibold text-gray-600">
+            Loading event...
+          </h3>
+        </div>
+      </div>
+    );
   }
+
+  if (error || !event) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Icon
+            icon="mdi:alert-circle"
+            className="text-red-500 mx-auto mb-4"
+            width={64}
+          />
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            {error || "Event not found"}
+          </h3>
+          <p className="text-gray-500 mb-4">
+            The event you're looking for doesn't exist or has been removed.
+          </p>
+          <Button text="Back to Events" type="primary" link="/events" />
+        </div>
+      </div>
+    );
+  }
+
+  const eventCompleted = isEventCompleted(event.date);
 
   return (
     <div className="min-h-screen bg-white">
@@ -38,8 +143,11 @@ export default function EventPage({ params }) {
         {/* Event Info Overlay */}
         <Container className="relative z-20 text-center text-white">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-6 py-2 rounded-full text-sm font-semibold mb-6">
-            <Icon icon="mdi:calendar-star" width={20} />
-            {event.category}
+            <Icon
+              icon={eventCompleted ? "mdi:calendar-check" : "mdi:calendar-star"}
+              width={20}
+            />
+            {eventCompleted ? "Completed Event" : event.category}
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
             {event.title}
@@ -47,7 +155,7 @@ export default function EventPage({ params }) {
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-lg mb-8">
             <div className="flex items-center gap-2">
               <Icon icon="mdi:calendar-month-outline" width={24} />
-              <span>{event.date}</span>
+              <span>{formatEventDate(event.date) || event.date}</span>
             </div>
             <div className="flex items-center gap-2">
               <Icon icon="mdi:map-marker-outline" width={24} />
@@ -58,122 +166,141 @@ export default function EventPage({ params }) {
               <span>{event.time}</span>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              text="Register Now"
-              type="primary"
-              link={`/events/${slug}/register`}
-              className="bg-gradient-to-r from-brand-primary to-brand-secondary"
-            />
-            <Button
-              text="Add to Calendar"
-              type="secondary"
-              className="bg-white/20 backdrop-blur-sm hover:bg-white/30"
-              onClick={() => {
-                try {
-                  // Parse the event date - remove ordinal indicators (st, nd, rd, th)
-                  const cleanDateString = event.date.replace(
-                    /(\d+)(st|nd|rd|th)/,
-                    "$1"
-                  );
-                  const eventDate = new Date(cleanDateString);
 
-                  // Check if date is valid
-                  if (isNaN(eventDate.getTime())) {
-                    console.error(
-                      "Invalid date format:",
-                      event.date,
-                      "cleaned:",
-                      cleanDateString
-                    );
-                    alert("Unable to add to calendar: Invalid date format");
-                    return;
-                  }
+          {/* Action buttons - conditional based on event status */}
+          {!eventCompleted && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                text="Register Now"
+                type="primary"
+                link={`/events/${slug}/register`}
+                className="bg-gradient-to-r from-brand-primary to-brand-secondary"
+              />
+              <Button
+                text="Add to Calendar"
+                type="secondary"
+                className="bg-white/20 backdrop-blur-sm hover:bg-white/30"
+                onClick={() => {
+                  try {
+                    // Handle Date object from Firebase or string from static data
+                    let eventDate;
+                    if (event.date instanceof Date) {
+                      eventDate = new Date(event.date);
+                    } else {
+                      // Parse the event date - remove ordinal indicators (st, nd, rd, th)
+                      const cleanDateString = event.date.replace(
+                        /(\d+)(st|nd|rd|th)/,
+                        "$1"
+                      );
+                      eventDate = new Date(cleanDateString);
+                    }
 
-                  // Parse event time if available, otherwise default to 9 AM
-                  const startDate = new Date(eventDate);
-                  if (event.time) {
-                    // Try to parse the time (e.g., "6:00 PM - 9:00 PM" or "9:00 AM - 6:00 PM")
-                    const timeMatch = event.time.match(
-                      /(\d{1,2}):(\d{2})\s*(AM|PM)/i
-                    );
-                    if (timeMatch) {
-                      let hours = parseInt(timeMatch[1]);
-                      const minutes = parseInt(timeMatch[2]);
-                      const period = timeMatch[3].toUpperCase();
+                    // Check if date is valid
+                    if (isNaN(eventDate.getTime())) {
+                      console.error("Invalid date format:", event.date);
+                      alert("Unable to add to calendar: Invalid date format");
+                      return;
+                    }
 
-                      if (period === "PM" && hours !== 12) {
-                        hours += 12;
-                      } else if (period === "AM" && hours === 12) {
-                        hours = 0;
+                    // Parse event time if available, otherwise default to 9 AM
+                    const startDate = new Date(eventDate);
+                    if (event.time) {
+                      // Try to parse the time (e.g., "6:00 PM - 9:00 PM" or "9:00 AM - 6:00 PM")
+                      const timeMatch = event.time.match(
+                        /(\d{1,2}):(\d{2})\s*(AM|PM)/i
+                      );
+                      if (timeMatch) {
+                        let hours = parseInt(timeMatch[1]);
+                        const minutes = parseInt(timeMatch[2]);
+                        const period = timeMatch[3].toUpperCase();
+
+                        if (period === "PM" && hours !== 12) {
+                          hours += 12;
+                        } else if (period === "AM" && hours === 12) {
+                          hours = 0;
+                        }
+
+                        startDate.setHours(hours, minutes, 0, 0);
+                      } else {
+                        startDate.setHours(9, 0, 0, 0); // Default to 9 AM
                       }
-
-                      startDate.setHours(hours, minutes, 0, 0);
                     } else {
                       startDate.setHours(9, 0, 0, 0); // Default to 9 AM
                     }
-                  } else {
-                    startDate.setHours(9, 0, 0, 0); // Default to 9 AM
-                  }
 
-                  // Set end time based on event time or default to 2 hours later
-                  const endDate = new Date(startDate);
-                  if (event.time && event.time.includes(" - ")) {
-                    // Try to parse end time
-                    const endTimeMatch = event.time.match(
-                      /- (\d{1,2}):(\d{2})\s*(AM|PM)/i
-                    );
-                    if (endTimeMatch) {
-                      let endHours = parseInt(endTimeMatch[1]);
-                      const endMinutes = parseInt(endTimeMatch[2]);
-                      const endPeriod = endTimeMatch[3].toUpperCase();
+                    // Set end time based on event time or default to 2 hours later
+                    const endDate = new Date(startDate);
+                    if (event.time && event.time.includes(" - ")) {
+                      // Try to parse end time
+                      const endTimeMatch = event.time.match(
+                        /- (\d{1,2}):(\d{2})\s*(AM|PM)/i
+                      );
+                      if (endTimeMatch) {
+                        let endHours = parseInt(endTimeMatch[1]);
+                        const endMinutes = parseInt(endTimeMatch[2]);
+                        const endPeriod = endTimeMatch[3].toUpperCase();
 
-                      if (endPeriod === "PM" && endHours !== 12) {
-                        endHours += 12;
-                      } else if (endPeriod === "AM" && endHours === 12) {
-                        endHours = 0;
+                        if (endPeriod === "PM" && endHours !== 12) {
+                          endHours += 12;
+                        } else if (endPeriod === "AM" && endHours === 12) {
+                          endHours = 0;
+                        }
+
+                        endDate.setHours(endHours, endMinutes, 0, 0);
+                      } else {
+                        endDate.setTime(
+                          startDate.getTime() + 2 * 60 * 60 * 1000
+                        ); // 2 hours later
                       }
-
-                      endDate.setHours(endHours, endMinutes, 0, 0);
                     } else {
                       endDate.setTime(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
                     }
-                  } else {
-                    endDate.setTime(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+
+                    // Format dates for Google Calendar (YYYYMMDDTHHMMSSZ)
+                    const formatDate = (date) => {
+                      return (
+                        date.toISOString().replace(/[-:]/g, "").split(".")[0] +
+                        "Z"
+                      );
+                    };
+
+                    const calendarEvent = {
+                      title: event.title,
+                      start: formatDate(startDate),
+                      end: formatDate(endDate),
+                      description: event.description || "",
+                      location: event.location || "",
+                    };
+
+                    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+                      calendarEvent.title
+                    )}&dates=${calendarEvent.start}/${
+                      calendarEvent.end
+                    }&details=${encodeURIComponent(
+                      calendarEvent.description
+                    )}&location=${encodeURIComponent(calendarEvent.location)}`;
+
+                    window.open(googleCalendarUrl, "_blank");
+                  } catch (error) {
+                    console.error("Error creating calendar event:", error);
+                    alert("Unable to add to calendar. Please try again.");
                   }
+                }}
+              />
+            </div>
+          )}
 
-                  // Format dates for Google Calendar (YYYYMMDDTHHMMSSZ)
-                  const formatDate = (date) => {
-                    return (
-                      date.toISOString().replace(/[-:]/g, "").split(".")[0] +
-                      "Z"
-                    );
-                  };
-
-                  const calendarEvent = {
-                    title: event.title,
-                    start: formatDate(startDate),
-                    end: formatDate(endDate),
-                    description: event.description || "",
-                    location: event.location || "",
-                  };
-
-                  const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-                    calendarEvent.title
-                  )}&dates=${calendarEvent.start}/${
-                    calendarEvent.end
-                  }&details=${encodeURIComponent(
-                    calendarEvent.description
-                  )}&location=${encodeURIComponent(calendarEvent.location)}`;
-
-                  window.open(googleCalendarUrl, "_blank");
-                } catch (error) {
-                  console.error("Error creating calendar event:", error);
-                  alert("Unable to add to calendar. Please try again.");
-                }
-              }}
-            />
-          </div>
+          {/* Show event status message for completed events */}
+          {eventCompleted && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 max-w-md mx-auto">
+              <div className="flex items-center gap-2 justify-center text-white">
+                <Icon icon="mdi:check-circle" width={24} />
+                <span className="font-medium">
+                  This event has been completed
+                </span>
+              </div>
+            </div>
+          )}
         </Container>
       </Section>
 
@@ -201,8 +328,49 @@ export default function EventPage({ params }) {
                 </div>
               </div>
 
-              {/* Agenda */}
-              {event.agenda && (
+              {/* Event Gallery - Only show for completed events */}
+              {eventCompleted && event.gallery && event.gallery.length > 0 && (
+                <div className="mb-12">
+                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                    Event Gallery
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {event.gallery.map((image, index) => (
+                      <div
+                        key={index}
+                        className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer"
+                        onClick={() => {
+                          // You can add a lightbox/modal here later
+                          window.open(image.url || image, "_blank");
+                        }}
+                      >
+                        <Image
+                          src={image.url || image}
+                          alt={image.caption || `Event photo ${index + 1}`}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <Icon
+                            icon="mdi:fullscreen"
+                            width={24}
+                            className="text-white"
+                          />
+                        </div>
+                        {image.caption && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            {image.caption}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Agenda - Hide for completed events unless specifically needed */}
+              {!eventCompleted && event.agenda && (
                 <div className="mb-12">
                   <h2 className="text-3xl font-bold text-gray-900 mb-6">
                     Event Agenda
@@ -237,7 +405,7 @@ export default function EventPage({ params }) {
               {event.speakers && (
                 <div className="mb-12">
                   <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                    Featured Speakers
+                    {eventCompleted ? "Event Speakers" : "Featured Speakers"}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {event.speakers.map((speaker, index) => (
@@ -288,7 +456,9 @@ export default function EventPage({ params }) {
                     />
                     <div>
                       <p className="font-medium text-gray-900">Date</p>
-                      <p className="text-gray-600">{event.date}</p>
+                      <p className="text-gray-600">
+                        {formatEventDate(event.date) || event.date}
+                      </p>
                     </div>
                   </div>
 
@@ -350,18 +520,43 @@ export default function EventPage({ params }) {
                   )}
                 </div>
 
+                {/* Action buttons - conditional based on event status */}
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <Button
-                    text="Company Registration"
-                    type="primary"
-                    className="w-full mb-3"
-                    link={`/events/${event.slug}/register`}
-                  />
-                  <Button
-                    text="Share Event"
-                    type="secondary"
-                    className="w-full"
-                  />
+                  {!eventCompleted ? (
+                    <>
+                      <Button
+                        text="Company Registration"
+                        type="primary"
+                        className="w-full mb-3"
+                        link={`/events/${event.slug}/register`}
+                      />
+                      <Button
+                        text="Share Event"
+                        type="secondary"
+                        className="w-full"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      {event.gallery && event.gallery.length > 0 && (
+                        <Button
+                          text="View Full Gallery"
+                          type="primary"
+                          className="w-full mb-3"
+                          onClick={() => {
+                            document
+                              .querySelector('h2:has-text("Event Gallery")')
+                              ?.scrollIntoView({ behavior: "smooth" });
+                          }}
+                        />
+                      )}
+                      <Button
+                        text="Share Event"
+                        type="secondary"
+                        className="w-full"
+                      />
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -397,19 +592,17 @@ export default function EventPage({ params }) {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {eventsData
-              .filter((e) => e.slug !== slug && e.category === event.category)
-              .slice(0, 3)
-              .map((relatedEvent, index) => (
+          {relatedEvents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {relatedEvents.map((relatedEvent, index) => (
                 <div
-                  key={index}
+                  key={relatedEvent.id || index}
                   className="group transform transition-all duration-300 hover:scale-105"
                 >
                   <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
                     <div className="relative h-48">
                       <Image
-                        src={relatedEvent.background}
+                        src={relatedEvent.background || "/images/hero.png"}
                         alt={relatedEvent.title}
                         fill
                         className="object-cover"
@@ -425,7 +618,10 @@ export default function EventPage({ params }) {
                       <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                         <div className="flex items-center gap-1">
                           <Icon icon="mdi:calendar" width={16} />
-                          <span>{relatedEvent.date}</span>
+                          <span>
+                            {formatEventDate(relatedEvent.date) ||
+                              relatedEvent.date}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Icon icon="mdi:map-marker" width={16} />
@@ -442,7 +638,22 @@ export default function EventPage({ params }) {
                   </div>
                 </div>
               ))}
-          </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Icon
+                icon="mdi:calendar-blank"
+                className="text-gray-400 mx-auto mb-4"
+                width={64}
+              />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No related events found
+              </h3>
+              <p className="text-gray-500">
+                Check back later for more events in this category
+              </p>
+            </div>
+          )}
         </Container>
       </Section>
     </div>

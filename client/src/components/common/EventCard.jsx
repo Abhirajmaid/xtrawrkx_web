@@ -10,6 +10,9 @@ export default function EventCard({
   date,
   slug,
 }) {
+  // Ensure we have a valid image source
+  const imageSrc =
+    background && background.trim() !== "" ? background : "/images/hero.png";
   return (
     <div
       className="relative rounded-2xl shadow-xl overflow-hidden w-full bg-gray-900"
@@ -17,7 +20,7 @@ export default function EventCard({
     >
       {/* Full background image */}
       <Image
-        src={background}
+        src={imageSrc}
         alt={`${title} event background`}
         fill
         className="object-cover"

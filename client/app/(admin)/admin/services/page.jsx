@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import AdminLayout from "@/src/components/admin/AdminLayout";
 import ProtectedRoute from "@/src/components/admin/ProtectedRoute";
-import { ServiceService } from "@/src/services/databaseService";
+import { serviceService } from "@/src/services/databaseService";
 import { uploadImage } from "@/src/services/cloudinaryService";
+import Button from "@/src/components/common/Button";
 
 export default function ServiceManagement() {
   const [services, setServices] = useState([]);
@@ -38,7 +39,7 @@ export default function ServiceManagement() {
   const loadServices = async () => {
     try {
       setLoading(true);
-      const servicesData = await ServiceService.getServices();
+      const servicesData = await serviceService.getServices();
       setServices(servicesData);
     } catch (error) {
       console.error("Error loading services:", error);
@@ -140,7 +141,7 @@ export default function ServiceManagement() {
       try {
         await Promise.all(
           bulkSelection.map((id) =>
-            ServiceService.delete(ServiceService.collectionName, id)
+            serviceService.delete(serviceService.collectionName, id)
           )
         );
         setBulkSelection([]);
@@ -156,7 +157,7 @@ export default function ServiceManagement() {
       await Promise.all(
         bulkSelection.map((id) => {
           const service = services.find((s) => s.id === id);
-          return ServiceService.update(ServiceService.collectionName, id, {
+          return serviceService.update(serviceService.collectionName, id, {
             ...service,
             featured,
           });
@@ -173,7 +174,7 @@ export default function ServiceManagement() {
   const handleDelete = async (serviceId) => {
     if (confirm("Are you sure you want to delete this service?")) {
       try {
-        await ServiceService.delete(ServiceService.collectionName, serviceId);
+        await serviceService.delete(serviceService.collectionName, serviceId);
         loadServices();
       } catch (error) {
         console.error("Error deleting service:", error);
@@ -196,7 +197,7 @@ export default function ServiceManagement() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      await ServiceService.createService(duplicatedService);
+      await serviceService.createService(duplicatedService);
       loadServices();
     } catch (error) {
       console.error("Error duplicating service:", error);
@@ -205,7 +206,7 @@ export default function ServiceManagement() {
 
   const handleToggleFeatured = async (service) => {
     try {
-      await ServiceService.update(ServiceService.collectionName, service.id, {
+      await serviceService.update(serviceService.collectionName, service.id, {
         ...service,
         featured: !service.featured,
       });
@@ -230,86 +231,233 @@ export default function ServiceManagement() {
               </p>
             </div>
             <div className="flex items-center gap-4 mt-4 md:mt-0">
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all"
-              >
-                <Icon icon="mdi:plus" width={20} />
-                Add Service
-              </button>
+              <Button
+                text="Add Service"
+                type="primary"
+                link="/admin/services/new"
+                icon="mdi:plus"
+                className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg"
+              />
             </div>
           </div>
 
-          {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Services</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stats.total}
-                  </p>
+          {/* Modern Statistics Dashboard */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Service Overview
+              </h3>
+              <div className="text-sm text-gray-500">
+                Last updated: {new Date().toLocaleDateString()}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+              {/* Total Services */}
+              <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-primary/10 rounded-xl">
+                      <Icon
+                        icon="mdi:briefcase"
+                        width={20}
+                        className="text-primary"
+                      />
+                    </div>
+                    <div className="text-xs text-primary font-medium bg-primary/10 px-2 py-1 rounded-full">
+                      Total
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900 mb-1">
+                      {stats.total}
+                    </p>
+                    <p className="text-sm text-gray-600">Services</p>
+                  </div>
                 </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Icon
-                    icon="mdi:briefcase"
-                    width={24}
-                    className="text-blue-600"
-                  />
+              </div>
+
+              {/* Featured Services */}
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-yellow-100 rounded-xl">
+                      <Icon
+                        icon="mdi:star"
+                        width={20}
+                        className="text-yellow-600"
+                      />
+                    </div>
+                    <div className="text-xs text-yellow-600 font-medium bg-yellow-100 px-2 py-1 rounded-full">
+                      Featured
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-yellow-700 mb-1">
+                      {stats.featured}
+                    </p>
+                    <p className="text-sm text-yellow-600">Highlighted</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Categories */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-green-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-green-100 rounded-xl">
+                      <Icon
+                        icon="mdi:tag-multiple"
+                        width={20}
+                        className="text-green-600"
+                      />
+                    </div>
+                    <div className="text-xs text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full">
+                      Categories
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-700 mb-1">
+                      {Object.keys(stats.byCategory).length}
+                    </p>
+                    <p className="text-sm text-green-600">Types</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sub-Companies */}
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-purple-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-purple-100 rounded-xl">
+                      <Icon
+                        icon="mdi:domain"
+                        width={20}
+                        className="text-purple-600"
+                      />
+                    </div>
+                    <div className="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-1 rounded-full">
+                      Companies
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-purple-700 mb-1">
+                      {Object.keys(stats.bySubCompany).length}
+                    </p>
+                    <p className="text-sm text-purple-600">Sub-Units</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sales Services */}
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-blue-100 rounded-xl">
+                      <Icon
+                        icon="mdi:chart-line"
+                        width={20}
+                        className="text-blue-600"
+                      />
+                    </div>
+                    <div className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-full">
+                      Sales
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-blue-700 mb-1">
+                      {stats.byCategory.Sales || 0}
+                    </p>
+                    <p className="text-sm text-blue-600">Services</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Technology Services */}
+              <div className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-red-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-red-100 rounded-xl">
+                      <Icon
+                        icon="mdi:laptop"
+                        width={20}
+                        className="text-red-600"
+                      />
+                    </div>
+                    <div className="text-xs text-red-600 font-medium bg-red-100 px-2 py-1 rounded-full">
+                      Tech
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-red-700 mb-1">
+                      {stats.byCategory.Technology || 0}
+                    </p>
+                    <p className="text-sm text-red-600">Solutions</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            {/* Quick Insights */}
+            <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-2xl p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Featured</p>
-                  <p className="text-2xl font-bold text-yellow-600">
-                    {stats.featured}
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white rounded-xl shadow-sm">
+                    <Icon
+                      icon="mdi:chart-donut"
+                      width={24}
+                      className="text-primary"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">
+                      Quick Insights
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {stats.featured > 0
+                        ? `${stats.featured} featured services promoting your business`
+                        : stats.total > 0
+                        ? `${stats.total} services available across ${
+                            Object.keys(stats.bySubCompany).length
+                          } companies`
+                        : "No services configured yet"}
+                    </p>
+                  </div>
                 </div>
-                <div className="p-3 bg-yellow-100 rounded-lg">
-                  <Icon
-                    icon="mdi:star"
-                    width={24}
-                    className="text-yellow-600"
-                  />
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Categories</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {Object.keys(stats.byCategory).length}
-                  </p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <Icon
-                    icon="mdi:tag-multiple"
-                    width={24}
-                    className="text-green-600"
-                  />
-                </div>
-              </div>
-            </div>
+                <div className="flex items-center gap-6">
+                  {stats.total > 0 && (
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-primary">
+                        {Math.round((stats.featured / stats.total) * 100)}%
+                      </p>
+                      <p className="text-xs text-gray-600">Featured Rate</p>
+                    </div>
+                  )}
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Sub-Companies</p>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {Object.keys(stats.bySubCompany).length}
-                  </p>
-                </div>
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Icon
-                    icon="mdi:domain"
-                    width={24}
-                    className="text-purple-600"
-                  />
+                  {stats.featured > 0 && (
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-yellow-600">
+                        {stats.featured}
+                      </p>
+                      <p className="text-xs text-gray-600">Promoted</p>
+                    </div>
+                  )}
+
+                  {Object.keys(stats.byCategory).length > 0 && (
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-green-600">
+                        {Object.keys(stats.byCategory).length}
+                      </p>
+                      <p className="text-xs text-gray-600">Categories</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -971,13 +1119,13 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
     try {
       setSaving(true);
       if (service) {
-        await ServiceService.update(
-          ServiceService.collectionName,
+        await serviceService.update(
+          serviceService.collectionName,
           service.id,
           formData
         );
       } else {
-        await ServiceService.createService(formData);
+        await serviceService.createService(formData);
       }
       onSave();
       onClose();

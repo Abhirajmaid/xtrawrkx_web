@@ -86,12 +86,23 @@ class BaseDatabaseService {
     // Get all documents
     async getAll(orderField = 'createdAt', orderDirection = 'desc') {
         try {
-            const q = query(
-                collection(db, this.collectionName),
-                orderBy(orderField, orderDirection)
-            );
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({
+            console.log(`Fetching all documents from collection: ${this.collectionName}`);
+
+            // First try to get all documents without ordering to avoid index issues
+            let querySnapshot;
+            try {
+                const q = query(
+                    collection(db, this.collectionName),
+                    orderBy(orderField, orderDirection)
+                );
+                querySnapshot = await getDocs(q);
+            } catch (orderError) {
+                console.warn(`Ordering by ${orderField} failed, fetching without order:`, orderError);
+                // Fallback: get all documents without ordering
+                querySnapshot = await getDocs(collection(db, this.collectionName));
+            }
+
+            const results = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
                 createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
@@ -99,6 +110,9 @@ class BaseDatabaseService {
                 date: convertFirestoreTimestampToDate(doc.data().date),
                 registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
             }));
+
+            console.log(`Found ${results.length} documents in ${this.collectionName}`);
+            return results;
         } catch (error) {
             console.error(`Error getting documents from ${this.collectionName}:`, error);
             throw new Error(`Failed to fetch ${this.collectionName}: ${error.message}`);
@@ -238,8 +252,32 @@ export class EventService extends BaseDatabaseService {
 
     // Get event by slug
     async getEventBySlug(slug) {
-        const events = await this.getByField('slug', slug);
-        return events.length > 0 ? events[0] : null;
+        try {
+            console.log(`Looking for event with slug: ${slug}`);
+            const q = query(
+                collection(db, this.collectionName),
+                where('slug', '==', slug)
+            );
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const doc = querySnapshot.docs[0];
+                const result = {
+                    id: doc.id,
+                    ...doc.data(),
+                    createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                    updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                    date: convertFirestoreTimestampToDate(doc.data().date),
+                    registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
+                };
+                console.log(`Found event:`, result);
+                return result;
+            }
+            console.log(`No event found with slug: ${slug}`);
+            return null;
+        } catch (error) {
+            console.error(`Error getting event by slug ${slug}:`, error);
+            throw new Error(`Failed to fetch event: ${error.message}`);
+        }
     }
 
     // Get upcoming events
@@ -269,21 +307,31 @@ export class EventService extends BaseDatabaseService {
     // Get past events
     async getPastEvents() {
         try {
-            const now = new Date();
+            // Set to start of today to exclude today's events
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Start of today
+            console.log('Filtering past events before:', today);
+
             const q = query(
                 collection(db, this.collectionName),
-                where('date', '<=', now),
+                where('date', '<', today),
                 orderBy('date', 'desc')
             );
             const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
-                updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
-                date: convertFirestoreTimestampToDate(doc.data().date),
-                registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
-            }));
+            const pastEvents = querySnapshot.docs.map(doc => {
+                const eventData = {
+                    id: doc.id,
+                    ...doc.data(),
+                    createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                    updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                    date: convertFirestoreTimestampToDate(doc.data().date),
+                    registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
+                };
+                console.log('Past event found:', eventData.title, 'Date:', eventData.date);
+                return eventData;
+            });
+            console.log(`Found ${pastEvents.length} past events`);
+            return pastEvents;
         } catch (error) {
             console.error('Error getting past events:', error);
             throw new Error(`Failed to fetch past events: ${error.message}`);
@@ -304,6 +352,8 @@ export class EventService extends BaseDatabaseService {
     async getFeaturedEvents() {
         return this.getByField('featured', true, 'date', 'desc');
     }
+
+
 }
 
 // Resource Service
@@ -362,8 +412,28 @@ export class ServiceService extends BaseDatabaseService {
 
     // Get service by slug
     async getServiceBySlug(slug) {
-        const services = await this.getByField('slug', slug);
-        return services.length > 0 ? services[0] : null;
+        try {
+            const q = query(
+                collection(db, this.collectionName),
+                where('slug', '==', slug)
+            );
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const doc = querySnapshot.docs[0];
+                return {
+                    id: doc.id,
+                    ...doc.data(),
+                    createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                    updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                    date: convertFirestoreTimestampToDate(doc.data().date),
+                    registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
+                };
+            }
+            return null;
+        } catch (error) {
+            console.error(`Error getting service by slug ${slug}:`, error);
+            throw new Error(`Failed to fetch service: ${error.message}`);
+        }
     }
 
     // Get services by category

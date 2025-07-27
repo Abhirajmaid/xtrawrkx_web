@@ -1,30 +1,51 @@
-import { eventsData } from "./EventsData";
-import servicesData, { engagementModels } from "./ServicesData";
+"use client";
+import { serviceService, eventService } from "@/src/services/databaseService";
 import { communitiesData } from "./CommunityData";
 
-// Create dynamic services dropdown from servicesData
-const servicesDropdownList = servicesData.map(service => ({
-    label: service.name,
-    slug: `/services/${service.slug}`,
-    category: service.category,
-    subCompany: service.subCompany
-}));
+// Function to fetch and create dynamic services dropdown
+export const getServicesDropdownData = async () => {
+    try {
+        const services = await serviceService.getServices();
 
-export const servicesDropdownData = {
-    description:
-        "Comprehensive business solutions from funding and manufacturing to consulting and product development. Accelerate your growth with our expert services across multiple domains.",
-    leftTitle: "Services",
-    middleTitle: "What we do",
-    middleList: servicesDropdownList,
-    rightTitle: "How we work",
-    rightList: [
-        { label: "Complementary Support", slug: "/modals/complementary-support", price: "$0", subtitle: "Best for starting up" },
-        { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
-        { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
-    ],
+        const servicesDropdownList = services.map(service => ({
+            label: service.name,
+            slug: `/services/${service.slug}`,
+            category: service.category,
+            subCompany: service.subCompany
+        }));
+
+        return {
+            description:
+                "Comprehensive business solutions from funding and manufacturing to consulting and product development. Accelerate your growth with our expert services across multiple domains.",
+            leftTitle: "Services",
+            middleTitle: "What we do",
+            middleList: servicesDropdownList,
+            rightTitle: "How we work",
+            rightList: [
+                { label: "Complementary Support", slug: "/modals/complementary-support", price: "$0", subtitle: "Best for starting up" },
+                { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
+                { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
+            ],
+        };
+    } catch (error) {
+        console.error("Error fetching services for dropdown:", error);
+        // Return empty structure on error
+        return {
+            description: "Comprehensive business solutions from funding and manufacturing to consulting and product development.",
+            leftTitle: "Services",
+            middleTitle: "What we do",
+            middleList: [],
+            rightTitle: "How we work",
+            rightList: [
+                { label: "Complementary Support", slug: "/modals/complementary-support", price: "$0", subtitle: "Best for starting up" },
+                { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
+                { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
+            ],
+        };
+    }
 };
 
-// Enhanced communities dropdown with detailed information
+// Enhanced communities dropdown with detailed information (keeping static as it's not in Firebase)
 const enhancedCommunitiesDropdownList = communitiesData.map(community => ({
     label: community.fullName,
     shortName: community.name,
@@ -68,30 +89,49 @@ export const communitiesDropdownData = {
     ],
 };
 
-// Group events by category for the dropdown
-const eventsByCategory = eventsData.reduce((acc, event) => {
-    if (!acc[event.category]) {
-        acc[event.category] = [];
-    }
-    acc[event.category].push({
-        label: event.title,
-        slug: `/events/${event.slug}`,
-        date: event.date,
-        location: event.location
-    });
-    return acc;
-}, {});
+// Function to fetch and create dynamic events dropdown
+export const getEventsDropdownData = async () => {
+    try {
+        const events = await eventService.getEvents();
 
-export const eventsDropdownData = {
-    leftTitle: "Events",
-    description:
-        "Join us for exciting events, workshops, and summits. Connect with industry leaders, learn from experts, and be part of the electric vehicle and sustainable finance revolution.",
-    middleTitle: "Event Categories",
-    middleList: Object.keys(eventsByCategory).map(category => ({
-        label: category,
-        slug: `/events?category=${category.toLowerCase()}`,
-        count: eventsByCategory[category].length
-    })),
-    rightTitle: "Upcoming Events",
-    eventsByCategory: eventsByCategory,
+        // Group events by category for the dropdown
+        const eventsByCategory = events.reduce((acc, event) => {
+            if (!acc[event.category]) {
+                acc[event.category] = [];
+            }
+            acc[event.category].push({
+                label: event.title,
+                slug: `/events/${event.slug}`,
+                date: event.date,
+                location: event.location
+            });
+            return acc;
+        }, {});
+
+        return {
+            leftTitle: "Events",
+            description:
+                "Join us for exciting events, workshops, and summits. Connect with industry leaders, learn from experts, and be part of the electric vehicle and sustainable finance revolution.",
+            middleTitle: "Event Categories",
+            middleList: Object.keys(eventsByCategory).map(category => ({
+                label: category,
+                slug: `/events?category=${category.toLowerCase()}`,
+                count: eventsByCategory[category].length
+            })),
+            rightTitle: "Upcoming Events",
+            eventsByCategory: eventsByCategory,
+        };
+    } catch (error) {
+        console.error("Error fetching events for dropdown:", error);
+        // Return empty structure on error
+        return {
+            leftTitle: "Events",
+            description:
+                "Join us for exciting events, workshops, and summits. Connect with industry leaders, learn from experts, and be part of the electric vehicle and sustainable finance revolution.",
+            middleTitle: "Event Categories",
+            middleList: [],
+            rightTitle: "Upcoming Events",
+            eventsByCategory: {},
+        };
+    }
 };
