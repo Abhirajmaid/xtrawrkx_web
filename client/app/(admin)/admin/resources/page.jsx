@@ -162,7 +162,7 @@ export default function ResourceManagement() {
     ) {
       try {
         await Promise.all(
-          bulkSelection.map((id) => resourceService.delete("resources", id))
+          bulkSelection.map((id) => resourceService.delete(id))
         );
         setBulkSelection([]);
         loadResources();
@@ -204,7 +204,7 @@ export default function ResourceManagement() {
   const handleDelete = async (resourceId) => {
     if (confirm("Are you sure you want to delete this resource?")) {
       try {
-        await resourceService.delete("resources", resourceId);
+        await resourceService.delete(resourceId);
         loadResources();
       } catch (error) {
         console.error("Error deleting resource:", error);

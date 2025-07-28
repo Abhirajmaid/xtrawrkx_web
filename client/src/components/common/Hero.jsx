@@ -1,36 +1,54 @@
 import Image from "next/image";
+import Button from "./Button";
+import Container from "../layout/Container";
 import Section from "../layout/Section";
 
-export default function Hero({ title, description }) {
+export default function Hero({
+  title,
+  description,
+  backgroundImage = "/images/hero.jpg",
+  showButton = false,
+  buttonText = "Click Here",
+  buttonLink = "#",
+}) {
   return (
-    <Section className="relative w-full h-[90vh] min-h-[400px] flex items-center justify-start overflow-hidden p-0">
-      {/* Background image, always the same */}
+    <Section className="relative w-full h-[80vh] min-h-[500px] flex items-center justify-center text-center md:justify-start md:text-left overflow-hidden p-0">
+      {/* Background image */}
       <div className="absolute inset-0 w-full h-full">
         <Image
-          src="/images/hero.jpg"
+          src={backgroundImage}
           alt="Hero background"
           fill
-          className="object-cover object-right scale-100 md:object-right z-0"
+          className="object-cover object-center"
           priority
         />
-        {/* Overlay gradient for text readability */}
+        {/* Overlay for text readability */}
         <div
-          className="absolute inset-0 z-10 pointer-events-none"
+          className="absolute inset-0 z-10"
           style={{
             background:
-              "linear-gradient(0deg, rgba(255,255,255,1) 0%,  rgba(255,255,255,0) 20%, rgba(255,255,255,0) 100%)",
+              "linear-gradient(to top, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.0) 25%)",
           }}
         />
       </div>
-      {/* Content on left */}
-      <div className="relative z-20 flex flex-col items-start justify-center text-left w-7xl mx-auto px-4 md:pl-16 -mt-[50px]">
-        <h1 className="text-white text-5xl md:text-7xl font-extrabold mb-8 drop-shadow-lg">
+
+      {/* Content */}
+      <Container className="relative z-20 flex flex-col items-center md:items-start px-4 md:px-8">
+        <h1 className="text-white text-4xl md:text-6xl font-extrabold mb-6 drop-shadow-lg max-w-3xl">
           {title}
         </h1>
-        <p className="text-white text-lg md:text-xl max-w-2xl font-light drop-shadow">
+        <p className="text-gray-200 text-lg md:text-xl max-w-2xl mb-8 font-light drop-shadow">
           {description}
         </p>
-      </div>
+        {showButton && (
+          <Button
+            link={buttonLink}
+            text={buttonText}
+            type="primary"
+            className="w-fit"
+          />
+        )}
+      </Container>
     </Section>
   );
 }

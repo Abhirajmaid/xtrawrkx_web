@@ -167,11 +167,7 @@ export default function EventManagement() {
       confirm(`Are you sure you want to delete ${bulkSelection.length} events?`)
     ) {
       try {
-        await Promise.all(
-          bulkSelection.map((id) =>
-            eventService.delete(eventService.collectionName, id)
-          )
-        );
+        await Promise.all(bulkSelection.map((id) => eventService.delete(id)));
         setBulkSelection([]);
         loadEvents();
       } catch (error) {
@@ -198,8 +194,8 @@ export default function EventManagement() {
   const handleDelete = async (eventId) => {
     if (confirm("Are you sure you want to delete this event?")) {
       try {
-        await eventService.delete(eventService.collectionName, eventId);
-        loadEvents();
+        await eventService.delete(eventId);
+        await loadEvents();
       } catch (error) {
         console.error("Error deleting event:", error);
       }
@@ -885,9 +881,7 @@ function RegistrationManagement({
     ) {
       try {
         await Promise.all(
-          bulkSelection.map((id) =>
-            eventRegistrationService.delete("event_registrations", id)
-          )
+          bulkSelection.map((id) => eventRegistrationService.delete(id))
         );
         setBulkSelection([]);
         onLoadRegistrations();

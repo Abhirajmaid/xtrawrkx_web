@@ -6,11 +6,19 @@ import Button from "../common/Button";
 import { Icon } from "@iconify/react";
 import { useState, useEffect } from "react";
 import { EventService } from "../../services/databaseService";
-import { formatEventDate } from "../../utils/dateUtils";
+import {
+  formatEventDate,
+  convertFirestoreTimestampToDate,
+} from "../../utils/dateUtils";
 
-export default function PastEvents() {
+export default function PastEvents({ initialCategoryFilter }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(
+    initialCategoryFilter
+      ? initialCategoryFilter.charAt(0).toUpperCase() +
+          initialCategoryFilter.slice(1)
+      : "All"
+  );
   const [pastEvents, setPastEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,18 +32,16 @@ export default function PastEvents() {
     const fetchPastEvents = async () => {
       try {
         setLoading(true);
-        let events = await eventService.getPastEvents();
+        // Fetch all events and filter for past events
+        const allEvents = await eventService.getAll("date", "desc");
+        const now = new Date();
+        const past = allEvents.filter((event) => {
+          const eventDate = convertFirestoreTimestampToDate(event.date);
+          return eventDate && eventDate < now;
+        });
 
-        // If no past events found, that's correct - don't show any events
-        if (events.length === 0) {
-          console.log(
-            "No past events found - this is expected if all events are upcoming"
-          );
-        }
-
-        console.log("Final past events to display:", events);
-
-        setPastEvents(events);
+        console.log("Past events found:", past);
+        setPastEvents(past);
         setError(null);
       } catch (err) {
         console.error("Error fetching past events:", err);
@@ -48,6 +54,18 @@ export default function PastEvents() {
 
     fetchPastEvents();
   }, []);
+
+  // Update selected category when initialCategoryFilter changes
+  useEffect(() => {
+    if (initialCategoryFilter) {
+      const formattedCategory =
+        initialCategoryFilter.charAt(0).toUpperCase() +
+        initialCategoryFilter.slice(1);
+      if (categories.includes(formattedCategory)) {
+        setSelectedCategory(formattedCategory);
+      }
+    }
+  }, [initialCategoryFilter]);
 
   const filteredEvents = pastEvents.filter((event) => {
     const matchesSearch =

@@ -10,7 +10,11 @@ import { auth, isFirebaseAvailable } from '../config/firebase';
 
 // Check if user email is in admin list
 const isAdminUser = (email) => {
-    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || ['admin@xtrawrkx.com'];
+    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [
+        'admin@xtrawrkx.com',
+        // Add your test email here temporarily
+        'test@xtrawrkx.com'
+    ];
     return adminEmails.includes(email);
 };
 

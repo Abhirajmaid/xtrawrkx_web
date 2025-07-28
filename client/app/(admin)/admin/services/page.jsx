@@ -139,11 +139,7 @@ export default function ServiceManagement() {
       )
     ) {
       try {
-        await Promise.all(
-          bulkSelection.map((id) =>
-            serviceService.delete(serviceService.collectionName, id)
-          )
-        );
+        await Promise.all(bulkSelection.map((id) => serviceService.delete(id)));
         setBulkSelection([]);
         loadServices();
       } catch (error) {
@@ -174,8 +170,8 @@ export default function ServiceManagement() {
   const handleDelete = async (serviceId) => {
     if (confirm("Are you sure you want to delete this service?")) {
       try {
-        await serviceService.delete(serviceService.collectionName, serviceId);
-        loadServices();
+        await serviceService.delete(serviceId);
+        await loadServices();
       } catch (error) {
         console.error("Error deleting service:", error);
       }
@@ -987,15 +983,13 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
     tags: [],
     featured: false,
     highlights: [],
-    partners: [],
-    caseStudies: [],
-    testimonials: [],
-    stats: {},
   });
+
   const [tagInput, setTagInput] = useState("");
   const [highlightInput, setHighlightInput] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (service) {
@@ -1009,10 +1003,6 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
         tags: service.tags || [],
         featured: service.featured || false,
         highlights: service.highlights || [],
-        partners: service.partners || [],
-        caseStudies: service.caseStudies || [],
-        testimonials: service.testimonials || [],
-        stats: service.stats || {},
       });
     } else {
       setFormData({
@@ -1025,13 +1015,22 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
         tags: [],
         featured: false,
         highlights: [],
-        partners: [],
-        caseStudies: [],
-        testimonials: [],
-        stats: {},
       });
     }
+    setErrors({});
   }, [service]);
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) newErrors.name = "Service name is required";
+    if (!formData.slug.trim()) newErrors.slug = "Slug is required";
+    if (!formData.description.trim())
+      newErrors.description = "Description is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -1039,6 +1038,11 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
 
     // Auto-generate slug from name
     if (name === "name") {
@@ -1066,9 +1070,16 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
         ...prev,
         image: result.url,
       }));
+      setErrors((prev) => ({
+        ...prev,
+        image: undefined,
+      }));
     } catch (error) {
       console.error("Error uploading file:", error);
-      alert(`Upload failed: ${error.message}`);
+      setErrors((prev) => ({
+        ...prev,
+        image: `Upload failed: ${error.message}`,
+      }));
     } finally {
       setUploading(false);
     }
@@ -1116,21 +1127,32 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       setSaving(true);
+      // Set default image if none provided
+      const serviceData = {
+        ...formData,
+        image: formData.image || "/images/hero_services.png",
+      };
+
       if (service) {
         await serviceService.update(
           serviceService.collectionName,
           service.id,
-          formData
+          serviceData
         );
       } else {
-        await serviceService.createService(formData);
+        await serviceService.createService(serviceData);
       }
       onSave();
       onClose();
     } catch (error) {
       console.error("Error saving service:", error);
+      setErrors({ submit: `Failed to save service: ${error.message}` });
     } finally {
       setSaving(false);
     }
@@ -1139,242 +1161,363 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary to-secondary px-6 py-4 text-white relative">
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 text-white/80 hover:text-white text-2xl"
+          >
+            ×
+          </button>
+          <h2 className="text-2xl font-bold">
             {service ? "Edit Service" : "Create New Service"}
           </h2>
+          <p className="text-blue-100 mt-1">
+            {service
+              ? "Update service information"
+              : "Fill in the details to create a new service"}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Service Name *
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Slug *
-              </label>
-              <input
-                type="text"
-                name="slug"
-                value={formData.slug}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category *
-              </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Sales">Sales</option>
-                <option value="Finance">Finance</option>
-                <option value="Technology">Technology</option>
-                <option value="Manufacturing">Manufacturing</option>
-                <option value="Consulting">Consulting</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sub-Company *
-              </label>
-              <select
-                name="subCompany"
-                value={formData.subCompany}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="XMC">XMC</option>
-                <option value="XGV">XGV</option>
-                <option value="XEV">XEV</option>
-                <option value="XEN">XEN</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description *
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows={4}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Image Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Service Image
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileUpload}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {formData.image && (
-              <img
-                src={formData.image}
-                alt="Service"
-                className="mt-2 w-full h-32 object-cover rounded-lg"
-              />
+        {/* Content */}
+        <div className="max-h-[calc(95vh-120px)] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-6 space-y-8">
+            {/* Error Display */}
+            {errors.submit && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                <div className="flex items-center gap-2">
+                  <span>❌</span>
+                  {errors.submit}
+                </div>
+              </div>
             )}
-          </div>
 
-          {/* Tags */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tags
-            </label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                placeholder="Add a tag..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), handleAddTag())
-                }
-              />
-              <button
-                type="button"
-                onClick={handleAddTag}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Add
-              </button>
+            {/* Basic Information */}
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Icon
+                  icon="mdi:information"
+                  width={20}
+                  className="text-primary"
+                />
+                Basic Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Service Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-colors ${
+                      errors.name
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                    }`}
+                    placeholder="Enter service name"
+                  />
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    URL Slug *
+                  </label>
+                  <input
+                    type="text"
+                    name="slug"
+                    value={formData.slug}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-colors ${
+                      errors.slug
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                    }`}
+                    placeholder="service-url-slug"
+                  />
+                  {errors.slug && (
+                    <p className="text-red-500 text-sm mt-1">{errors.slug}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category *
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="Sales">Sales</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Consulting">Consulting</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sub-Company *
+                  </label>
+                  <select
+                    name="subCompany"
+                    value={formData.subCompany}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="XMC">XMC</option>
+                    <option value="XGV">XGV</option>
+                    <option value="XEV">XEV</option>
+                    <option value="XEN">XEN</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm flex items-center gap-1"
-                >
-                  {tag}
+
+            {/* Description */}
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Icon icon="mdi:text" width={20} className="text-primary" />
+                Description
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Service Description *
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={4}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-colors ${
+                    errors.description
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-300"
+                  }`}
+                  placeholder="Enter detailed service description"
+                />
+                {errors.description && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.description}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Image Upload */}
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Icon icon="mdi:image" width={20} className="text-primary" />
+                Service Image
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Service Image
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                />
+                <p className="text-sm text-gray-500 mt-2">
+                  If no image is uploaded, the default services hero image will
+                  be used.
+                </p>
+                {uploading && (
+                  <div className="flex items-center gap-2 mt-2 text-primary">
+                    <Icon
+                      icon="mdi:loading"
+                      className="animate-spin"
+                      width={16}
+                    />
+                    <span className="text-sm">Uploading...</span>
+                  </div>
+                )}
+                {errors.image && (
+                  <p className="text-red-500 text-sm mt-1">{errors.image}</p>
+                )}
+                {formData.image && (
+                  <div className="mt-3 relative">
+                    <img
+                      src={formData.image}
+                      alt="Service preview"
+                      className="w-full h-40 object-cover rounded-lg border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, image: "" }))
+                      }
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Tags & Highlights */}
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Icon
+                  icon="mdi:tag-multiple"
+                  width={20}
+                  className="text-primary"
+                />
+                Tags & Highlights
+              </h3>
+
+              {/* Tags */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tags
+                </label>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    placeholder="Add a tag..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    onKeyPress={(e) =>
+                      e.key === "Enter" && (e.preventDefault(), handleAddTag())
+                    }
+                  />
                   <button
                     type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="text-red-500 hover:text-red-700"
+                    onClick={handleAddTag}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
                   >
-                    <Icon icon="mdi:close" width={14} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Highlights */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Highlights
-            </label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={highlightInput}
-                onChange={(e) => setHighlightInput(e.target.value)}
-                placeholder="Add a highlight..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) =>
-                  e.key === "Enter" &&
-                  (e.preventDefault(), handleAddHighlight())
-                }
-              />
-              <button
-                type="button"
-                onClick={handleAddHighlight}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Add
-              </button>
-            </div>
-            <div className="space-y-2">
-              {formData.highlights.map((highlight, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg"
-                >
-                  <span className="flex-1">{highlight}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveHighlight(highlight)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Icon icon="mdi:delete" width={16} />
+                    Add
                   </button>
                 </div>
-              ))}
+                <div className="flex flex-wrap gap-2">
+                  {formData.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm flex items-center gap-1"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Icon icon="mdi:close" width={14} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Highlights */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Highlights
+                </label>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={highlightInput}
+                    onChange={(e) => setHighlightInput(e.target.value)}
+                    placeholder="Add a highlight..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    onKeyPress={(e) =>
+                      e.key === "Enter" &&
+                      (e.preventDefault(), handleAddHighlight())
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddHighlight}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {formData.highlights.map((highlight, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg"
+                    >
+                      <span className="flex-1">{highlight}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveHighlight(highlight)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Icon icon="mdi:delete" width={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Featured Checkbox */}
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="featured"
+                  name="featured"
+                  checked={formData.featured}
+                  onChange={handleInputChange}
+                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label
+                  htmlFor="featured"
+                  className="ml-2 text-sm font-medium text-gray-700"
+                >
+                  Mark as featured service
+                </label>
+              </div>
             </div>
-          </div>
 
-          {/* Featured Checkbox */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="featured"
-              name="featured"
-              checked={formData.featured}
-              onChange={handleInputChange}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="featured" className="ml-2 text-sm text-gray-700">
-              Mark as featured service
-            </label>
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving || uploading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {saving
-                ? "Saving..."
-                : service
-                ? "Update Service"
-                : "Create Service"}
-            </button>
-          </div>
-        </form>
+            {/* Form Actions */}
+            <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving || uploading}
+                className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl hover:shadow-lg disabled:opacity-50 transition-all"
+              >
+                {saving ? (
+                  <div className="flex items-center gap-2">
+                    <Icon
+                      icon="mdi:loading"
+                      className="animate-spin"
+                      width={16}
+                    />
+                    Saving...
+                  </div>
+                ) : service ? (
+                  "Update Service"
+                ) : (
+                  "Create Service"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -19,8 +19,6 @@ export default function GalleryManagement() {
   const [viewMode, setViewMode] = useState("grid");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   const categories = ["All", "events", "communities", "achievements", "team"];
 
@@ -41,75 +39,10 @@ export default function GalleryManagement() {
     }
   };
 
-  // Handle image upload
-  const handleImageUpload = async (file) => {
-    try {
-      setUploading(true);
-      const result = await uploadImage(file, "gallery");
-      return result.url;
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      throw error;
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  // Handle save/update
-  const handleSave = async (itemData) => {
-    try {
-      setSaving(true);
-      if (currentItem) {
-        await galleryService.updateGalleryItem(currentItem.id, itemData);
-      } else {
-        await galleryService.createGalleryItem(itemData);
-      }
-      await loadGalleryItems();
-      setIsEditModalOpen(false);
-      setCurrentItem(null);
-    } catch (error) {
-      console.error("Error saving gallery item:", error);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Handle delete
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this gallery item?")) {
-      try {
-        await galleryService.deleteGalleryItem(id);
-        await loadGalleryItems();
-      } catch (error) {
-        console.error("Error deleting gallery item:", error);
-      }
-    }
-  };
-
-  // Handle bulk delete
-  const handleBulkDelete = async () => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${bulkSelection.length} selected items?`
-      )
-    ) {
-      try {
-        await Promise.all(
-          bulkSelection.map((id) => galleryService.deleteGalleryItem(id))
-        );
-        setBulkSelection([]);
-        await loadGalleryItems();
-      } catch (error) {
-        console.error("Error bulk deleting gallery items:", error);
-      }
-    }
-  };
-
   // Filter and sort items
-  const filteredAndSortedItems = galleryItems
+  const filteredItems = galleryItems
     .filter((item) => {
       const matchesSearch =
-        searchTerm === "" ||
         item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.tags?.some((tag) =>
@@ -120,57 +53,174 @@ export default function GalleryManagement() {
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
-      let aVal = a[sortBy];
-      let bVal = b[sortBy];
-
-      if (sortBy === "date") {
-        aVal = new Date(aVal);
-        bVal = new Date(bVal);
+      let aValue, bValue;
+      switch (sortBy) {
+        case "date":
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
+          break;
+        case "title":
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case "category":
+          aValue = a.category.toLowerCase();
+          bValue = b.category.toLowerCase();
+          break;
+        default:
+          aValue = a[sortBy];
+          bValue = b[sortBy];
       }
 
       if (sortOrder === "asc") {
-        return aVal > bVal ? 1 : -1;
+        return aValue > bValue ? 1 : -1;
       } else {
-        return aVal < bVal ? 1 : -1;
+        return aValue < bValue ? 1 : -1;
       }
     });
 
-  // Statistics
-  const stats = {
-    total: galleryItems.length,
-    events: galleryItems.filter((item) => item.category === "events").length,
-    communities: galleryItems.filter((item) => item.category === "communities")
-      .length,
-    achievements: galleryItems.filter(
+  // Get gallery statistics
+  const getGalleryStats = () => {
+    const total = galleryItems.length;
+    const events = galleryItems.filter(
+      (item) => item.category === "events"
+    ).length;
+    const communities = galleryItems.filter(
+      (item) => item.category === "communities"
+    ).length;
+    const achievements = galleryItems.filter(
       (item) => item.category === "achievements"
-    ).length,
-    team: galleryItems.filter((item) => item.category === "team").length,
+    ).length;
+    const team = galleryItems.filter((item) => item.category === "team").length;
+    const featured = galleryItems.filter((item) => item.featured).length;
+
+    return { total, events, communities, achievements, team, featured };
+  };
+
+  const stats = getGalleryStats();
+
+  // Handle bulk selection
+  const handleBulkSelect = (itemId) => {
+    setBulkSelection((prev) =>
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (bulkSelection.length === filteredItems.length) {
+      setBulkSelection([]);
+    } else {
+      setBulkSelection(filteredItems.map((item) => item.id));
+    }
+  };
+
+  // Handle bulk actions
+  const handleBulkDelete = async () => {
+    if (
+      confirm(
+        `Are you sure you want to delete ${bulkSelection.length} gallery items?`
+      )
+    ) {
+      try {
+        await Promise.all(
+          bulkSelection.map((id) => galleryService.deleteGalleryItem(id))
+        );
+        setBulkSelection([]);
+        loadGalleryItems();
+      } catch (error) {
+        console.error("Error deleting gallery items:", error);
+      }
+    }
+  };
+
+  const handleBulkFeaturedUpdate = async (featured) => {
+    try {
+      await Promise.all(
+        bulkSelection.map((id) => {
+          const item = galleryItems.find((item) => item.id === id);
+          return galleryService.updateGalleryItem(id, { ...item, featured });
+        })
+      );
+      setBulkSelection([]);
+      loadGalleryItems();
+    } catch (error) {
+      console.error("Error updating gallery items:", error);
+    }
+  };
+
+  // Handle individual item actions
+  const handleDelete = async (itemId) => {
+    if (confirm("Are you sure you want to delete this gallery item?")) {
+      try {
+        await galleryService.deleteGalleryItem(itemId);
+        loadGalleryItems();
+      } catch (error) {
+        console.error("Error deleting gallery item:", error);
+      }
+    }
+  };
+
+  const handleEdit = (item) => {
+    setCurrentItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDuplicate = async (item) => {
+    try {
+      const duplicatedItem = {
+        ...item,
+        title: `${item.title} (Copy)`,
+        id: undefined,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await galleryService.createGalleryItem(duplicatedItem);
+      loadGalleryItems();
+    } catch (error) {
+      console.error("Error duplicating gallery item:", error);
+    }
+  };
+
+  const handleToggleFeatured = async (item) => {
+    try {
+      await galleryService.updateGalleryItem(item.id, {
+        ...item,
+        featured: !item.featured,
+      });
+      loadGalleryItems();
+    } catch (error) {
+      console.error("Error toggling featured status:", error);
+    }
   };
 
   return (
     <ProtectedRoute>
-      <AdminLayout title="Gallery Management">
-        <div className="space-y-6">
+      <AdminLayout>
+        <div className="p-6 max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Gallery Management
               </h1>
               <p className="text-gray-600">
                 Manage your gallery items and media content
               </p>
             </div>
-            <Button
-              text="Add Gallery Item"
-              type="primary"
-              link="/admin/gallery/new"
-              icon="mdi:plus"
-              className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg"
-            />
+            <div className="flex items-center gap-4 mt-4 md:mt-0">
+              <Button
+                text="Add Gallery Item"
+                type="primary"
+                link="/admin/gallery/new"
+                icon="mdi:plus"
+                className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg"
+              />
+            </div>
           </div>
 
-          {/* Statistics Dashboard */}
+          {/* Modern Statistics Dashboard */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">
@@ -181,147 +231,241 @@ export default function GalleryManagement() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6">
-                <div className="flex items-center justify-between">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+              {/* Total Items */}
+              <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-primary/10 rounded-xl">
+                      <Icon
+                        icon="mdi:image-multiple"
+                        width={20}
+                        className="text-primary"
+                      />
+                    </div>
+                    <div className="text-xs text-primary font-medium bg-primary/10 px-2 py-1 rounded-full">
+                      Total
+                    </div>
+                  </div>
                   <div>
-                    <p className="text-sm font-medium text-blue-800">
-                      Total Items
-                    </p>
-                    <p className="text-2xl font-bold text-blue-900">
+                    <p className="text-2xl font-bold text-gray-900 mb-1">
                       {stats.total}
                     </p>
+                    <p className="text-sm text-gray-600">Gallery Items</p>
                   </div>
-                  <Icon
-                    icon="solar:gallery-bold"
-                    width={32}
-                    className="text-blue-600"
-                  />
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-6">
-                <div className="flex items-center justify-between">
+              {/* Events */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-green-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-green-100 rounded-xl">
+                      <Icon
+                        icon="mdi:calendar"
+                        width={20}
+                        className="text-green-600"
+                      />
+                    </div>
+                    <div className="text-xs text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full">
+                      Events
+                    </div>
+                  </div>
                   <div>
-                    <p className="text-sm font-medium text-green-800">Events</p>
-                    <p className="text-2xl font-bold text-green-900">
+                    <p className="text-2xl font-bold text-green-700 mb-1">
                       {stats.events}
                     </p>
+                    <p className="text-sm text-green-600">Event Photos</p>
                   </div>
-                  <Icon
-                    icon="solar:calendar-bold"
-                    width={32}
-                    className="text-green-600"
-                  />
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-purple-800">
+              {/* Communities */}
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-purple-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-purple-100 rounded-xl">
+                      <Icon
+                        icon="mdi:account-group"
+                        width={20}
+                        className="text-purple-600"
+                      />
+                    </div>
+                    <div className="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-1 rounded-full">
                       Communities
-                    </p>
-                    <p className="text-2xl font-bold text-purple-900">
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-purple-700 mb-1">
                       {stats.communities}
                     </p>
+                    <p className="text-sm text-purple-600">Community</p>
                   </div>
-                  <Icon
-                    icon="solar:users-group-rounded-bold"
-                    width={32}
-                    className="text-purple-600"
-                  />
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-6">
-                <div className="flex items-center justify-between">
+              {/* Achievements */}
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-yellow-100 rounded-xl">
+                      <Icon
+                        icon="mdi:trophy"
+                        width={20}
+                        className="text-yellow-600"
+                      />
+                    </div>
+                    <div className="text-xs text-yellow-600 font-medium bg-yellow-100 px-2 py-1 rounded-full">
+                      Awards
+                    </div>
+                  </div>
                   <div>
-                    <p className="text-sm font-medium text-yellow-800">
-                      Achievements
-                    </p>
-                    <p className="text-2xl font-bold text-yellow-900">
+                    <p className="text-2xl font-bold text-yellow-700 mb-1">
                       {stats.achievements}
                     </p>
+                    <p className="text-sm text-yellow-600">Achievements</p>
                   </div>
-                  <Icon
-                    icon="solar:crown-bold"
-                    width={32}
-                    className="text-yellow-600"
-                  />
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 rounded-xl p-6">
-                <div className="flex items-center justify-between">
+              {/* Team */}
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-blue-100 rounded-xl">
+                      <Icon
+                        icon="mdi:account-multiple"
+                        width={20}
+                        className="text-blue-600"
+                      />
+                    </div>
+                    <div className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-full">
+                      Team
+                    </div>
+                  </div>
                   <div>
-                    <p className="text-sm font-medium text-indigo-800">Team</p>
-                    <p className="text-2xl font-bold text-indigo-900">
+                    <p className="text-2xl font-bold text-blue-700 mb-1">
                       {stats.team}
                     </p>
+                    <p className="text-sm text-blue-600">Team Photos</p>
                   </div>
-                  <Icon
-                    icon="solar:user-bold"
-                    width={32}
-                    className="text-indigo-600"
-                  />
+                </div>
+              </div>
+
+              {/* Featured */}
+              <div className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 p-6 rounded-2xl relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-red-100/50 rounded-full -translate-y-4 translate-x-4"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-red-100 rounded-xl">
+                      <Icon
+                        icon="mdi:star"
+                        width={20}
+                        className="text-red-600"
+                      />
+                    </div>
+                    <div className="text-xs text-red-600 font-medium bg-red-100 px-2 py-1 rounded-full">
+                      Featured
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-red-700 mb-1">
+                      {stats.featured}
+                    </p>
+                    <p className="text-sm text-red-600">Highlighted</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Insights */}
+            <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-2xl p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white rounded-xl shadow-sm">
+                    <Icon
+                      icon="mdi:chart-line"
+                      width={24}
+                      className="text-primary"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">
+                      Quick Insights
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {stats.featured > 0
+                        ? `${stats.featured} featured items highlighting your content`
+                        : stats.total > 0
+                        ? `${stats.total} gallery items across ${
+                            categories.length - 1
+                          } categories`
+                        : "No gallery items uploaded yet"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6">
+                  {stats.total > 0 && (
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-primary">
+                        {Math.round((stats.featured / stats.total) * 100)}%
+                      </p>
+                      <p className="text-xs text-gray-600">Featured Rate</p>
+                    </div>
+                  )}
+
+                  {stats.events > 0 && (
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-green-600">
+                        {stats.events}
+                      </p>
+                      <p className="text-xs text-gray-600">Event Items</p>
+                    </div>
+                  )}
+
+                  {categories.length > 1 && (
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-purple-600">
+                        {categories.length - 1}
+                      </p>
+                      <p className="text-xs text-gray-600">Categories</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Filters and Controls */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+          {/* Filters and Search */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+            <div className="flex flex-col lg:flex-row gap-4">
               {/* Search */}
-              <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <Icon
-                    icon="solar:magnifer-bold"
-                    width={20}
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Search gallery items..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
+              <div className="relative flex-1">
+                <Icon
+                  icon="mdi:magnify"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  width={20}
+                />
+                <input
+                  type="text"
+                  placeholder="Search gallery items..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
 
-              {/* View Toggle */}
-              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-md transition-colors ${
-                    viewMode === "grid"
-                      ? "bg-white text-primary shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <Icon icon="solar:gallery-bold" width={20} />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-md transition-colors ${
-                    viewMode === "list"
-                      ? "bg-white text-primary shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <Icon icon="solar:list-bold" width={20} />
-                </button>
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap gap-4 mb-6">
+              {/* Category Filter */}
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 {categories.map((category) => (
                   <option key={category} value={category}>
@@ -330,137 +474,184 @@ export default function GalleryManagement() {
                 ))}
               </select>
 
+              {/* Sort */}
               <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [field, order] = e.target.value.split("-");
+                  setSortBy(field);
+                  setSortOrder(order);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="date">Sort by Date</option>
-                <option value="title">Sort by Title</option>
-                <option value="category">Sort by Category</option>
+                <option value="date-desc">Date (Newest)</option>
+                <option value="date-asc">Date (Oldest)</option>
+                <option value="title-asc">Title (A-Z)</option>
+                <option value="title-desc">Title (Z-A)</option>
+                <option value="category-asc">Category (A-Z)</option>
               </select>
 
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="desc">Newest First</option>
-                <option value="asc">Oldest First</option>
-              </select>
+              {/* View Mode */}
+              <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`px-3 py-2 ${
+                    viewMode === "grid"
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-700"
+                  }`}
+                >
+                  <Icon icon="mdi:view-grid" width={20} />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 py-2 ${
+                    viewMode === "list"
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-700"
+                  }`}
+                >
+                  <Icon icon="mdi:view-list" width={20} />
+                </button>
+              </div>
             </div>
+          </div>
 
-            {/* Bulk Actions */}
-            {bulkSelection.length > 0 && (
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">
-                    {bulkSelection.length} item(s) selected
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setBulkSelection([])}
-                      className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900"
-                    >
-                      Clear Selection
-                    </button>
-                    <button
-                      onClick={handleBulkDelete}
-                      className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200"
-                    >
-                      Delete Selected
-                    </button>
-                  </div>
+          {/* Bulk Actions */}
+          {bulkSelection.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <span className="text-blue-800 font-medium">
+                  {bulkSelection.length} item
+                  {bulkSelection.length > 1 ? "s" : ""} selected
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleBulkFeaturedUpdate(true)}
+                    className="px-3 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600"
+                  >
+                    Mark Featured
+                  </button>
+                  <button
+                    onClick={() => handleBulkFeaturedUpdate(false)}
+                    className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                  >
+                    Remove Featured
+                  </button>
+                  <button
+                    onClick={handleBulkDelete}
+                    className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+                  >
+                    Delete Selected
+                  </button>
+                  <button
+                    onClick={() => setBulkSelection([])}
+                    className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Results */}
-            <div className="mb-4">
-              <p className="text-sm text-gray-600">
-                Showing {filteredAndSortedItems.length} of {galleryItems.length}{" "}
-                items
+          {/* Gallery Display */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="text-center py-12">
+              <Icon
+                icon="mdi:image-remove"
+                width={64}
+                className="text-gray-400 mx-auto mb-4"
+              />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No gallery items found
+              </h3>
+              <p className="text-gray-500">
+                Try adjusting your search or filter criteria
               </p>
             </div>
-
-            {/* Gallery Grid/List */}
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Icon
-                  icon="solar:refresh-bold"
-                  width={32}
-                  className="text-primary animate-spin"
+          ) : viewMode === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredItems.map((item) => (
+                <GalleryCard
+                  key={item.id}
+                  item={item}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onDuplicate={handleDuplicate}
+                  onToggleFeatured={handleToggleFeatured}
+                  onSelect={handleBulkSelect}
+                  selected={bulkSelection.includes(item.id)}
                 />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left">
+                        <input
+                          type="checkbox"
+                          checked={
+                            bulkSelection.length === filteredItems.length
+                          }
+                          onChange={handleSelectAll}
+                          className="rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Item
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Featured
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredItems.map((item) => (
+                      <GalleryRow
+                        key={item.id}
+                        item={item}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onDuplicate={handleDuplicate}
+                        onToggleFeatured={handleToggleFeatured}
+                        onSelect={handleBulkSelect}
+                        selected={bulkSelection.includes(item.id)}
+                      />
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ) : filteredAndSortedItems.length > 0 ? (
-              <div
-                className={
-                  viewMode === "grid"
-                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                    : "space-y-4"
-                }
-              >
-                {filteredAndSortedItems.map((item) => (
-                  <GalleryItemCard
-                    key={item.id}
-                    item={item}
-                    viewMode={viewMode}
-                    isSelected={
-                      Array.isArray(bulkSelection) &&
-                      bulkSelection.includes(item.id)
-                    }
-                    onSelect={(id) => {
-                      setBulkSelection((prev) => {
-                        const arr = Array.isArray(prev) ? prev : [];
-                        return arr.includes(id)
-                          ? arr.filter((i) => i !== id)
-                          : [...arr, id];
-                      });
-                    }}
-                    onEdit={(item) => {
-                      setCurrentItem(item);
-                      setIsEditModalOpen(true);
-                    }}
-                    onDelete={handleDelete}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Icon
-                  icon="solar:gallery-bold"
-                  width={64}
-                  className="text-gray-300 mx-auto mb-4"
-                />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No gallery items found
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Get started by adding your first gallery item.
-                </p>
-                <Button
-                  text="Add Gallery Item"
-                  type="primary"
-                  link="/admin/gallery/new"
-                  icon="mdi:plus"
-                />
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Edit Modal */}
         {isEditModalOpen && (
-          <EditGalleryModal
-            item={currentItem}
+          <GalleryModal
+            isOpen={isEditModalOpen}
             onClose={() => {
               setIsEditModalOpen(false);
               setCurrentItem(null);
             }}
-            onSave={handleSave}
-            uploading={uploading}
-            saving={saving}
-            onImageUpload={handleImageUpload}
+            item={currentItem}
+            onSave={loadGalleryItems}
           />
         )}
       </AdminLayout>
@@ -468,180 +659,284 @@ export default function GalleryManagement() {
   );
 }
 
-// Gallery Item Card Component
-const GalleryItemCard = ({
+// Gallery Card Component
+function GalleryCard({
   item,
-  viewMode,
-  isSelected,
-  onSelect,
   onEdit,
   onDelete,
-}) => {
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
+  onDuplicate,
+  onToggleFeatured,
+  onSelect,
+  selected,
+}) {
   const getCategoryColor = (category) => {
-    const colors = {
-      events: "bg-blue-100 text-blue-800",
-      communities: "bg-green-100 text-green-800",
-      achievements: "bg-yellow-100 text-yellow-800",
-      team: "bg-purple-100 text-purple-800",
-    };
-    return colors[category] || "bg-gray-100 text-gray-800";
+    switch (category) {
+      case "events":
+        return "bg-blue-100 text-blue-800";
+      case "communities":
+        return "bg-green-100 text-green-800";
+      case "achievements":
+        return "bg-yellow-100 text-yellow-800";
+      case "team":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
-
-  if (viewMode === "list") {
-    return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-        <div className="flex items-center gap-4">
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={() => onSelect(item.id)}
-            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-          />
-          <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-100">
-            <Image
-              src={item.image || "/images/hero.png"}
-              alt={item.title}
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">{item.title}</h3>
-            <p className="text-sm text-gray-600 line-clamp-1">
-              {item.description}
-            </p>
-            <div className="flex items-center gap-2 mt-1">
-              <span
-                className={`px-2 py-1 text-xs rounded-full ${getCategoryColor(
-                  item.category
-                )}`}
-              >
-                {item.category}
-              </span>
-              <span className="text-xs text-gray-500">
-                {formatDate(item.date)}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onEdit(item)}
-              className="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Icon icon="solar:pen-bold" width={16} />
-            </button>
-            <button
-              onClick={() => onDelete(item.id)}
-              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <Icon icon="solar:trash-bin-trash-bold" width={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+    <div
+      className={`bg-white rounded-xl shadow-sm border-2 transition-all ${
+        selected
+          ? "border-primary bg-blue-50"
+          : "border-gray-200 hover:border-gray-300"
+      }`}
+    >
       <div className="relative">
         <input
           type="checkbox"
-          checked={isSelected}
+          checked={selected}
           onChange={() => onSelect(item.id)}
-          className="absolute top-3 left-3 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary z-10"
+          className="absolute top-4 left-4 z-10 rounded border-gray-300 text-primary focus:ring-primary"
         />
-        <div className="h-48 relative bg-gray-100">
+        <div className="h-48 relative rounded-t-xl overflow-hidden">
           <Image
             src={item.image || "/images/hero.png"}
             alt={item.title}
             fill
             className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
-        <div className="absolute top-3 right-3 flex gap-1">
-          <button
-            onClick={() => onEdit(item)}
-            className="p-2 bg-white/90 text-gray-600 hover:text-primary rounded-lg transition-colors backdrop-blur-sm"
-          >
-            <Icon icon="solar:pen-bold" width={16} />
-          </button>
-          <button
-            onClick={() => onDelete(item.id)}
-            className="p-2 bg-white/90 text-gray-600 hover:text-red-600 rounded-lg transition-colors backdrop-blur-sm"
-          >
-            <Icon icon="solar:trash-bin-trash-bold" width={16} />
-          </button>
-        </div>
-      </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
-          {item.title}
-        </h3>
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {item.description}
-        </p>
-        <div className="flex items-center justify-between">
+        <div className="absolute top-4 right-4 flex gap-2">
           <span
-            className={`px-2 py-1 text-xs rounded-full ${getCategoryColor(
+            className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
               item.category
             )}`}
           >
             {item.category}
           </span>
-          <span className="text-xs text-gray-500">{formatDate(item.date)}</span>
+          {item.featured && (
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+              <Icon icon="mdi:star" width={12} className="inline mr-1" />
+              Featured
+            </span>
+          )}
         </div>
+      </div>
+
+      <div className="p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+          {item.title}
+        </h3>
+        <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+          {item.description}
+        </p>
+
         {item.tags && item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {item.tags.slice(0, 3).map((tag) => (
+          <div className="flex flex-wrap gap-1 mb-4">
+            {item.tags.slice(0, 3).map((tag, index) => (
               <span
-                key={tag}
-                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                key={index}
+                className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
               >
                 #{tag}
               </span>
             ))}
             {item.tags.length > 3 && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                +{item.tags.length - 3}
+              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                +{item.tags.length - 3} more
               </span>
             )}
           </div>
         )}
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onEdit(item)}
+            className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            <Icon icon="mdi:pencil" width={16} />
+            Edit
+          </button>
+          <button
+            onClick={() => onToggleFeatured(item)}
+            className={`px-3 py-2 rounded-lg transition-colors ${
+              item.featured
+                ? "bg-yellow-500 text-white hover:bg-yellow-600"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            <Icon icon="mdi:star" width={16} />
+          </button>
+          <button
+            onClick={() => onDuplicate(item)}
+            className="px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            <Icon icon="mdi:content-copy" width={16} />
+          </button>
+          <button
+            onClick={() => onDelete(item.id)}
+            className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          >
+            <Icon icon="mdi:delete" width={16} />
+          </button>
+        </div>
       </div>
     </div>
   );
-};
+}
 
-// Edit Gallery Modal Component
-const EditGalleryModal = ({
+// Gallery Row Component for List View
+function GalleryRow({
   item,
-  onClose,
-  onSave,
-  uploading,
-  saving,
-  onImageUpload,
-}) => {
+  onEdit,
+  onDelete,
+  onDuplicate,
+  onToggleFeatured,
+  onSelect,
+  selected,
+}) {
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case "events":
+        return "bg-blue-100 text-blue-800";
+      case "communities":
+        return "bg-green-100 text-green-800";
+      case "achievements":
+        return "bg-yellow-100 text-yellow-800";
+      case "team":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  return (
+    <tr className={selected ? "bg-blue-50" : "hover:bg-gray-50"}>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={() => onSelect(item.id)}
+          className="rounded border-gray-300 text-primary focus:ring-primary"
+        />
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center">
+          <img
+            src={item.image || "/images/hero.png"}
+            alt={item.title}
+            className="w-12 h-12 rounded-lg object-cover mr-4"
+          />
+          <div>
+            <div className="text-sm font-medium text-gray-900">
+              {item.title}
+            </div>
+            <div className="text-sm text-gray-500 line-clamp-1">
+              {item.description}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+            item.category
+          )}`}
+        >
+          {item.category}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {item.date ? new Date(item.date).toLocaleDateString() : ""}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        {item.featured ? (
+          <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            <Icon icon="mdi:star" width={12} className="inline mr-1" />
+            Featured
+          </span>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onEdit(item)}
+            className="text-primary hover:text-blue-900"
+          >
+            <Icon icon="mdi:pencil" width={16} />
+          </button>
+          <button
+            onClick={() => onToggleFeatured(item)}
+            className={
+              item.featured
+                ? "text-yellow-600 hover:text-yellow-900"
+                : "text-gray-400 hover:text-gray-600"
+            }
+          >
+            <Icon icon="mdi:star" width={16} />
+          </button>
+          <button
+            onClick={() => onDuplicate(item)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <Icon icon="mdi:content-copy" width={16} />
+          </button>
+          <button
+            onClick={() => onDelete(item.id)}
+            className="text-red-600 hover:text-red-900"
+          >
+            <Icon icon="mdi:delete" width={16} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+// Gallery Modal Component
+function GalleryModal({ isOpen, onClose, item, onSave }) {
   const [formData, setFormData] = useState({
-    title: item?.title || "",
-    description: item?.description || "",
-    image: item?.image || "",
-    category: item?.category || "events",
-    date: item?.date
-      ? new Date(item.date).toISOString().split("T")[0]
-      : new Date().toISOString().split("T")[0],
-    tags: item?.tags || [],
-    featured: item?.featured || false,
+    title: "",
+    description: "",
+    image: "",
+    category: "events",
+    date: new Date().toISOString().split("T")[0],
+    tags: [],
+    featured: false,
   });
-  const [currentTag, setCurrentTag] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (item) {
+      setFormData({
+        title: item.title || "",
+        description: item.description || "",
+        image: item.image || "",
+        category: item.category || "events",
+        date: item.date
+          ? new Date(item.date).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        tags: item.tags || [],
+        featured: item.featured || false,
+      });
+    } else {
+      setFormData({
+        title: "",
+        description: "",
+        image: "",
+        category: "events",
+        date: new Date().toISOString().split("T")[0],
+        tags: [],
+        featured: false,
+      });
+    }
+  }, [item]);
 
   const categories = ["events", "communities", "achievements", "team"];
 
@@ -653,25 +948,33 @@ const EditGalleryModal = ({
     }));
   };
 
-  const handleImageChange = async (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      try {
-        const imageUrl = await onImageUpload(file);
-        setFormData((prev) => ({ ...prev, image: imageUrl }));
-      } catch (error) {
-        console.error("Error uploading image:", error);
-      }
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const result = await uploadImage(file, {
+        folder: "gallery",
+      });
+      setFormData((prev) => ({
+        ...prev,
+        image: result.url,
+      }));
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleAddTag = () => {
-    if (currentTag.trim() && !formData.tags.includes(currentTag.trim())) {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
       setFormData((prev) => ({
         ...prev,
-        tags: [...prev.tags, currentTag.trim()],
+        tags: [...prev.tags, tagInput.trim()],
       }));
-      setCurrentTag("");
+      setTagInput("");
     }
   };
 
@@ -682,189 +985,250 @@ const EditGalleryModal = ({
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave({
-      ...formData,
-      date: new Date(formData.date),
-    });
+
+    try {
+      setSaving(true);
+      const itemData = {
+        ...formData,
+        date: new Date(formData.date),
+      };
+
+      if (item) {
+        await galleryService.updateGalleryItem(item.id, itemData);
+      } else {
+        await galleryService.createGalleryItem(itemData);
+      }
+      onSave();
+      onClose();
+    } catch (error) {
+      console.error("Error saving gallery item:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">
-            {item ? "Edit Gallery Item" : "Add Gallery Item"}
-          </h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary to-secondary px-6 py-4 text-white relative">
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="absolute right-4 top-4 text-white/80 hover:text-white text-2xl"
           >
-            <Icon icon="solar:close-circle-bold" width={24} />
+            ×
           </button>
+          <h2 className="text-2xl font-bold">
+            {item ? "Edit Gallery Item" : "Create New Gallery Item"}
+          </h2>
+          <p className="text-blue-100 mt-1">
+            {item
+              ? "Update gallery item information"
+              : "Fill in the details to create a new gallery item"}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Title *
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category *
-            </label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date *
-            </label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Image
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-            {uploading && (
-              <p className="text-sm text-primary mt-1">Uploading image...</p>
-            )}
-            {typeof formData.image === "string" && formData.image && (
-              <div className="mt-2">
-                <Image
-                  src={formData.image}
-                  alt="Preview"
-                  width={200}
-                  height={150}
-                  className="rounded-lg object-cover"
-                />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tags
-            </label>
-            <div className="flex gap-2 mb-2">
+        {/* Content */}
+        <div className="max-h-[calc(95vh-120px)] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Basic Information */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Title *
+              </label>
               <input
                 type="text"
-                value={currentTag}
-                onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyPress={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), handleAddTag())
-                }
-                placeholder="Add a tag"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Enter gallery item title"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Enter description"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category *
+                </label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date *
+                </label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+              />
+              {uploading && (
+                <div className="flex items-center gap-2 mt-2 text-primary">
+                  <Icon
+                    icon="mdi:loading"
+                    className="animate-spin"
+                    width={16}
+                  />
+                  <span className="text-sm">Uploading...</span>
+                </div>
+              )}
+              {formData.image && (
+                <div className="mt-3">
+                  <Image
+                    src={formData.image}
+                    alt="Preview"
+                    width={200}
+                    height={150}
+                    className="rounded-lg object-cover border border-gray-200"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tags
+              </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), handleAddTag())
+                  }
+                  placeholder="Add a tag..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddTag}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm flex items-center gap-1"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Icon icon="mdi:close" width={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Featured Checkbox */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="featured"
+                id="featured"
+                checked={formData.featured}
+                onChange={handleInputChange}
+                className="rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <label
+                htmlFor="featured"
+                className="ml-2 text-sm font-medium text-gray-700"
+              >
+                Mark as featured gallery item
+              </label>
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
-                onClick={handleAddTag}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                onClick={onClose}
+                className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                Add
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving || uploading}
+                className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl hover:shadow-lg disabled:opacity-50 transition-all"
+              >
+                {saving ? (
+                  <div className="flex items-center gap-2">
+                    <Icon
+                      icon="mdi:loading"
+                      className="animate-spin"
+                      width={16}
+                    />
+                    Saving...
+                  </div>
+                ) : item ? (
+                  "Update Gallery Item"
+                ) : (
+                  "Create Gallery Item"
+                )}
               </button>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm flex items-center gap-1"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <Icon icon="solar:close-circle-bold" width={16} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="featured"
-              checked={formData.featured}
-              onChange={handleInputChange}
-              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-            />
-            <label className="ml-2 text-sm font-medium text-gray-700">
-              Featured item
-            </label>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
-            >
-              {saving ? "Saving..." : "Save"}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
-};
+}

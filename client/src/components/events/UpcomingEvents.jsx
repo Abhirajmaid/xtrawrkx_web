@@ -5,7 +5,10 @@ import SectionHeader from "../common/SectionHeader";
 import { Icon } from "@iconify/react";
 import { useState, useEffect } from "react";
 import { EventService } from "../../services/databaseService";
-import { formatEventDate } from "../../utils/dateUtils";
+import {
+  formatEventDate,
+  convertFirestoreTimestampToDate,
+} from "../../utils/dateUtils";
 
 export default function UpcomingEvents({ initialCategoryFilter }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,25 +38,31 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
     const fetchUpcomingEvents = async () => {
       try {
         setLoading(true);
-        let events = await eventService.getUpcomingEvents();
+        let events = await eventService.getAll("date", "desc");
+        console.log("All events from Firebase:", events);
 
-        // If no upcoming events found, get all events as fallback
-        if (events.length === 0) {
+        // Filter for upcoming events
+        const now = new Date();
+        const upcoming = events.filter((event) => {
+          const eventDate = convertFirestoreTimestampToDate(event.date);
+          return eventDate && eventDate > now;
+        });
+
+        // If no upcoming events found, show the 6 most recent events as fallback
+        if (upcoming.length > 0) {
+          console.log("Upcoming events found:", upcoming);
+          setUpcomingEvents(upcoming);
+        } else {
           console.log(
-            "No upcoming events found, fetching all events as fallback"
+            "No upcoming events found, showing recent events as fallback"
           );
-          const allEvents = await eventService.getAll();
-          console.log("All events from Firebase:", allEvents);
-          events = allEvents.slice(0, 6); // Show first 6 events
+          setUpcomingEvents(events.slice(0, 6)); // Show first 6 events
         }
 
-        console.log("Final upcoming events to display:", events);
-
-        setUpcomingEvents(events);
         setError(null);
       } catch (err) {
-        console.error("Error fetching upcoming events:", err);
-        setError("Failed to load upcoming events");
+        console.error("Error fetching events:", err);
+        setError("Failed to load events");
         setUpcomingEvents([]);
       } finally {
         setLoading(false);

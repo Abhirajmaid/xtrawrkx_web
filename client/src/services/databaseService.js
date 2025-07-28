@@ -166,8 +166,13 @@ class BaseDatabaseService {
     // Delete a document
     async delete(id) {
         try {
+            if (!id) {
+                throw new Error('Document ID is required for deletion');
+            }
+
             const docRef = doc(db, this.collectionName, id);
             await deleteDoc(docRef);
+            return true;
         } catch (error) {
             console.error(`Error deleting document from ${this.collectionName}:`, error);
             throw new Error(`Failed to delete document: ${error.message}`);

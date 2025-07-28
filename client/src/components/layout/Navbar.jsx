@@ -161,6 +161,7 @@ export default function Navbar() {
             type="primary"
             className="w-fit"
             link="/services"
+            onClick={() => setOpenDropdown(null)}
           />
         </div>
       </div>
@@ -222,6 +223,7 @@ export default function Navbar() {
               <Link
                 href={item.slug}
                 className="flex-1 pl-2 transition-all duration-200 border-l-4 border-transparent group-hover:border-brand-primary group-hover:pl-5 hover:no-underline"
+                onClick={() => setOpenDropdown(null)}
               >
                 <div className="block">
                   <span className="block text-sm font-medium">
@@ -264,6 +266,7 @@ export default function Navbar() {
           type="primary"
           className="w-fit"
           link="/communities"
+          onClick={() => setOpenDropdown(null)}
         />
       </div>
       {/* Middle column - Enhanced community display */}
@@ -304,6 +307,7 @@ export default function Navbar() {
                 <Link
                   href={item.slug}
                   className={`block hover:no-underline transition-all duration-200 border-l-4 border-transparent ${borderColor} pl-4 ${textColor}`}
+                  onClick={() => setOpenDropdown(null)}
                 >
                   <div className="flex items-start gap-3">
                     {/* Community Logo/Icon */}
@@ -425,6 +429,7 @@ export default function Navbar() {
             type="secondary"
             className="w-full text-sm border-[#377ecc] text-[#377ecc] hover:bg-[#377ecc] hover:text-white"
             link="/communities/xen"
+            onClick={() => setOpenDropdown(null)}
           />
         </div>
       </div>
@@ -447,6 +452,7 @@ export default function Navbar() {
             type="primary"
             className="w-fit"
             link="/events"
+            onClick={() => setOpenDropdown(null)}
           />
         </div>
       </div>

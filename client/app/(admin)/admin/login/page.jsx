@@ -48,34 +48,46 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-brand-light via-white to-brand-secondary/10 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-brand-primary rounded-full blur-xl"></div>
+        <div className="absolute bottom-20 right-20 w-40 h-40 bg-brand-secondary rounded-full blur-xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-primary/20 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="max-w-md w-full space-y-8 relative z-10">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mb-4">
-            <Icon icon="mdi:shield-key" className="h-6 w-6 text-white" />
+          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-brand-primary/20 animate-float">
+            <Icon
+              icon="solar:shield-keyhole-bold"
+              className="h-8 w-8 text-white"
+            />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">Admin Login</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to access the admin dashboard
+          <h1 className="text-heading text-brand-dark mb-2">Admin Portal</h1>
+          <p className="text-body text-brand-gray">
+            Secure access to dashboard and management tools
           </p>
         </div>
 
         {/* Firebase Status Warning */}
         {!isFirebaseAvailable && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center">
-              <Icon
-                icon="mdi:alert-circle"
-                className="h-5 w-5 text-yellow-600 mr-2"
-              />
-              <div>
+              <div className="flex-shrink-0">
+                <Icon
+                  icon="solar:danger-circle-bold"
+                  className="h-6 w-6 text-yellow-600"
+                />
+              </div>
+              <div className="ml-3">
                 <h3 className="text-sm font-medium text-yellow-800">
-                  Firebase Not Available
+                  Configuration Required
                 </h3>
                 <p className="text-sm text-yellow-700 mt-1">
-                  Firebase configuration is missing or incomplete. Please check
-                  your environment variables.
+                  Firebase configuration is missing. Please verify your
+                  environment setup.
                 </p>
               </div>
             </div>
@@ -83,20 +95,23 @@ export default function AdminLogin() {
         )}
 
         {/* Login Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="space-y-4">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="card shadow-xl shadow-brand-primary/5 border-2 border-brand-gray-light/20 backdrop-blur-sm">
+            <div className="space-y-6">
               {/* Email Input */}
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-brand-dark mb-2"
                 >
                   Email Address
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Icon icon="mdi:email" className="h-5 w-5 text-gray-400" />
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Icon
+                      icon="solar:letter-bold"
+                      className="h-5 w-5 text-brand-gray"
+                    />
                   </div>
                   <input
                     id="email"
@@ -106,8 +121,8 @@ export default function AdminLogin() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter your email"
+                    className="input pl-12 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
+                    placeholder="Enter your email address"
                     disabled={isLoading || !isFirebaseAvailable}
                   />
                 </div>
@@ -117,13 +132,16 @@ export default function AdminLogin() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-brand-dark mb-2"
                 >
                   Password
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Icon icon="mdi:lock" className="h-5 w-5 text-gray-400" />
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Icon
+                      icon="solar:lock-keyhole-bold"
+                      className="h-5 w-5 text-brand-gray"
+                    />
                   </div>
                   <input
                     id="password"
@@ -133,19 +151,23 @@ export default function AdminLogin() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="input pl-12 pr-12 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
                     placeholder="Enter your password"
                     disabled={isLoading || !isFirebaseAvailable}
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center transition-colors duration-200 hover:text-brand-primary"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading || !isFirebaseAvailable}
                   >
                     <Icon
-                      icon={showPassword ? "mdi:eye-off" : "mdi:eye"}
-                      className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                      icon={
+                        showPassword
+                          ? "solar:eye-closed-bold"
+                          : "solar:eye-bold"
+                      }
+                      className="h-5 w-5 text-brand-gray hover:text-brand-primary transition-colors"
                     />
                   </button>
                 </div>
@@ -153,13 +175,15 @@ export default function AdminLogin() {
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
                   <div className="flex items-center">
                     <Icon
-                      icon="mdi:alert-circle"
-                      className="h-5 w-5 text-red-600 mr-2"
+                      icon="solar:danger-circle-bold"
+                      className="h-5 w-5 text-red-600 mr-3 flex-shrink-0"
                     />
-                    <span className="text-sm text-red-700">{error}</span>
+                    <span className="text-sm text-red-700 font-medium">
+                      {error}
+                    </span>
                   </div>
                 </div>
               )}
@@ -168,34 +192,60 @@ export default function AdminLogin() {
               <button
                 type="submit"
                 disabled={isLoading || !isFirebaseAvailable}
-                className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="w-full flex justify-center items-center py-4 px-6 border-0 rounded-xl shadow-lg text-base font-medium text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90 hover:shadow-xl hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-brand-primary/20 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all duration-300"
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing in...
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
+                    Authenticating...
                   </>
                 ) : (
                   <>
-                    <Icon icon="mdi:login" className="h-4 w-4 mr-2" />
-                    Sign In
+                    <Icon icon="solar:login-3-bold" className="h-5 w-5 mr-3" />
+                    Access Dashboard
                   </>
                 )}
               </button>
+
+              {/* Additional Security Info */}
+              <div className="text-center pt-2">
+                <p className="text-xs text-brand-gray flex items-center justify-center">
+                  <Icon
+                    icon="solar:shield-check-bold"
+                    className="h-4 w-4 mr-1 text-green-500"
+                  />
+                  Secured with enterprise-grade encryption
+                </p>
+              </div>
             </div>
           </div>
         </form>
 
         {/* Development Info */}
         {process.env.NODE_ENV === "development" && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+          <div className="bg-gray-50/80 backdrop-blur-sm border-2 border-gray-200 rounded-xl p-4 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Icon
+                icon="solar:code-circle-bold"
+                className="h-4 w-4 text-gray-600 mr-2"
+              />
+              <span className="text-xs font-medium text-gray-700">
+                Development Mode
+              </span>
+            </div>
             <p className="text-xs text-gray-600">
-              Development Mode: Firebase Available:{" "}
-              {isFirebaseAvailable ? "Yes" : "No"}
+              Firebase Status:{" "}
+              <span
+                className={`font-medium ${
+                  isFirebaseAvailable ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {isFirebaseAvailable ? "Connected" : "Disconnected"}
+              </span>
             </p>
             {!isFirebaseAvailable && (
               <p className="text-xs text-gray-600 mt-1">
-                Check your .env.local file and Firebase configuration
+                Verify your .env.local configuration
               </p>
             )}
           </div>
@@ -203,8 +253,9 @@ export default function AdminLogin() {
 
         {/* Footer */}
         <div className="text-center">
-          <p className="text-xs text-gray-500">
-            © 2024 Xtrawrkx. All rights reserved.
+          <p className="text-xs text-brand-gray/70 flex items-center justify-center">
+            <Icon icon="solar:copyright-bold" className="h-3 w-3 mr-1" />
+            2025 Xtrawrkx. All rights reserved.
           </p>
         </div>
       </div>

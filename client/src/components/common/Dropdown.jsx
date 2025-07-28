@@ -12,6 +12,7 @@ export default function Dropdown({
 
   useEffect(() => {
     if (!open) return;
+
     function handleClick(e) {
       if (
         dropdownRef.current &&
@@ -21,13 +22,25 @@ export default function Dropdown({
         onClose();
       }
     }
+
     function handleScroll() {
       onClose();
     }
+
+    // Close dropdown when any link is clicked
+    function handleLinkClick(e) {
+      if (e.target.tagName === "A" || e.target.closest("a")) {
+        onClose();
+      }
+    }
+
     document.addEventListener("mousedown", handleClick);
+    document.addEventListener("click", handleLinkClick);
     window.addEventListener("scroll", handleScroll, true);
+
     return () => {
       document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("click", handleLinkClick);
       window.removeEventListener("scroll", handleScroll, true);
     };
   }, [open, onClose]);

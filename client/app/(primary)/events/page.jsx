@@ -4,7 +4,6 @@ import Marquee from "@/src/components/common/Marquee";
 import UpcomingEvents from "@/src/components/events/UpcomingEvents";
 import PastEvents from "@/src/components/events/PastEvents";
 import React, { Suspense } from "react";
-import EventSection from "@/src/components/home/EventSection";
 import { useSearchParams } from "next/navigation";
 
 // Separate component that uses useSearchParams
@@ -14,23 +13,19 @@ const EventsContent = () => {
 
   return (
     <>
-      <EventSection />
       <UpcomingEvents initialCategoryFilter={categoryFilter} />
-      <PastEvents />
+      <PastEvents initialCategoryFilter={categoryFilter} />
     </>
   );
 };
 
-const page = () => {
+export default function page() {
   return (
     <div className="min-h-screen bg-white">
       <Hero
         title="Our Events"
         description="Discover and participate in our latest events, workshops, and community gatherings. Stay updated and connect with like-minded professionals to grow, learn, and collaborate."
         backgroundImage="/images/hero1.png"
-        showButton={true}
-        buttonText="Get Started"
-        buttonLink="/contact-us"
       />
       <Suspense fallback={<div>Loading events...</div>}>
         <EventsContent />
@@ -38,6 +33,4 @@ const page = () => {
       <Marquee />
     </div>
   );
-};
-
-export default page;
+}
