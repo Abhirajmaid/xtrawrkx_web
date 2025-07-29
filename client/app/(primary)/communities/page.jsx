@@ -11,7 +11,6 @@ const CommunitiesPage = () => {
       <Hero
         title="Communities"
         description="Connect with like-minded professionals, entrepreneurs, and innovators in our thriving EV ecosystem. Join specialized communities designed to foster collaboration, learning, and growth."
-        backgroundImage="/images/hero1.png"
         showButton={true}
         buttonText="Explore Communities"
         buttonLink="#communities"

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Icon } from "@iconify/react";
 import Button from "./Button";
 
@@ -17,27 +16,37 @@ export default function ServiceCard({
     }
   };
 
+  // Function to truncate description to max 10-12 words
+  const getTruncatedDescription = (text) => {
+    const fallbackText =
+      "Lorem ipsum dolor sit amet consectetur ornare sed euismod malesuada...";
+    const targetText = text || fallbackText;
+    const words = targetText.split(" ");
+
+    if (words.length <= 12) {
+      return targetText;
+    }
+
+    return words.slice(0, 10).join(" ") + "...";
+  };
+
   return (
     <div className="relative w-full h-[450px] bg-gray-200 rounded-2xl p-4 group hover:shadow-lg transition-all duration-300 overflow-hidden">
       {/* Background image - normal state */}
       <div className="absolute inset-0 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-300">
-        <Image
+        <img
           src={image}
-          alt={`${name} service illustration`}
-          fill
-          className="object-cover opacity-80"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          alt="Service illustration"
+          className="w-full h-full object-cover opacity-80"
         />
       </div>
 
       {/* Background image - hover state (blurred) */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <Image
+        <img
           src={image}
-          alt={`${name} service illustration blurred`}
-          fill
-          className="object-cover filter blur-lg"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          alt="Service illustration"
+          className="w-full h-full object-cover filter blur-lg"
         />
       </div>
 
@@ -57,22 +66,38 @@ export default function ServiceCard({
         />
       </button>
 
-      {/* Main content */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 flex flex-col justify-center items-center p-6 text-center">
-        <h3 className="text-white text-2xl font-bold mb-4 drop-shadow-lg">
+      {/* Normal state - only title and arrow */}
+      <div className="absolute bottom-4 left-4 right-4 flex items-center gap-4  justify-start z-10 group-hover:opacity-0 transition-opacity duration-300">
+        <h3 className="text-lg font-medium text-gray-900 max-w-[180px]">
           {name}
         </h3>
-        {description && (
-          <p className="text-white/90 text-sm mb-6 line-clamp-3 drop-shadow">
-            {description}
-          </p>
-        )}
+        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-brand-gray-light">
+          <Icon
+            icon="solar:arrow-right-up-linear"
+            width={20}
+            className="text-primary"
+          />
+        </div>
+      </div>
+
+      {/* Hover state - title, description, and button */}
+      <div className="absolute inset-4 flex flex-col justify-end z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 space-y-4">
+        {/* Title */}
+        <h3 className="text-xl font-semibold text-white">{name}</h3>
+
+        {/* Description - limited to 2 lines and 10-12 words */}
+        <p className="text-sm text-white leading-relaxed line-clamp-2">
+          {getTruncatedDescription(description)}
+        </p>
+
+        {/* Button */}
         <Button
           text={buttonText}
           type="primary"
-          size="sm"
-          onClick={handleCardClick}
-          className="mt-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCardClick();
+          }}
         />
       </div>
     </div>

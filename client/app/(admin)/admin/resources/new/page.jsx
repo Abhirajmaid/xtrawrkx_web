@@ -21,6 +21,7 @@ export default function NewResource() {
     publishedDate: new Date().toISOString().split("T")[0],
     readTime: "",
     downloadUrl: "",
+    youtubeUrl: "",
     image: "",
     tags: [],
     featured: false,
@@ -36,7 +37,13 @@ export default function NewResource() {
   const [errors, setErrors] = useState({});
   const [currentTag, setCurrentTag] = useState("");
 
-  const resourceTypes = ["whitepaper", "article", "report"];
+  const resourceTypes = [
+    "whitepaper",
+    "article",
+    "report",
+    "interview",
+    "newsletter",
+  ];
 
   const resourceCategories = [
     "Finance",
@@ -160,22 +167,42 @@ export default function NewResource() {
     if (!formData.slug.trim()) newErrors.slug = "Slug is required";
     if (!formData.description.trim())
       newErrors.description = "Description is required";
-    if (!formData.excerpt.trim()) newErrors.excerpt = "Excerpt is required";
     if (!formData.author.trim()) newErrors.author = "Author is required";
     if (!formData.readTime.trim()) newErrors.readTime = "Read time is required";
+
+    // Excerpt is only required for articles
+    if (formData.type === "article" && !formData.excerpt.trim()) {
+      newErrors.excerpt = "Excerpt is required";
+    }
 
     // Content is only required for articles
     if (formData.type === "article" && !formData.content.trim()) {
       newErrors.content = "Content is required";
     }
 
-    // PDF is required for whitepapers and reports
+    // YouTube URL is required for interviews
+    if (formData.type === "interview" && !formData.youtubeUrl.trim()) {
+      newErrors.youtubeUrl = "YouTube URL is required for interviews";
+    }
+
+    // Validate YouTube URL format if provided
+    if (formData.youtubeUrl.trim() && formData.type === "interview") {
+      const youtubeRegex =
+        /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)/;
+      if (!youtubeRegex.test(formData.youtubeUrl)) {
+        newErrors.youtubeUrl = "Please enter a valid YouTube URL";
+      }
+    }
+
+    // PDF is required for whitepapers, reports, and newsletters only
     if (
-      (formData.type === "whitepaper" || formData.type === "report") &&
+      (formData.type === "whitepaper" ||
+        formData.type === "report" ||
+        formData.type === "newsletter") &&
       !formData.downloadUrl
     ) {
       newErrors.downloadUrl =
-        "PDF file is required for whitepapers and reports";
+        "PDF file is required for whitepapers, reports, and newsletters";
     }
 
     setErrors(newErrors);
@@ -521,8 +548,11 @@ export default function NewResource() {
               </div>
             )}
 
-            {/* Description & Excerpt for all types */}
-            {(formData.type === "whitepaper" || formData.type === "report") && (
+            {/* Description & Excerpt for all types except articles */}
+            {(formData.type === "whitepaper" ||
+              formData.type === "report" ||
+              formData.type === "interview" ||
+              formData.type === "newsletter") && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
                   <Icon icon="mdi:text" width={24} className="text-primary" />
@@ -549,29 +579,6 @@ export default function NewResource() {
                     {errors.description && (
                       <p className="text-red-500 text-sm mt-1">
                         {errors.description}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Excerpt *
-                    </label>
-                    <textarea
-                      name="excerpt"
-                      value={formData.excerpt}
-                      onChange={handleInputChange}
-                      rows={4}
-                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none transition-colors ${
-                        errors.excerpt
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="Longer excerpt that appears on resource detail pages..."
-                    />
-                    {errors.excerpt && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.excerpt}
                       </p>
                     )}
                   </div>
@@ -629,56 +636,109 @@ export default function NewResource() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    {formData.type === "whitepaper" ||
-                    formData.type === "report"
-                      ? "PDF File *"
-                      : "PDF Download (Optional)"}
-                  </label>
-                  <div className="space-y-3">
+                {/* PDF Upload - Hide for interviews */}
+                {formData.type !== "interview" && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      {formData.type === "whitepaper" ||
+                      formData.type === "report" ||
+                      formData.type === "newsletter"
+                        ? "PDF File *"
+                        : "PDF Download (Optional)"}
+                    </label>
+                    <div className="space-y-3">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={handlePdfUpload}
+                        disabled={uploading}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      {uploadingField === "downloadUrl" && (
+                        <div className="flex items-center gap-2 text-primary">
+                          <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                          Uploading...
+                        </div>
+                      )}
+                      {errors.downloadUrl && (
+                        <p className="text-red-500 text-sm">
+                          {errors.downloadUrl}
+                        </p>
+                      )}
+                      {formData.downloadUrl && (
+                        <div className="flex items-center gap-2 text-green-600">
+                          <Icon icon="mdi:file-pdf" width={20} />
+                          <span className="text-sm">
+                            PDF uploaded successfully
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                downloadUrl: "",
+                              }))
+                            }
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Icon icon="mdi:close" width={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* YouTube URL - Only show for interviews */}
+            {formData.type === "interview" && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                  <Icon
+                    icon="solar:video-frame-play-vertical-bold"
+                    width={24}
+                    className="text-red-500"
+                  />
+                  Interview Video
+                </h2>
+
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      YouTube URL *
+                    </label>
                     <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={handlePdfUpload}
-                      disabled={uploading}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      type="url"
+                      name="youtubeUrl"
+                      value={formData.youtubeUrl}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition-colors ${
+                        errors.youtubeUrl
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="https://www.youtube.com/watch?v=..."
                     />
-                    {uploadingField === "downloadUrl" && (
-                      <div className="flex items-center gap-2 text-primary">
-                        <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                        Uploading...
-                      </div>
-                    )}
-                    {errors.downloadUrl && (
-                      <p className="text-red-500 text-sm">
-                        {errors.downloadUrl}
+                    {errors.youtubeUrl && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.youtubeUrl}
                       </p>
                     )}
-                    {formData.downloadUrl && (
-                      <div className="flex items-center gap-2 text-green-600">
-                        <Icon icon="mdi:file-pdf" width={20} />
-                        <span className="text-sm">
-                          PDF uploaded successfully
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              downloadUrl: "",
-                            }))
-                          }
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Icon icon="mdi:close" width={16} />
-                        </button>
+                    {formData.youtubeUrl && !errors.youtubeUrl && (
+                      <div className="flex items-center gap-2 text-green-600 mt-2">
+                        <Icon icon="mdi:check-circle" width={16} />
+                        <span className="text-sm">Valid YouTube URL</span>
                       </div>
                     )}
+                    <p className="text-gray-500 text-sm mt-1">
+                      Enter a valid YouTube URL for the interview video. This
+                      will be used for the "Watch Interview" button.
+                    </p>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Tags */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">

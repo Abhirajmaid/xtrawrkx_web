@@ -54,7 +54,7 @@ export default function Footer() {
         <div className="flex items-center gap-2 text-brand-dark font-primary text-sm">
           <Icon icon="mdi:earth" width="18" />
           <span>IND</span>
-          <Icon icon="mdi:chevron-down" width="18" />
+          {/* <Icon icon="mdi:chevron-down" width="18" /> */}
         </div>
         {/* Links */}
         <div className="flex flex-wrap gap-6 text-brand-dark font-primary text-sm justify-center">

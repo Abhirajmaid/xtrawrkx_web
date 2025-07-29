@@ -190,7 +190,7 @@ const XenPage = ({ community }) => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <Section className="relative w-full h-[100vh] min-h-[600px] flex items-center justify-center overflow-hidden p-0">
+      <Section className="relative w-full h-[95vh] min-h-[600px] flex items-center justify-center overflow-hidden p-0">
         <div className="absolute inset-0 w-full h-full">
           <Image
             src="/images/hero_services.png"
@@ -202,14 +202,14 @@ const XenPage = ({ community }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-[#377ecc]/95 via-[#377ecc]/85 to-[#2c63a3]/90" />
         </div>
 
-        <Container className="relative z-20 text-center text-white">
+        <Container className="relative z-20 text-center text-white mt-20">
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-[#377ecc] to-[#2c63a3] text-white px-8 py-3 rounded-full text-lg font-semibold mb-6 shadow-lg">
             <Icon icon="mdi:factory" width={24} />
             Xtrawrkx Entrepreneurship Network
           </div>
 
           {/* XEN Logo */}
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="inline-block bg-white/10 backdrop-blur-sm rounded-3xl p-6 shadow-2xl">
               <Image
                 src="/images/xen.png"
@@ -222,10 +222,10 @@ const XenPage = ({ community }) => {
             </div>
           </div>
 
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 drop-shadow-lg">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-6 drop-shadow-lg">
             XEN
           </h1>
-          <p className="text-3xl text-white/95 max-w-3xl mx-auto mb-4 drop-shadow font-semibold">
+          <p className="text-2xl text-white/95 max-w-3xl mx-auto mb-4 drop-shadow font-semibold mt-4">
             By the founders, for the founders
           </p>
           <p className="text-xl text-white/85 max-w-4xl mx-auto mb-8 drop-shadow">

@@ -1817,7 +1817,7 @@ function EventCard({
           className="absolute top-4 left-4 z-10 rounded border-gray-300 text-primary focus:ring-primary"
         />
         <img
-          src={event.heroImage || event.background || "/images/hero.png"}
+          src={event.heroImage}
           alt={event.title}
           className="w-full h-48 object-cover rounded-t-xl"
         />
@@ -2588,7 +2588,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Hero Image
+                      Thumbnail Image
                     </label>
                     <div className="space-y-3">
                       <input

@@ -122,9 +122,9 @@ export default function ServicePage({ params }) {
           <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
             {service.name}
           </h1>
-          <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8 drop-shadow">
+          {/* <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8 drop-shadow">
             {service.description}
-          </p>
+          </p> */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               text="Schedule Call"

@@ -245,6 +245,16 @@ export default function Navbar() {
             </li>
           ))}
         </ul>
+        {/* Explore Modals Button */}
+        {servicesDropdownData?.exploreModalsButton && (
+          <Button
+            text={servicesDropdownData.exploreModalsButton.text}
+            type="secondary"
+            className="w-full"
+            link={servicesDropdownData.exploreModalsButton.link}
+            onClick={() => setOpenDropdown(null)}
+          />
+        )}
       </div>
     </div>
   );

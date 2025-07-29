@@ -112,14 +112,14 @@ const XevtgPage = ({ community }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-green-800/80 to-green-700/90" />
         </div>
 
-        <Container className="relative z-20 text-center text-white">
+        <Container className="relative z-20 text-center text-white mt-20">
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-full text-lg font-semibold mb-6 shadow-lg">
             <Icon icon="mdi:account-group" width={24} />
             EV Talent Group
           </div>
 
           {/* XEVTG Logo Placeholder - Add logo when available */}
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="inline-block bg-white/10 backdrop-blur-sm rounded-3xl p-6 shadow-2xl">
               <div className="w-[120px] h-[120px] bg-green-500/20 rounded-2xl flex items-center justify-center">
                 <Icon
@@ -130,10 +130,10 @@ const XevtgPage = ({ community }) => {
             </div>
           </div>
 
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 drop-shadow-lg">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-6 drop-shadow-lg">
             XEVTG
           </h1>
-          <p className="text-2xl text-white/90 max-w-4xl mx-auto mb-8 drop-shadow">
+          <p className="text-2xl text-white/90 max-w-4xl mx-auto mb-4 drop-shadow">
             Bridging the talent gap in EV industry through strategic
             partnerships between institutions and companies
           </p>

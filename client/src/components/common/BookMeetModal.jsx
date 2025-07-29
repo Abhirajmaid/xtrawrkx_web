@@ -226,33 +226,37 @@ const BookMeetModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl min-w-4xl h-auto overflow-hidden shadow-2xl">
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Modal Header */}
-        <div className="bg-brand-primary text-white p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">
+        <div className="bg-brand-primary text-white p-4 md:p-6">
+          <div className="flex items-start md:items-center justify-between mb-4 md:mb-0">
+            <div className="flex-1 pr-4">
+              <h2 className="text-lg md:text-2xl font-bold mb-1 md:mb-2">
                 Schedule a Consultation Call
               </h2>
-              <p className="text-white/90">
+              <p className="text-white/90 text-sm md:text-base hidden sm:block">
                 Book a free consultation to discuss your needs and explore
                 opportunities
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              className="p-2 hover:bg-white/20 rounded-full transition-colors flex-shrink-0"
             >
-              <Icon icon="solar:close-circle-bold" width={24} />
+              <Icon
+                icon="solar:close-circle-bold"
+                width={20}
+                className="md:w-6 md:h-6"
+              />
             </button>
           </div>
 
           {/* Progress Steps */}
-          <div className="flex items-center mt-6 space-x-4">
+          <div className="flex items-center mt-4 md:mt-6 space-x-2 md:space-x-4 overflow-x-auto">
             {[1, 2, 3, 4].map((step) => (
-              <div key={step} className="flex items-center">
+              <div key={step} className="flex items-center flex-shrink-0">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                  className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-colors ${
                     currentStep >= step
                       ? "bg-white text-brand-primary"
                       : "bg-white/30 text-white"
@@ -262,7 +266,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                 </div>
                 {step < 4 && (
                   <div
-                    className={`w-12 h-0.5 mx-2 transition-colors ${
+                    className={`w-8 md:w-12 h-0.5 mx-1 md:mx-2 transition-colors ${
                       currentStep > step ? "bg-white" : "bg-white/30"
                     }`}
                   />
@@ -271,32 +275,34 @@ const BookMeetModal = ({ isOpen, onClose }) => {
             ))}
           </div>
 
-          <div className="text-sm text-white/80 mt-2">
+          <div className="text-xs md:text-sm text-white/80 mt-2">
             Step {currentStep} of 4:{" "}
-            {currentStep === 1
-              ? "Consultation Type"
-              : currentStep === 2
-              ? "Contact Information"
-              : currentStep === 3
-              ? "Call Details"
-              : "Additional Information"}
+            <span className="hidden sm:inline">
+              {currentStep === 1
+                ? "Consultation Type"
+                : currentStep === 2
+                ? "Contact Information"
+                : currentStep === 3
+                ? "Call Details"
+                : "Additional Information"}
+            </span>
           </div>
         </div>
 
         {/* Modal Content */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto">
+        <div className="p-4 md:p-6 max-h-[calc(95vh-200px)] md:max-h-[calc(90vh-200px)] overflow-y-auto">
           {/* Step 1: Consultation Type Selection */}
           {currentStep === 1 && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                   What type of consultation call would you like to schedule?
                 </h3>
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-3 md:gap-4">
                   {consultationTypes.map((type) => (
                     <label
                       key={type.id}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                      className={`p-3 md:p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
                         formData.consultationType === type.id
                           ? "border-brand-primary bg-brand-primary/5"
                           : "border-gray-200 hover:border-gray-300"
@@ -313,26 +319,26 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       <div className="flex items-start space-x-3">
                         <Icon
                           icon={type.icon}
-                          width={24}
-                          className="text-brand-primary mt-1"
+                          width={20}
+                          className="text-brand-primary mt-1 md:w-6 md:h-6"
                         />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-semibold text-gray-900">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1">
+                            <h4 className="font-semibold text-gray-900 text-sm md:text-base">
                               {type.title}
                             </h4>
-                            <span className="text-green-600 font-bold">
+                            <span className="text-green-600 font-bold text-sm md:text-base">
                               {type.price}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-xs md:text-sm text-gray-600 mb-2">
                             {type.description}
                           </p>
-                          <div className="flex items-center text-sm text-gray-500">
+                          <div className="flex items-center text-xs md:text-sm text-gray-500">
                             <Icon
                               icon="solar:clock-circle-bold"
-                              width={16}
-                              className="mr-1"
+                              width={14}
+                              className="mr-1 md:w-4 md:h-4"
                             />
                             {type.duration}
                           </div>
@@ -352,12 +358,12 @@ const BookMeetModal = ({ isOpen, onClose }) => {
 
           {/* Step 2: Contact Information */}
           {currentStep === 2 && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                   Contact Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       First Name *
@@ -476,25 +482,25 @@ const BookMeetModal = ({ isOpen, onClose }) => {
 
           {/* Step 3: Call Details */}
           {currentStep === 3 && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                   Consultation Call Details
                 </h3>
 
                 {selectedConsultationType && (
-                  <div className="bg-brand-primary/5 border border-brand-primary/20 rounded-lg p-4 mb-6">
+                  <div className="bg-brand-primary/5 border border-brand-primary/20 rounded-lg p-3 md:p-4 mb-4 md:mb-6">
                     <div className="flex items-center space-x-3">
                       <Icon
                         icon={selectedConsultationType.icon}
-                        width={24}
-                        className="text-brand-primary"
+                        width={20}
+                        className="text-brand-primary md:w-6 md:h-6"
                       />
                       <div>
-                        <h4 className="font-semibold text-gray-900">
+                        <h4 className="font-semibold text-gray-900 text-sm md:text-base">
                           {selectedConsultationType.title}
                         </h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs md:text-sm text-gray-600">
                           {selectedConsultationType.duration} •{" "}
                           <span className="text-green-600 font-medium">
                             {selectedConsultationType.price}
@@ -505,7 +511,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Purpose of Consultation Call *
@@ -637,13 +643,13 @@ const BookMeetModal = ({ isOpen, onClose }) => {
 
           {/* Step 4: Additional Information */}
           {currentStep === 4 && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                   Additional Information
                 </h3>
 
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Call Agenda / What would you like to discuss?
@@ -658,7 +664,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Number of Participants
@@ -732,26 +738,30 @@ const BookMeetModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-gray-50 px-6 py-4 flex items-center justify-between">
-          <div>
+        <div className="bg-gray-50 px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
+          <div className="order-2 sm:order-1">
             {currentStep > 1 && (
               <button
                 onClick={prevStep}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors text-sm md:text-base"
               >
-                <Icon icon="solar:arrow-left-bold" width={16} />
+                <Icon
+                  icon="solar:arrow-left-bold"
+                  width={14}
+                  className="md:w-4 md:h-4"
+                />
                 <span>Previous</span>
               </button>
             )}
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 order-1 sm:order-2">
             {currentStep < 4 ? (
               <Button
                 text="Next Step"
                 type="primary"
                 onClick={nextStep}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 w-full sm:w-auto justify-center"
               />
             ) : (
               <Button
@@ -759,7 +769,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                 type="primary"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 w-full sm:w-auto justify-center text-sm md:text-base"
               />
             )}
           </div>

@@ -130,7 +130,7 @@ export default function EventPage({ params }) {
         {/* Background image */}
         <div className="absolute inset-0 w-full h-full">
           <Image
-            src={event.heroImage || event.background}
+            src={event.background || "/images/hero.png"}
             alt={event.title}
             fill
             className="object-cover object-center"

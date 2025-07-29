@@ -1,7 +1,6 @@
 import Section from "../layout/Section";
 import Container from "../layout/Container";
 import EventCard from "../common/EventCard";
-import SectionHeader from "../common/SectionHeader";
 import { Icon } from "@iconify/react";
 import { useState, useEffect } from "react";
 import { EventService } from "../../services/databaseService";
@@ -44,8 +43,7 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
         // Filter for upcoming events
         const now = new Date();
         const upcoming = events.filter((event) => {
-          const eventDate = convertFirestoreTimestampToDate(event.date);
-          return eventDate && eventDate > now;
+          return event.status && event.status.toLowerCase() === "upcoming";
         });
 
         // If no upcoming events found, show the 6 most recent events as fallback
@@ -56,7 +54,7 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
           console.log(
             "No upcoming events found, showing recent events as fallback"
           );
-          setUpcomingEvents(events.slice(0, 6)); // Show first 6 events
+          // setUpcomingEvents(events.slice(0, 6)); // Show first 6 events
         }
 
         setError(null);
@@ -190,7 +188,7 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
                     {event.category}
                   </div>
                   <EventCard
-                    background={event.background || "/images/hero.png"}
+                    background={event.heroImage || "/images/hero.png"}
                     title={event.title}
                     date={formatEventDate(event.date) || event.date}
                     location={event.location}

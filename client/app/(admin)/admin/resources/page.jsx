@@ -19,7 +19,14 @@ export default function ResourceManagement() {
   const [sortOrder, setSortOrder] = useState("desc");
   const [viewMode, setViewMode] = useState("grid");
 
-  const resourceTypes = ["All", "whitepaper", "article", "report"];
+  const resourceTypes = [
+    "All",
+    "whitepaper",
+    "article",
+    "report",
+    "interview",
+    "newsletter",
+  ];
 
   const resourceCategories = [
     "All",
@@ -759,6 +766,10 @@ function ResourceCard({
         return "bg-green-100 text-green-800";
       case "report":
         return "bg-purple-100 text-purple-800";
+      case "interview":
+        return "bg-red-100 text-red-800";
+      case "newsletter":
+        return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
     }

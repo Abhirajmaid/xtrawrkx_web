@@ -25,7 +25,6 @@ export default function page() {
       <Hero
         title="Our Events"
         description="Discover and participate in our latest events, workshops, and community gatherings. Stay updated and connect with like-minded professionals to grow, learn, and collaborate."
-        backgroundImage="/images/hero1.png"
       />
       <Suspense fallback={<div>Loading events...</div>}>
         <EventsContent />

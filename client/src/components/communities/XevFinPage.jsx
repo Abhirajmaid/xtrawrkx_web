@@ -88,14 +88,14 @@ const XevFinPage = ({ community }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-[#2d5a9e]/95 via-[#2d5a9e]/85 to-[#24487a]/90" />
         </div>
 
-        <Container className="relative z-20 text-center text-white">
+        <Container className="relative z-20 text-center text-white mt-20">
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-[#2d5a9e] to-[#24487a] text-white px-8 py-3 rounded-full text-lg font-semibold mb-6 shadow-lg">
             <Icon icon="mdi:finance" width={24} />
             Electric Vehicle Finance Network
           </div>
 
           {/* XEV.FiN Logo */}
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="inline-block bg-white/10 backdrop-blur-sm rounded-3xl p-6 shadow-2xl">
               <Image
                 src="/images/xevfin.png"
@@ -108,10 +108,10 @@ const XevFinPage = ({ community }) => {
             </div>
           </div>
 
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 drop-shadow-lg">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-6 drop-shadow-lg">
             XEV.FiN
           </h1>
-          <p className="text-2xl text-white/90 max-w-4xl mx-auto mb-8 drop-shadow">
+          <p className="text-2xl text-white/90 max-w-4xl mx-auto mb-4 drop-shadow">
             Connect with 250+ Angel investor syndicates, VCs, PE firms, IBs,
             NBFCs and Franchise Owners
           </p>

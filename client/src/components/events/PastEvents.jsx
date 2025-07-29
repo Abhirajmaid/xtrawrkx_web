@@ -1,7 +1,6 @@
 import Section from "../layout/Section";
 import Container from "../layout/Container";
 import EventCard from "../common/EventCard";
-import SectionHeader from "../common/SectionHeader";
 import Button from "../common/Button";
 import { Icon } from "@iconify/react";
 import { useState, useEffect } from "react";
@@ -36,8 +35,7 @@ export default function PastEvents({ initialCategoryFilter }) {
         const allEvents = await eventService.getAll("date", "desc");
         const now = new Date();
         const past = allEvents.filter((event) => {
-          const eventDate = convertFirestoreTimestampToDate(event.date);
-          return eventDate && eventDate < now;
+          return event.status && event.status.toLowerCase() === "completed";
         });
 
         console.log("Past events found:", past);
@@ -178,7 +176,7 @@ export default function PastEvents({ initialCategoryFilter }) {
                     Completed
                   </div>
                   <EventCard
-                    background={event.background || "/images/hero.png"}
+                    background={event.heroImage || "/images/hero.png"}
                     title={event.title}
                     date={formatEventDate(event.date) || event.date}
                     location={event.location}

@@ -26,6 +26,10 @@ export const getServicesDropdownData = async () => {
                 { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
                 { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
             ],
+            exploreModalsButton: {
+                text: "Explore models",
+                link: "/modals"
+            }
         };
     } catch (error) {
         console.error("Error fetching services for dropdown:", error);
@@ -41,6 +45,10 @@ export const getServicesDropdownData = async () => {
                 { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
                 { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
             ],
+            exploreModalsButton: {
+                text: "Explore modals",
+                link: "/modals"
+            }
         };
     }
 };

@@ -136,14 +136,14 @@ const XdDPage = ({ community }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-[#f5f37f]/95 via-[#f5f37f]/85 to-[#e6e06b]/90" />
         </div>
 
-        <Container className="relative z-20 text-center text-white">
+        <Container className="relative z-20 text-center text-white mt-20">
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-[#f5f37f] to-[#e6e06b] text-gray-900 px-8 py-3 rounded-full text-lg font-semibold mb-6 shadow-lg">
             <Icon icon="mdi:palette" width={24} />
             Design & Development
           </div>
 
           {/* xD&D Logo */}
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="inline-block bg-gray-900/10 backdrop-blur-sm rounded-3xl p-6 shadow-2xl">
               <Image
                 src="/images/xd&d.png"
@@ -156,10 +156,10 @@ const XdDPage = ({ community }) => {
             </div>
           </div>
 
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 drop-shadow-lg">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-6 drop-shadow-lg">
             xD&D
           </h1>
-          <p className="text-2xl text-white/90 max-w-4xl mx-auto mb-8 drop-shadow">
+          <p className="text-2xl text-white/90 max-w-4xl mx-auto mb-4 drop-shadow">
             Where creativity meets innovation - designing the future of
             sustainable mobility
           </p>

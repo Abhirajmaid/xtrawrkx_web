@@ -4,6 +4,21 @@ import Button from "../common/Button";
 import { formatDate } from "../../utils/dateUtils";
 
 const ResourceSidebar = ({ resource }) => {
+  const handleDownload = (e) => {
+    if (resource.downloadUrl) {
+      e.preventDefault();
+      // Force download or open in new tab for PDFs
+      const link = document.createElement("a");
+      link.href = resource.downloadUrl;
+      link.download = resource.fileName || `${resource.title}.pdf`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   const handleShare = (platform) => {
     const url = encodeURIComponent(window.location.href);
     const title = encodeURIComponent(resource.title);
@@ -25,12 +40,22 @@ const ResourceSidebar = ({ resource }) => {
       {/* Download/Read Button */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">Access Resource</h3>
-        <Button
-          text={resource.downloadUrl ? "Download PDF" : "Read Online"}
-          type="primary"
-          className="w-full mb-4"
-          link={resource.downloadUrl || "#"}
-        />
+        {resource.downloadUrl ? (
+          <Button
+            text="Download PDF"
+            type="primary"
+            className="w-full mb-4"
+            onClick={handleDownload}
+            icon="solar:download-bold"
+          />
+        ) : (
+          <Button
+            text="Read Online"
+            type="primary"
+            className="w-full mb-4"
+            link="#"
+          />
+        )}
         <div className="text-sm text-gray-600 space-y-2">
           <p className="flex items-center">
             <Icon icon="solar:file-text-bold" className="mr-2" width={14} />
@@ -38,7 +63,7 @@ const ResourceSidebar = ({ resource }) => {
           </p>
           <p className="flex items-center">
             <Icon icon="solar:clock-circle-bold" className="mr-2" width={14} />
-            Reading time: {resource.readTime}
+            Reading time: {resource.readTime || "5-10 min"}
           </p>
           {resource.downloadUrl && (
             <p className="flex items-center">

@@ -570,13 +570,13 @@ export default function NewEvent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Hero Image
+                    Thumbnail Image
                   </label>
                   <div className="space-y-3">
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload(e, "heroImage")}
+                      onChange={(e) => handleFileUpload(e, "thumbnailImage")}
                       disabled={uploading}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
