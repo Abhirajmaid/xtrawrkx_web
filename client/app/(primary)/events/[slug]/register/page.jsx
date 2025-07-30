@@ -8,8 +8,9 @@ import Button from "@/src/components/common/Button";
 import { eventsData, getEventBySlug } from "@/src/data/EventsData";
 import {
   eventRegistrationService,
-  eventService,
+  EventService,
 } from "@/src/services/databaseService";
+import { formatEventDate } from "@/src/utils/dateUtils";
 
 const communityOptions = [
   { id: "none", name: "Not a member", discount: 0, freeSlots: 0 },
@@ -34,7 +35,67 @@ const designations = [
 
 export default function CompanyEventRegistration({ params }) {
   const { slug } = use(params);
-  const event = getEventBySlug(slug);
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const eventService = new EventService();
+
+  // Fetch event by slug from Firebase with fallback to static data
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        setLoading(true);
+        console.log("Fetching event with slug:", slug);
+
+        // Try Firebase first
+        const fetchedEvent = await eventService.getEventBySlug(slug);
+        console.log("Fetched event from Firebase:", fetchedEvent);
+
+        if (fetchedEvent) {
+          setEvent(fetchedEvent);
+          setError(null);
+        } else {
+          console.log("Event not found in Firebase, trying static data");
+          // Fallback to static data
+          const staticEvent = getEventBySlug(slug);
+          console.log("Fetched event from static data:", staticEvent);
+
+          if (staticEvent) {
+            setEvent(staticEvent);
+            setError(null);
+          } else {
+            console.log("Event not found in static data either");
+            setError("Event not found");
+          }
+        }
+      } catch (err) {
+        console.error(
+          "Error fetching event from Firebase, trying static data:",
+          err
+        );
+
+        // Fallback to static data on error
+        try {
+          const staticEvent = getEventBySlug(slug);
+          if (staticEvent) {
+            console.log("Using static data as fallback:", staticEvent);
+            setEvent(staticEvent);
+            setError(null);
+          } else {
+            setError("Event not found");
+          }
+        } catch (staticErr) {
+          console.error("Error with static data fallback:", staticErr);
+          setError("Failed to load event");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [slug]);
 
   const [formData, setFormData] = useState({
     // Company Information
@@ -77,12 +138,6 @@ export default function CompanyEventRegistration({ params }) {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!event) {
-      notFound();
-    }
-  }, [event]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -346,8 +401,43 @@ export default function CompanyEventRegistration({ params }) {
     }
   };
 
-  if (!event) {
-    return notFound();
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Icon
+            icon="mdi:loading"
+            className="text-brand-primary mx-auto mb-4 animate-spin"
+            width={64}
+          />
+          <h3 className="text-xl font-semibold text-gray-600">
+            Loading event...
+          </h3>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Icon
+            icon="mdi:alert-circle"
+            className="text-red-500 mx-auto mb-4"
+            width={64}
+          />
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            {error || "Event not found"}
+          </h3>
+          <p className="text-gray-500 mb-4">
+            The event you're looking for doesn't exist or registration is not
+            available.
+          </p>
+          <Button text="Back to Events" type="primary" link="/events" />
+        </div>
+      </div>
+    );
   }
 
   const pricing = calculatePricing();
@@ -376,7 +466,7 @@ export default function CompanyEventRegistration({ params }) {
               </div>
               <div className="flex items-center space-x-2">
                 <Icon icon="solar:calendar-bold" width={16} />
-                <span>{event.date}</span>
+                <span>{formatEventDate(event.date) || event.date}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Icon icon="solar:map-point-bold" width={16} />

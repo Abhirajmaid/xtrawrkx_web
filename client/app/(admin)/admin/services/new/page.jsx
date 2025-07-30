@@ -267,8 +267,7 @@ export default function NewServicePage() {
                   >
                     <option value="XMC">XMC</option>
                     <option value="XGV">XGV</option>
-                    <option value="XEV">XEV</option>
-                    <option value="XEN">XEN</option>
+                    <option value="XMB">XMB</option>
                   </select>
                 </div>
               </div>
