@@ -17,6 +17,7 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
           initialCategoryFilter.slice(1)
       : "All"
   );
+  const [sortBy, setSortBy] = useState("date-desc");
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -28,6 +29,29 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
     "Conference",
     "Competition",
     "Networking",
+  ];
+
+  const sortOptions = [
+    {
+      value: "date-desc",
+      label: "Date: Newest First",
+      icon: "mdi:calendar-arrow-left",
+    },
+    {
+      value: "date-asc",
+      label: "Date: Oldest First",
+      icon: "mdi:calendar-arrow-right",
+    },
+    {
+      value: "title-asc",
+      label: "Alphabetic: A-Z",
+      icon: "mdi:sort-alphabetical-ascending",
+    },
+    {
+      value: "title-desc",
+      label: "Alphabetic: Z-A",
+      icon: "mdi:sort-alphabetical-descending",
+    },
   ];
 
   const eventService = new EventService();
@@ -82,14 +106,30 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
     }
   }, [initialCategoryFilter]);
 
-  const filteredEvents = upcomingEvents.filter((event) => {
-    const matchesSearch =
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All" || event.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Filter and sort events
+  const filteredAndSortedEvents = upcomingEvents
+    .filter((event) => {
+      const matchesSearch =
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "All" || event.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "date-desc":
+          return new Date(b.date) - new Date(a.date);
+        case "date-asc":
+          return new Date(a.date) - new Date(b.date);
+        case "title-asc":
+          return a.title.localeCompare(b.title);
+        case "title-desc":
+          return b.title.localeCompare(a.title);
+        default:
+          return 0;
+      }
+    });
 
   return (
     <Section className="py-20 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 relative overflow-hidden">
@@ -118,8 +158,8 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
           </p>
         </div>
 
-        {/* Search and Filter Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-12 p-6 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
+        {/* Search, Filter and Sort Bar */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-12 p-6 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
           <div className="relative flex-1">
             <Icon
               icon="mdi:magnify"
@@ -134,6 +174,33 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
               className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             />
           </div>
+
+          {/* Sort Dropdown */}
+          <div className="relative min-w-[200px]">
+            <Icon
+              icon="mdi:sort"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+              width={20}
+            />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent appearance-none bg-white cursor-pointer"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <Icon
+              icon="mdi:chevron-down"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+              width={20}
+            />
+          </div>
+
+          {/* Category Filters */}
           <div className="flex gap-2 flex-wrap">
             {categories.map((category) => (
               <button
@@ -177,7 +244,7 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredEvents.map((event, index) => (
+            {filteredAndSortedEvents.map((event, index) => (
               <div
                 key={event.id || index}
                 className="group transform transition-all duration-300 hover:scale-105 hover:-translate-y-2"
@@ -201,7 +268,7 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
         )}
 
         {/* Show message if no events found */}
-        {!loading && !error && filteredEvents.length === 0 && (
+        {!loading && !error && filteredAndSortedEvents.length === 0 && (
           <div className="text-center py-16">
             <Icon
               icon="mdi:calendar-remove"
