@@ -88,8 +88,9 @@ class BaseDatabaseService {
         try {
             console.log(`Fetching all documents from collection: ${this.collectionName}`);
 
-            // First try to get all documents without ordering to avoid index issues
+            // First try to get all documents with ordering
             let querySnapshot;
+            let needsInMemorySort = false;
             try {
                 const q = query(
                     collection(db, this.collectionName),
@@ -100,6 +101,7 @@ class BaseDatabaseService {
                 console.warn(`Ordering by ${orderField} failed, fetching without order:`, orderError);
                 // Fallback: get all documents without ordering
                 querySnapshot = await getDocs(collection(db, this.collectionName));
+                needsInMemorySort = true;
             }
 
             const results = querySnapshot.docs.map(doc => ({
@@ -110,6 +112,31 @@ class BaseDatabaseService {
                 date: convertFirestoreTimestampToDate(doc.data().date),
                 registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
             }));
+
+            // If we had to fall back to no ordering, sort in memory
+            if (needsInMemorySort && orderField && results.length > 0) {
+                results.sort((a, b) => {
+                    let aValue = a[orderField];
+                    let bValue = b[orderField];
+
+                    // Handle different data types
+                    if (aValue instanceof Date && bValue instanceof Date) {
+                        // Date comparison
+                        aValue = aValue.getTime();
+                        bValue = bValue.getTime();
+                    } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+                        // String comparison (case insensitive)
+                        aValue = aValue.toLowerCase();
+                        bValue = bValue.toLowerCase();
+                    }
+
+                    if (orderDirection === 'asc') {
+                        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+                    } else {
+                        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+                    }
+                });
+            }
 
             console.log(`Found ${results.length} documents in ${this.collectionName}`);
             return results;
@@ -182,13 +209,26 @@ class BaseDatabaseService {
     // Get documents by field
     async getByField(field, value, orderField = 'createdAt', orderDirection = 'desc') {
         try {
-            const q = query(
-                collection(db, this.collectionName),
-                where(field, '==', value),
-                orderBy(orderField, orderDirection)
-            );
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({
+            // First try with ordering (requires composite index if orderField != field)
+            let querySnapshot;
+            try {
+                const q = query(
+                    collection(db, this.collectionName),
+                    where(field, '==', value),
+                    orderBy(orderField, orderDirection)
+                );
+                querySnapshot = await getDocs(q);
+            } catch (orderError) {
+                console.warn(`Ordering by ${orderField} failed for ${field} query, fetching without order:`, orderError);
+                // Fallback: query without ordering
+                const q = query(
+                    collection(db, this.collectionName),
+                    where(field, '==', value)
+                );
+                querySnapshot = await getDocs(q);
+            }
+
+            const results = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
                 createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
@@ -196,6 +236,33 @@ class BaseDatabaseService {
                 date: convertFirestoreTimestampToDate(doc.data().date),
                 registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
             }));
+
+            // If we had to fall back to no ordering, sort in memory
+            if (orderField && results.length > 0) {
+                results.sort((a, b) => {
+                    let aValue = a[orderField];
+                    let bValue = b[orderField];
+
+                    // Handle different data types
+                    if (aValue instanceof Date && bValue instanceof Date) {
+                        // Date comparison
+                        aValue = aValue.getTime();
+                        bValue = bValue.getTime();
+                    } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+                        // String comparison (case insensitive)
+                        aValue = aValue.toLowerCase();
+                        bValue = bValue.toLowerCase();
+                    }
+
+                    if (orderDirection === 'asc') {
+                        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+                    } else {
+                        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+                    }
+                });
+            }
+
+            return results;
         } catch (error) {
             console.error(`Error getting documents by ${field} from ${this.collectionName}:`, error);
             throw new Error(`Failed to fetch ${this.collectionName}: ${error.message}`);
@@ -287,10 +354,9 @@ export class EventService extends BaseDatabaseService {
     // Get upcoming events
     async getUpcomingEvents() {
         try {
-            const now = new Date();
             const q = query(
                 collection(db, this.collectionName),
-                where('date', '>', now),
+                where('status', '==', 'upcoming'),
                 orderBy('date', 'asc')
             );
             const querySnapshot = await getDocs(q);
@@ -301,7 +367,9 @@ export class EventService extends BaseDatabaseService {
                 updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
                 date: convertFirestoreTimestampToDate(doc.data().date),
                 registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
-            }));
+            })).filter((event) => {
+                return event.status && event.status.toLowerCase() === "upcoming";
+            });
         } catch (error) {
             console.error('Error getting upcoming events:', error);
             throw new Error(`Failed to fetch upcoming events: ${error.message}`);
@@ -567,12 +635,211 @@ export class EventRegistrationService extends BaseDatabaseService {
     }
 }
 
+// Team Service
+export class TeamService extends BaseDatabaseService {
+    constructor() {
+        super('team');
+    }
+
+    // Create a new team member
+    async createTeamMember(memberData) {
+        try {
+            console.log('Creating team member:', memberData);
+
+            const docData = {
+                ...memberData,
+                isActive: memberData.isActive ?? true,
+                joinDate: memberData.joinDate || new Date().toISOString().split('T')[0],
+            };
+
+            return await this.create(docData);
+        } catch (error) {
+            console.error('Error creating team member:', error);
+            throw new Error(`Failed to create team member: ${error.message}`);
+        }
+    }
+
+    // Get all team members
+    async getAllTeamMembers() {
+        try {
+            console.log('Fetching all team members from Firestore');
+
+            const members = await this.getAll('name', 'asc');
+
+            return members.map(member => ({
+                ...member,
+                joinDate: member.joinDate || new Date().toISOString().split('T')[0],
+                isActive: member.isActive ?? true
+            }));
+        } catch (error) {
+            console.error('Error fetching team members:', error);
+            // Try without ordering as fallback
+            try {
+                const members = await this.getAll();
+                return members.map(member => ({
+                    ...member,
+                    joinDate: member.joinDate || new Date().toISOString().split('T')[0],
+                    isActive: member.isActive ?? true
+                }));
+            } catch (fallbackError) {
+                throw new Error(`Failed to fetch team members: ${fallbackError.message}`);
+            }
+        }
+    }
+
+    // Get team members by category
+    async getTeamMembersByCategory(category) {
+        try {
+            console.log(`Fetching team members for category: ${category}`);
+
+            const members = await this.getByField('category', category, 'name', 'asc');
+
+            return members.map(member => ({
+                ...member,
+                joinDate: member.joinDate || new Date().toISOString().split('T')[0],
+                isActive: member.isActive ?? true
+            }));
+        } catch (error) {
+            console.error(`Error fetching ${category} team members:`, error);
+            // Try without ordering as fallback
+            try {
+                const members = await this.getByField('category', category);
+                return members.map(member => ({
+                    ...member,
+                    joinDate: member.joinDate || new Date().toISOString().split('T')[0],
+                    isActive: member.isActive ?? true
+                }));
+            } catch (fallbackError) {
+                throw new Error(`Failed to fetch ${category} team members: ${fallbackError.message}`);
+            }
+        }
+    }
+
+    // Get active team members
+    async getActiveTeamMembers() {
+        try {
+            const members = await this.getByField('isActive', true);
+
+            return members.map(member => ({
+                ...member,
+                joinDate: member.joinDate || new Date().toISOString().split('T')[0]
+            }));
+        } catch (error) {
+            console.error('Error fetching active team members:', error);
+            throw new Error(`Failed to fetch active team members: ${error.message}`);
+        }
+    }
+
+    // Get team member by ID
+    async getTeamMemberById(id) {
+        try {
+            const member = await this.getById(id);
+
+            if (member) {
+                return {
+                    ...member,
+                    joinDate: member.joinDate || new Date().toISOString().split('T')[0],
+                    isActive: member.isActive ?? true
+                };
+            } else {
+                throw new Error('Team member not found');
+            }
+        } catch (error) {
+            console.error('Error fetching team member by ID:', error);
+            throw new Error(`Failed to fetch team member: ${error.message}`);
+        }
+    }
+
+    // Update team member
+    async updateTeamMember(id, memberData) {
+        try {
+            console.log('Updating team member:', id, memberData);
+
+            return await this.update(id, memberData);
+        } catch (error) {
+            console.error('Error updating team member:', error);
+            throw new Error(`Failed to update team member: ${error.message}`);
+        }
+    }
+
+    // Delete team member
+    async deleteTeamMember(id) {
+        try {
+            console.log('Deleting team member:', id);
+
+            await this.delete(id);
+            return { id, deleted: true };
+        } catch (error) {
+            console.error('Error deleting team member:', error);
+            throw new Error(`Failed to delete team member: ${error.message}`);
+        }
+    }
+
+    // Toggle team member active status
+    async toggleTeamMemberStatus(id, isActive) {
+        try {
+            console.log('Toggling team member status:', id, isActive);
+
+            const updateData = {
+                isActive: !isActive
+            };
+
+            const result = await this.update(id, updateData);
+
+            return {
+                ...result,
+                isActive: !isActive
+            };
+        } catch (error) {
+            console.error('Error toggling team member status:', error);
+            throw new Error(`Failed to update team member status: ${error.message}`);
+        }
+    }
+
+    // Get team statistics
+    async getTeamStats() {
+        try {
+            const members = await this.getAllTeamMembers();
+
+            return {
+                total: members.length,
+                core: members.filter(m => m.category === 'core').length,
+                employees: members.filter(m => m.category === 'employee').length,
+                active: members.filter(m => m.isActive).length,
+                inactive: members.filter(m => !m.isActive).length
+            };
+        } catch (error) {
+            console.error('Error fetching team stats:', error);
+            throw new Error(`Failed to fetch team statistics: ${error.message}`);
+        }
+    }
+
+    // Search team members
+    async searchTeamMembers(searchTerm) {
+        try {
+            const allMembers = await this.getAllTeamMembers();
+
+            const searchLower = searchTerm.toLowerCase();
+            return allMembers.filter(member =>
+                member.name?.toLowerCase().includes(searchLower) ||
+                member.title?.toLowerCase().includes(searchLower) ||
+                member.location?.toLowerCase().includes(searchLower) ||
+                member.bio?.toLowerCase().includes(searchLower)
+            );
+        } catch (error) {
+            console.error('Error searching team members:', error);
+            throw new Error(`Failed to search team members: ${error.message}`);
+        }
+    }
+}
+
 // Create singleton instances
 export const eventService = new EventService();
 export const resourceService = new ResourceService();
 export const serviceService = new ServiceService();
 export const galleryService = new GalleryService();
 export const eventRegistrationService = new EventRegistrationService();
+export const teamService = new TeamService();
 
 // Export for compatibility
 export { EventService as default }; 

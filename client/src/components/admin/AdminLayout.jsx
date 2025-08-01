@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { useAuth } from "../../contexts/AuthContext";
 import Button from "../common/Button";
+import Image from "next/image";
 
 const AdminLayout = ({ children, title = "Dashboard" }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,6 +30,11 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
     { name: "Events", href: "/admin/events", icon: "solar:calendar-bold" },
     { name: "Services", href: "/admin/services", icon: "solar:widget-bold" },
     { name: "Gallery", href: "/admin/gallery", icon: "solar:gallery-bold" },
+    {
+      name: "Team",
+      href: "/admin/team",
+      icon: "solar:users-group-two-rounded-bold",
+    },
     {
       name: "Users",
       href: "/admin/users",
@@ -155,16 +161,29 @@ const SidebarContent = ({ navigation }) => {
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
           <div className="flex items-center">
-            <div className="h-8 w-8 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-lg flex items-center justify-center">
+            {/* <div className="h-8 w-8 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-lg flex items-center justify-center">
               <Icon
                 icon="solar:widget-bold"
                 width={20}
                 className="text-white"
               />
-            </div>
-            <div className="ml-3">
-              <h1 className="text-lg font-semibold text-gray-900">CMS Admin</h1>
-              <p className="text-xs text-gray-500">Xtrawrkx</p>
+            </div> */}
+            <div className=" flex items-center">
+              <div className="w-10 h-10 relative mr-2">
+                <Image
+                  src="/logo.png"
+                  alt="xtrawrkx"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900">
+                  CMS Admin
+                </h1>
+                <p className="text-xs text-gray-500">Xtrawrkx</p>
+              </div>
             </div>
           </div>
         </div>

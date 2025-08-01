@@ -26,7 +26,7 @@ export default function page() {
         title="Our Events"
         description="Discover and participate in our latest events, workshops, and community gatherings. Stay updated and connect with like-minded professionals to grow, learn, and collaborate."
       />
-      <Suspense fallback={<div>Loading events...</div>}>
+      <Suspense>
         <EventsContent />
       </Suspense>
       <Marquee />

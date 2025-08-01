@@ -1,11 +1,11 @@
 // Cloudinary service for image and file uploads
 export class CloudinaryService {
-    // Cloudinary configuration - replace with your actual values
+    // Cloudinary configuration - using environment variables with fallback
     static config = {
-        cloudName: 'df2ggvojv',
-        uploadPreset: 'xtrawrkx_uploads',
-        apiKey: '135817735848235',
-        apiSecret: 'wm7TK4If40Np8s5DUBEnyrKdUEU' // Keep this secret on server-side only
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'df2ggvojv',
+        uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'xtrawrkx_uploads',
+        apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '135817735848235',
+        apiSecret: process.env.CLOUDINARY_API_SECRET || 'wm7TK4If40Np8s5DUBEnyrKdUEU' // Keep this secret on server-side only
     };
 
     // Check if Cloudinary is properly configured

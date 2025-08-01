@@ -3,6 +3,7 @@ export const footerNavLinks = [
         title: "xtrawrkx",
         links: [
             { label: "About", href: "/about" },
+            { label: "Team", href: "/teams" },
             { label: "Gallery", href: "/gallery" },
             { label: "Services", href: "/services" },
             { label: "Contact Us", href: "/contact-us" },
@@ -53,6 +54,7 @@ export const footerBottomLinks = [
 export const navbarLinks = [
     { label: "Home", href: "/", hasDropdown: false },
     { label: "About", href: "/about", hasDropdown: false },
+    { label: "Team", href: "/teams", hasDropdown: false },
     { label: "Services", href: "/services", hasDropdown: true },
     { label: "Communities", href: "/communities", hasDropdown: true },
     { label: "Events", href: "/events", hasDropdown: true },

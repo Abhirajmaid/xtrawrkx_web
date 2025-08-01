@@ -65,7 +65,6 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
         console.log("All events from Firebase:", events);
 
         // Filter for upcoming events
-        const now = new Date();
         const upcoming = events.filter((event) => {
           return event.status && event.status.toLowerCase() === "upcoming";
         });

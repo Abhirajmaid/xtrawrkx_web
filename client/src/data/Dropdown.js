@@ -100,7 +100,8 @@ export const communitiesDropdownData = {
 // Function to fetch and create dynamic events dropdown
 export const getEventsDropdownData = async () => {
     try {
-        const events = await eventService.getEvents();
+        const allEvents = await eventService.getEvents();
+        const events = allEvents.filter(event => event.status === 'upcoming');
 
         // Group events by category for the dropdown
         const eventsByCategory = events.reduce((acc, event) => {

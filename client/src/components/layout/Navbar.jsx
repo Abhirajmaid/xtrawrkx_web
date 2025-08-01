@@ -12,6 +12,7 @@ import {
   getEventsDropdownData,
 } from "../../data/Dropdown";
 import { useBookMeetModal } from "../../hooks/useBookMeetModal";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Component for the Book A Meet button
 const BookConsultationButton = () => {
@@ -562,109 +563,6 @@ export default function Navbar() {
     </div>
   );
 
-  // Mobile dropdown content (simplified)
-  const renderMobileDropdownContent = (type) => {
-    switch (type) {
-      case "Services":
-        return (
-          <div className="bg-white border-t border-gray-200 px-4 py-4">
-            {dropdownLoading.services ? (
-              <div className="flex items-center justify-center py-4">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-              </div>
-            ) : dropdownErrors.services ? (
-              <div className="text-red-500 text-sm py-2">
-                Failed to load services
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {servicesDropdownData?.middleList?.map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.slug}
-                      className="block py-2 text-sm text-gray-700 hover:text-brand-primary hover:bg-gray-50 rounded px-2"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setOpenDropdown(null);
-                      }}
-                    >
-                      <div>{item.label}</div>
-                      <div className="text-xs text-gray-500">
-                        {item.category} • {item.subCompany}
-                      </div>
-                    </Link>
-                  </li>
-                )) || []}
-              </ul>
-            )}
-          </div>
-        );
-
-      case "Communities":
-        return (
-          <div className="bg-white border-t border-gray-200 px-4 py-4">
-            <ul className="space-y-2">
-              {communitiesDropdownData.middleList.map((item) => (
-                <li key={item.label}>
-                  <Link
-                    href={item.slug}
-                    className="block py-2 text-sm text-gray-700 hover:text-brand-primary hover:bg-gray-50 rounded px-2"
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      setOpenDropdown(null);
-                    }}
-                  >
-                    <div>{item.shortName}</div>
-                    <div className="text-xs text-gray-500">
-                      {item.members}+ members
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-
-      case "Events":
-        return (
-          <div className="bg-white border-t border-gray-200 px-4 py-4">
-            {dropdownLoading.events ? (
-              <div className="flex items-center justify-center py-4">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-              </div>
-            ) : dropdownErrors.events ? (
-              <div className="text-red-500 text-sm py-2">
-                Failed to load events
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {eventsDropdownData?.middleList?.map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.slug}
-                      className="block py-2 text-sm text-gray-700 hover:text-brand-primary hover:bg-gray-50 rounded px-2"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setOpenDropdown(null);
-                      }}
-                    >
-                      <div>{item.label}</div>
-                      <div className="text-xs text-gray-500">
-                        {item.count} events
-                      </div>
-                    </Link>
-                  </li>
-                )) || []}
-              </ul>
-            )}
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <>
       {/* Desktop Navbar */}
@@ -764,11 +662,15 @@ export default function Navbar() {
       </nav>
 
       {/* Mobile Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-white shadow-md">
+      <nav className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-white shadow-lg backdrop-blur-md">
         <div className="flex items-center justify-between px-4 py-3">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <div className="w-10 h-10 relative mr-3">
+            <motion.div
+              className="w-10 h-10 relative mr-3"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <Image
                 src="/logo.png"
                 alt="xtrawrkx"
@@ -776,99 +678,259 @@ export default function Navbar() {
                 className="rounded-full object-cover"
                 priority
               />
-            </div>
+            </motion.div>
           </Link>
 
           {/* Mobile Menu Button */}
-          <button
+          <motion.button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
             aria-label="Toggle mobile menu"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <Icon
-              icon={
-                isMobileMenuOpen
-                  ? "solar:close-square-linear"
-                  : "solar:hamburger-menu-linear"
-              }
-              width="24"
-              className="text-gray-700"
-            />
-          </button>
+            <motion.div
+              animate={{ rotate: isMobileMenuOpen ? 90 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Icon
+                icon={
+                  isMobileMenuOpen
+                    ? "solar:close-square-linear"
+                    : "solar:hamburger-menu-linear"
+                }
+                width="24"
+                className="text-gray-700"
+              />
+            </motion.div>
+          </motion.button>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="border-t border-gray-200 bg-white">
-            {navbarLinks.map((link) => (
-              <div key={link.label}>
-                <div className="border-b border-gray-100">
-                  {link.hasDropdown ? (
-                    <button
-                      onClick={() => {
-                        const newDropdown =
-                          openDropdown === link.label ? null : link.label;
-                        setOpenDropdown(newDropdown);
+        {/* Full Page Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-white z-50 lg:hidden"
+            >
+              {/* Mobile Menu Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                <Link
+                  href="/"
+                  className="flex items-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <motion.div
+                    className="w-10 h-10 relative mr-3"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Image
+                      src="/logo.png"
+                      alt="xtrawrkx"
+                      fill
+                      className="rounded-full object-cover"
+                      priority
+                    />
+                  </motion.div>
+                  <span className="font-semibold text-xl text-gray-900">
+                    xtrawrkx
+                  </span>
+                </Link>
 
-                        // Fetch data when dropdown is opened
-                        if (newDropdown === "Services") {
-                          fetchServicesDropdownData();
-                        } else if (newDropdown === "Events") {
-                          fetchEventsDropdownData();
-                        }
-                      }}
-                      className="w-full flex items-center justify-between px-4 py-4 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="font-medium">{link.label}</span>
-                      <Icon
-                        icon="solar:alt-arrow-down-linear"
-                        className={`transition-transform duration-200 ${
-                          openDropdown === link.label ? "rotate-180" : ""
-                        }`}
-                        width="20"
-                      />
-                    </button>
-                  ) : (
-                    <Link
-                      href={link.href}
-                      className="block px-4 py-4 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setOpenDropdown(null);
-                      }}
-                    >
-                      {link.label}
-                    </Link>
-                  )}
-                </div>
-
-                {/* Mobile Dropdown Content */}
-                {link.hasDropdown && openDropdown === link.label && (
-                  <div className="border-b border-gray-100">
-                    {renderMobileDropdownContent(link.label)}
-                  </div>
-                )}
+                <motion.button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Icon
+                    icon="solar:close-square-linear"
+                    width="24"
+                    className="text-gray-700"
+                  />
+                </motion.button>
               </div>
-            ))}
 
-            {/* Mobile CTA Button */}
-            <div className="p-4 border-t border-gray-200">
-              <BookConsultationButton />
-            </div>
-          </div>
-        )}
+              {/* Mobile Menu Content */}
+              <div className="flex-1 overflow-y-auto bg-white">
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.1 }}
+                  className="px-4 py-6 space-y-8"
+                >
+                  {/* Navigation Links */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                      Navigation
+                    </h3>
+                    {navbarLinks.map((link, index) => (
+                      <motion.div
+                        key={link.label}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
+                      >
+                        <Link
+                          href={link.href}
+                          className="flex items-center justify-between py-4 px-4 rounded-xl text-gray-900 hover:bg-gray-50 hover:text-brand-primary transition-all duration-200 group"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <span className="text-lg font-medium">
+                            {link.label}
+                          </span>
+                          <Icon
+                            icon="solar:arrow-right-linear"
+                            width="20"
+                            className="text-gray-400 group-hover:text-brand-primary transition-colors"
+                          />
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Quick Links Section */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.5 }}
+                    className="space-y-4"
+                  >
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Quick Access
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Link
+                        href="/communities"
+                        className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:shadow-md transition-all duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Icon
+                          icon="solar:users-group-two-rounded-bold"
+                          width="24"
+                          className="text-blue-600 mb-2"
+                        />
+                        <div className="text-sm font-medium text-blue-900">
+                          Communities
+                        </div>
+                        <div className="text-xs text-blue-600">
+                          Join our network
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/events"
+                        className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:shadow-md transition-all duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Icon
+                          icon="solar:calendar-mark-bold"
+                          width="24"
+                          className="text-purple-600 mb-2"
+                        />
+                        <div className="text-sm font-medium text-purple-900">
+                          Events
+                        </div>
+                        <div className="text-xs text-purple-600">
+                          Upcoming events
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/services"
+                        className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 hover:shadow-md transition-all duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Icon
+                          icon="solar:case-minimalistic-bold"
+                          width="24"
+                          className="text-green-600 mb-2"
+                        />
+                        <div className="text-sm font-medium text-green-900">
+                          Services
+                        </div>
+                        <div className="text-xs text-green-600">
+                          Our solutions
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/resources"
+                        className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200 hover:shadow-md transition-all duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Icon
+                          icon="solar:document-text-bold"
+                          width="24"
+                          className="text-orange-600 mb-2"
+                        />
+                        <div className="text-sm font-medium text-orange-900">
+                          Resources
+                        </div>
+                        <div className="text-xs text-orange-600">
+                          Downloads & more
+                        </div>
+                      </Link>
+                    </div>
+                  </motion.div>
+
+                  {/* CTA Section */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.7 }}
+                    className="pt-6 border-t border-gray-200"
+                  >
+                    <div className="space-y-4">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Get Started
+                      </h3>
+                      <div className="space-y-3">
+                        <BookConsultationButton />
+                        <Link
+                          href="/contact-us"
+                          className="block w-full py-3 px-4 text-center border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Contact Us
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </div>
+
+              {/* Footer */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.8 }}
+                className="border-t border-gray-200 p-4 bg-gray-50"
+              >
+                <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
+                  <Link
+                    href="/privacy-policy"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Privacy Policy
+                  </Link>
+                  <span>•</span>
+                  <Link
+                    href="/sitemap"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sitemap
+                  </Link>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
-
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => {
-            setIsMobileMenuOpen(false);
-            setOpenDropdown(null);
-          }}
-        />
-      )}
     </>
   );
 }

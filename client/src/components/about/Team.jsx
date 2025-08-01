@@ -2,7 +2,7 @@ import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import Button from "@/src/components/common/Button";
 import { Icon } from "@iconify/react";
-import { team } from "@/src/data/aboutData";
+import { coreTeam } from "@/src/data/teamData";
 
 export default function Team() {
   return (
@@ -12,7 +12,7 @@ export default function Team() {
           Our Team
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mb-8">
-          {team.map((member, i) => (
+          {coreTeam.slice(0, 3).map((member, i) => (
             <div
               key={i}
               className="flex bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm"
@@ -45,9 +45,9 @@ export default function Team() {
             </div>
           ))}
         </div>
-        {/* <div className="max-w-6xl">
-          <Button text="Meet Our Team" type="primary" />
-        </div> */}
+        <div className="max-w-6xl">
+          <Button text="Meet Our Full Team" type="primary" link="/teams" />
+        </div>
       </Container>
     </Section>
   );

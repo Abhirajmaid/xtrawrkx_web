@@ -110,7 +110,7 @@ export default function Footer() {
       </div>
 
       {/* Copyright */}
-      <div className="text-center text-base text-gray-700 mt-10">
+      <div className="text-center text-sm md:text-base text-gray-700 mt-10">
         Copyright © 2025 xtrawrkx - All Rights Reserved.
       </div>
     </footer>

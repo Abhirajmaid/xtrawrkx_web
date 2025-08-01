@@ -12,7 +12,7 @@ export default function Hero({
   buttonLink = "#",
 }) {
   return (
-    <Section className="relative w-full h-[80vh] min-h-[500px] flex items-center justify-center text-center md:justify-start md:text-left overflow-hidden p-0">
+    <Section className="relative w-full h-[40vh] md:h-[80vh] md:min-h-[500px] flex items-center justify-center text-center md:justify-start md:text-left overflow-hidden p-0">
       {/* Background image */}
       <div className="absolute inset-0 w-full h-full">
         <Image
@@ -37,7 +37,7 @@ export default function Hero({
         <h1 className="text-white text-4xl md:text-6xl font-extrabold mb-6 drop-shadow-lg max-w-3xl">
           {title}
         </h1>
-        <p className="text-gray-200 text-lg md:text-xl max-w-2xl mb-8 font-light drop-shadow">
+        <p className="md:block hidden text-gray-200 text-lg md:text-xl max-w-2xl mb-8 font-light drop-shadow">
           {description}
         </p>
         {showButton && (

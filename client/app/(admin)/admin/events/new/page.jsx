@@ -79,18 +79,31 @@ export default function NewEvent() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Clear any previous errors for this field
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+
     try {
       setUploading(true);
       setUploadingField(field);
+
+      console.log(`Uploading ${field}:`, {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+      });
+
       const result = await uploadImage(file, {
         folder: "events",
       });
+
+      console.log(`Upload successful for ${field}:`, result.url);
+
       setFormData((prev) => ({
         ...prev,
         [field]: result.url,
       }));
     } catch (error) {
-      console.error("Error uploading file:", error);
+      console.error(`Error uploading ${field}:`, error);
       setErrors((prev) => ({
         ...prev,
         [field]: `Upload failed: ${error.message}`,
@@ -576,7 +589,7 @@ export default function NewEvent() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload(e, "thumbnailImage")}
+                      onChange={(e) => handleFileUpload(e, "heroImage")}
                       disabled={uploading}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />

@@ -19,10 +19,18 @@ export default function EventSection() {
     const fetchUpcomingEvents = async () => {
       try {
         setLoading(true);
-        const upcomingEvents = await eventService.getUpcomingEvents();
+        // const upcomingEvents = await eventService.getUpcomingEvents(); #TODO: Uncomment this when we have a way to filter for upcoming events
+
+        let events = await eventService.getAll("date", "desc");
+        console.log("All events from Firebase:", events);
+
+        // Filter for upcoming events
+        const upcoming = events.filter((event) => {
+          return event.status && event.status.toLowerCase() === "upcoming";
+        });
 
         // Get only next 3 upcoming events
-        const nextThreeEvents = upcomingEvents.slice(0, 3);
+        const nextThreeEvents = upcoming.slice(0, 3);
         setEvents(nextThreeEvents);
 
         // If we have events, start with the middle one (index 1) if there are 3 events
@@ -274,9 +282,12 @@ export default function EventSection() {
                   pointerEvents: idx === current ? "auto" : "none",
                 }}
               >
+                <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-3 py-1 rounded-full text-xs font-semibold">
+                  {event.category}
+                </div>
                 <EventCard
-                  background={event.background || "/images/hero.png"}
-                  title={event.name}
+                  background={event.heroImage || "/images/hero.png"}
+                  title={event.title}
                   date={
                     event.date
                       ? new Date(event.date).toLocaleDateString("en-US", {
@@ -307,8 +318,10 @@ export default function EventSection() {
                 style={getMobileCardStyle(idx)}
               >
                 <EventCard
-                  background={event.background || "/images/hero.png"}
-                  title={event.name}
+                  background={
+                    event.heroImage || event.background || "/images/hero.png"
+                  }
+                  title={event.title || event.name}
                   date={
                     event.date
                       ? new Date(event.date).toLocaleDateString("en-US", {
@@ -319,6 +332,7 @@ export default function EventSection() {
                   }
                   location={event.location}
                   slug={event.slug}
+                  category={event.category}
                 />
               </div>
             ))}
