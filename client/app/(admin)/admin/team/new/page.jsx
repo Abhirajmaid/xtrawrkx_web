@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import AdminLayout from "@/src/components/admin/AdminLayout";
 import ProtectedRoute from "@/src/components/admin/ProtectedRoute";
@@ -10,9 +10,6 @@ import Button from "@/src/components/common/Button";
 
 export default function NewTeamMember() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const editId = searchParams.get("edit");
-  const isEdit = !!editId;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -33,35 +30,6 @@ export default function NewTeamMember() {
   const [imagePreview, setImagePreview] = useState(null);
 
   const categories = ["core", "employee"];
-
-  // Load member data if editing
-  useEffect(() => {
-    if (isEdit && editId) {
-      loadMemberData(editId);
-    }
-  }, [isEdit, editId]);
-
-  const loadMemberData = async (id) => {
-    try {
-      const member = await teamService.getTeamMemberById(id);
-      setFormData({
-        name: member.name || "",
-        title: member.title || "",
-        location: member.location || "",
-        email: member.email || "",
-        linkedin: member.linkedin || "",
-        bio: member.bio || "",
-        category: member.category || "employee",
-        img: member.img || "/images/hero.png",
-        isActive: member.isActive ?? true,
-        joinDate: member.joinDate || new Date().toISOString().split("T")[0],
-      });
-      setImagePreview(member.img);
-    } catch (error) {
-      console.error("Error loading member data:", error);
-      setErrors({ load: `Failed to load member data: ${error.message}` });
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -177,13 +145,7 @@ export default function NewTeamMember() {
 
     try {
       setSaving(true);
-
-      if (isEdit) {
-        await teamService.updateTeamMember(editId, formData);
-      } else {
-        await teamService.createTeamMember(formData);
-      }
-
+      await teamService.createTeamMember(formData);
       router.push("/admin/team");
     } catch (error) {
       console.error("Error saving team member:", error);
@@ -199,21 +161,18 @@ export default function NewTeamMember() {
 
   return (
     <ProtectedRoute>
-      <AdminLayout
-        title={isEdit ? "Edit Team Member" : "Create New Team Member"}
-      >
+      <AdminLayout title="Create New Team Member">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  {isEdit ? "Edit Team Member" : "Create New Team Member"}
+                  Create New Team Member
                 </h1>
                 <p className="text-gray-600 mt-2">
-                  {isEdit
-                    ? "Update team member information and profile details"
-                    : "Add a new team member with all necessary details and information"}
+                  Add a new team member with all necessary details and
+                  information
                 </p>
               </div>
               <Button
@@ -226,11 +185,11 @@ export default function NewTeamMember() {
           </div>
 
           {/* Error Display */}
-          {(errors.load || errors.submit) && (
+          {errors.submit && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
               <div className="flex items-center gap-2">
                 <Icon icon="mdi:alert-circle" width={20} />
-                {errors.load || errors.submit}
+                {errors.submit}
               </div>
             </div>
           )}
@@ -487,13 +446,7 @@ export default function NewTeamMember() {
                 {saving && (
                   <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
                 )}
-                {saving
-                  ? isEdit
-                    ? "Updating..."
-                    : "Creating..."
-                  : isEdit
-                  ? "Update Team Member"
-                  : "Create Team Member"}
+                {saving ? "Creating..." : "Create Team Member"}
               </button>
             </div>
           </form>
