@@ -248,6 +248,7 @@ export default function PastEvents({ initialCategoryFilter }) {
                     date={formatEventDate(event.date) || event.date}
                     location={event.location}
                     slug={event.slug}
+                    season={event.season}
                   />
                 </div>
               </div>

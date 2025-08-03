@@ -14,6 +14,7 @@ export default function NewEvent() {
     title: "",
     slug: "",
     category: "Summit",
+    season: "2025",
     date: "",
     time: "",
     location: "",
@@ -49,6 +50,8 @@ export default function NewEvent() {
   ];
 
   const statusOptions = ["upcoming", "ongoing", "completed", "cancelled"];
+
+  const seasonOptions = ["2024", "2025", "2026", "2027", "2028"];
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -344,6 +347,24 @@ export default function NewEvent() {
                     {categories.map((category) => (
                       <option key={category} value={category}>
                         {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Season
+                  </label>
+                  <select
+                    name="season"
+                    value={formData.season}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    {seasonOptions.map((season) => (
+                      <option key={season} value={season}>
+                        {season}
                       </option>
                     ))}
                   </select>

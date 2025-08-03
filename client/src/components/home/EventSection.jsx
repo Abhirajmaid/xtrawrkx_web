@@ -298,6 +298,7 @@ export default function EventSection() {
                   }
                   location={event.location}
                   slug={event.slug}
+                  season={event.season}
                 />
               </div>
             ))}

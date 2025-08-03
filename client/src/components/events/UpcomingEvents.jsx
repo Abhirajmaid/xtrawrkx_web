@@ -259,6 +259,7 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
                     date={formatEventDate(event.date) || event.date}
                     location={event.location}
                     slug={event.slug}
+                    season={event.season}
                   />
                 </div>
               </div>

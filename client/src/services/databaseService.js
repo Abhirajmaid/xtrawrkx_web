@@ -425,6 +425,73 @@ export class EventService extends BaseDatabaseService {
         return this.getByField('featured', true, 'date', 'desc');
     }
 
+    // Get events by season
+    async getEventsBySeason(season) {
+        try {
+            console.log(`Fetching events for season: ${season}`);
+
+            // Use the most basic query possible - just filter by season
+            const q = query(
+                collection(db, this.collectionName),
+                where('season', '==', season)
+            );
+            const querySnapshot = await getDocs(q);
+
+            let events = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt),
+                date: convertFirestoreTimestampToDate(doc.data().date),
+                registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
+            }));
+
+            // Sort by date in JavaScript to avoid index issues
+            events.sort((a, b) => {
+                const dateA = a.date instanceof Date ? a.date : new Date(a.date || 0);
+                const dateB = b.date instanceof Date ? b.date : new Date(b.date || 0);
+                return dateA - dateB; // ascending order
+            });
+
+            console.log(`Found ${events.length} events for season ${season}`);
+            return events;
+        } catch (error) {
+            console.error('Error getting events by season:', error);
+            // Fallback: get all events and filter in JavaScript
+            try {
+                console.log('Fallback: getting all events and filtering by season');
+                const allEvents = await this.getAll();
+                const seasonEvents = allEvents.filter(event => event.season === season);
+                console.log(`Fallback found ${seasonEvents.length} events for season ${season}`);
+                return seasonEvents;
+            } catch (fallbackError) {
+                console.error('Fallback also failed:', fallbackError);
+                throw new Error(`Failed to fetch events for season ${season}: ${error.message}`);
+            }
+        }
+    }
+
+    // Get upcoming events by season
+    async getUpcomingEventsBySeason(season) {
+        try {
+            console.log(`Fetching upcoming events for season: ${season}`);
+
+            // Get all events for the season first
+            const seasonEvents = await this.getEventsBySeason(season);
+
+            // Filter for upcoming events in JavaScript
+            const upcomingEvents = seasonEvents.filter(event =>
+                event.status && event.status.toLowerCase() === 'upcoming'
+            );
+
+            console.log(`Found ${upcomingEvents.length} upcoming events for season ${season}`);
+            return upcomingEvents;
+        } catch (error) {
+            console.error('Error getting upcoming events by season:', error);
+            throw new Error(`Failed to fetch upcoming events for season ${season}: ${error.message}`);
+        }
+    }
+
 
 }
 
@@ -632,6 +699,41 @@ export class EventRegistrationService extends BaseDatabaseService {
     // Update registration status
     async updateRegistrationStatus(id, status) {
         return this.update(id, { status });
+    }
+
+    // Create season registration
+    async createSeasonRegistration(registrationData) {
+        return this.create(registrationData);
+    }
+
+    // Get registrations by season
+    async getRegistrationsBySeason(season) {
+        return this.getByField('season', season, 'createdAt', 'desc');
+    }
+
+    // Get registration by company email and season
+    async getRegistrationByCompanyAndSeason(companyEmail, season) {
+        try {
+            const q = query(
+                collection(db, this.collectionName),
+                where('companyEmail', '==', companyEmail),
+                where('season', '==', season)
+            );
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const doc = querySnapshot.docs[0];
+                return {
+                    id: doc.id,
+                    ...doc.data(),
+                    createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                    updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt)
+                };
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting registration by company and season:', error);
+            throw new Error(`Failed to fetch registration: ${error.message}`);
+        }
     }
 }
 

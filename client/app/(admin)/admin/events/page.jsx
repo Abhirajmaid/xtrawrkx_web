@@ -66,8 +66,15 @@ export default function EventManagement() {
 
   const loadRegistrations = async () => {
     try {
+      // Get all registrations (both single event and season registrations)
       const registrationsData =
         await eventRegistrationService.getRegistrations();
+
+      // Ensure both types of registrations are included
+      // The getRegistrations method should fetch all from the collection
+      // but we can add additional processing here if needed
+
+      console.log("Loaded registrations:", registrationsData.length);
       setRegistrations(registrationsData);
     } catch (error) {
       console.error("Error loading registrations:", error);
@@ -750,13 +757,26 @@ function RegistrationManagement({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [filterType, setFilterType] = useState("All"); // New filter for registration type
   const [sortBy, setSortBy] = useState("registrationDate");
   const [sortOrder, setSortOrder] = useState("desc");
   const [bulkSelection, setBulkSelection] = useState([]);
   const [showRegistrationDetails, setShowRegistrationDetails] = useState(null);
 
   const filteredRegistrations = registrations.filter((registration) => {
-    if (selectedEvent && registration.eventId !== selectedEvent) return false;
+    // Filter by event (for single event registrations) or if no event selected
+    if (
+      selectedEvent &&
+      registration.registrationType !== "season" &&
+      registration.eventId !== selectedEvent
+    )
+      return false;
+
+    // Filter by registration type
+    const matchesType =
+      filterType === "All" ||
+      (filterType === "event" && registration.registrationType !== "season") ||
+      (filterType === "season" && registration.registrationType === "season");
 
     const matchesSearch =
       registration.companyName
@@ -768,17 +788,24 @@ function RegistrationManagement({
       registration.primaryContactEmail
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      registration.eventTitle?.toLowerCase().includes(searchTerm.toLowerCase());
+      registration.eventTitle
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      registration.season?.toString().includes(searchTerm);
 
     const matchesStatus =
       filterStatus === "All" || registration.status === filterStatus;
 
-    return matchesSearch && matchesStatus;
+    return matchesType && matchesSearch && matchesStatus;
   });
 
   const getRegistrationStats = () => {
     const filtered = selectedEvent
-      ? registrations.filter((r) => r.eventId === selectedEvent)
+      ? registrations.filter((r) => {
+          // For season registrations, don't filter by specific event
+          if (r.registrationType === "season") return false;
+          return r.eventId === selectedEvent;
+        })
       : registrations;
 
     const total = filtered.length;
@@ -1136,7 +1163,7 @@ function RegistrationManagement({
 
       {/* Filters and Search */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Search
@@ -1145,9 +1172,24 @@ function RegistrationManagement({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search companies, contacts..."
+              placeholder="Search companies, contacts, season..."
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Registration Type
+            </label>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="All">All Types</option>
+              <option value="event">Single Event</option>
+              <option value="season">Season Registration</option>
+            </select>
           </div>
 
           <div>
@@ -1158,6 +1200,7 @@ function RegistrationManagement({
               value={selectedEvent || ""}
               onChange={(e) => onSelectEvent(e.target.value || null)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled={filterType === "season"}
             >
               <option value="">All Events</option>
               {events.map((event) => (
@@ -1207,6 +1250,8 @@ function RegistrationManagement({
               <option value="companyName-desc">Company Name (Z-A)</option>
               <option value="totalCost-desc">Total Cost (High-Low)</option>
               <option value="totalCost-asc">Total Cost (Low-High)</option>
+              <option value="season-desc">Season (Latest)</option>
+              <option value="season-asc">Season (Earliest)</option>
             </select>
           </div>
         </div>
@@ -1277,7 +1322,10 @@ function RegistrationManagement({
                   Company & Contact
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Event
+                  Type / Season
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Event(s)
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Attendees
@@ -1328,8 +1376,71 @@ function RegistrationManagement({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      {registration.registrationType === "season" ? (
+                        <>
+                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <Icon
+                              icon="mdi:calendar-range"
+                              width={12}
+                              className="mr-1"
+                            />
+                            Season Registration
+                          </div>
+                          <div className="text-sm font-medium text-gray-900 mt-1">
+                            Season {registration.season}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          <Icon
+                            icon="mdi:calendar"
+                            width={12}
+                            className="mr-1"
+                          />
+                          Single Event
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
-                      {registration.eventTitle || "Event Not Found"}
+                      {registration.registrationType === "season" ? (
+                        registration.selectedEventDetails &&
+                        registration.selectedEventDetails.length > 0 ? (
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {registration.selectedEventDetails.length} event
+                              {registration.selectedEventDetails.length > 1
+                                ? "s"
+                                : ""}{" "}
+                              selected:
+                            </div>
+                            {registration.selectedEventDetails
+                              .slice(0, 3)
+                              .map((event, index) => (
+                                <div
+                                  key={index}
+                                  className="text-xs text-gray-600 truncate"
+                                >
+                                  • {event.title}
+                                </div>
+                              ))}
+                            {registration.selectedEventDetails.length > 3 && (
+                              <div className="text-xs text-gray-500">
+                                +{registration.selectedEventDetails.length - 3}{" "}
+                                more...
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">
+                            No events selected
+                          </span>
+                        )
+                      ) : (
+                        registration.eventTitle || "Event Not Found"
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -1589,20 +1700,50 @@ ${registration.companyName || "N/A"},${
                 </div>
               </div>
 
-              {/* Event Information */}
+              {/* Registration Information */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Event Information
+                  Registration Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Event
+                      Registration Type
                     </label>
-                    <p className="text-sm text-gray-900">
-                      {showRegistrationDetails.eventTitle || "N/A"}
-                    </p>
+                    <div className="mt-1">
+                      {showRegistrationDetails.registrationType === "season" ? (
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                          <Icon
+                            icon="mdi:calendar-range"
+                            width={16}
+                            className="mr-2"
+                          />
+                          Season Registration
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                          <Icon
+                            icon="mdi:calendar"
+                            width={16}
+                            className="mr-2"
+                          />
+                          Single Event
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {showRegistrationDetails.registrationType === "season" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Season
+                      </label>
+                      <p className="text-sm text-gray-900 font-medium">
+                        Season {showRegistrationDetails.season || "N/A"}
+                      </p>
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Registration Date
@@ -1636,6 +1777,82 @@ ${registration.companyName || "N/A"},${
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* Event Details */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  {showRegistrationDetails.registrationType === "season"
+                    ? "Selected Events"
+                    : "Event Details"}
+                </h3>
+                {showRegistrationDetails.registrationType === "season" ? (
+                  <div>
+                    {showRegistrationDetails.selectedEventDetails &&
+                    showRegistrationDetails.selectedEventDetails.length > 0 ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600 mb-3">
+                          {showRegistrationDetails.selectedEventDetails.length}{" "}
+                          event(s) selected for attendance:
+                        </p>
+                        <div className="grid gap-3">
+                          {showRegistrationDetails.selectedEventDetails.map(
+                            (event, index) => (
+                              <div
+                                key={index}
+                                className="border border-gray-200 rounded-lg p-3 bg-gray-50"
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <h4 className="font-medium text-gray-900">
+                                      {event.title}
+                                    </h4>
+                                    {event.date && (
+                                      <p className="text-sm text-gray-600 mt-1 flex items-center">
+                                        <Icon
+                                          icon="mdi:calendar"
+                                          width={14}
+                                          className="mr-1"
+                                        />
+                                        {formatDate(event.date)}
+                                      </p>
+                                    )}
+                                    {event.location && (
+                                      <p className="text-sm text-gray-600 flex items-center">
+                                        <Icon
+                                          icon="mdi:map-marker"
+                                          width={14}
+                                          className="mr-1"
+                                        />
+                                        {event.location}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {event.category && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                      {event.category}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">
+                        No events selected for this season registration.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm font-medium text-gray-900">
+                      {showRegistrationDetails.eventTitle ||
+                        "Event information not available"}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Personnel */}
@@ -2019,10 +2236,13 @@ function EventRow({
 
 // Event Modal Component
 function EventModal({ isOpen, onClose, event, onSave }) {
+  const seasonOptions = ["2024", "2025", "2026", "2027", "2028"];
+
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
     category: "Summit",
+    season: "2025",
     date: "",
     time: "",
     location: "",
@@ -2049,6 +2269,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
         title: event.title || "",
         slug: event.slug || "",
         category: event.category || "Summit",
+        season: event.season || "2025",
         date: event.date ? String(event.date) : "",
         time: event.time ? String(event.time) : "",
         location: event.location || "",
@@ -2068,6 +2289,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
         title: "",
         slug: "",
         category: "Summit",
+        season: "2025",
         date: "",
         time: "",
         location: "",
@@ -2383,6 +2605,24 @@ function EventModal({ isOpen, onClose, event, onSave }) {
                       <option value="Conference">Conference</option>
                       <option value="Competition">Competition</option>
                       <option value="Networking">Networking</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Season
+                    </label>
+                    <select
+                      name="season"
+                      value={formData.season}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      {seasonOptions.map((season) => (
+                        <option key={season} value={season}>
+                          {season}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

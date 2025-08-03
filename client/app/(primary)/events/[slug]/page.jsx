@@ -13,6 +13,7 @@ export default function EventPage({ params }) {
   const { slug } = use(params);
   const [event, setEvent] = useState(null);
   const [relatedEvents, setRelatedEvents] = useState([]);
+  const [seasonEvents, setSeasonEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -55,6 +56,22 @@ export default function EventPage({ params }) {
         }
 
         setEvent(fetchedEvent);
+
+        // Fetch events from the same season
+        try {
+          if (fetchedEvent.season) {
+            const seasonEventsData = await eventService.getEventsBySeason(
+              fetchedEvent.season
+            );
+            const otherSeasonEvents = seasonEventsData.filter(
+              (e) => e.slug !== slug
+            );
+            setSeasonEvents(otherSeasonEvents);
+          }
+        } catch (seasonErr) {
+          console.warn("Error fetching season events:", seasonErr);
+          setSeasonEvents([]);
+        }
 
         // Fetch related events from the same category
         try {
@@ -142,12 +159,22 @@ export default function EventPage({ params }) {
 
         {/* Event Info Overlay */}
         <Container className="relative z-20 text-center text-white">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-6 py-2 rounded-full text-sm font-semibold mb-6">
-            <Icon
-              icon={eventCompleted ? "mdi:calendar-check" : "mdi:calendar-star"}
-              width={20}
-            />
-            {eventCompleted ? "Completed Event" : event.category}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-6 py-2 rounded-full text-sm font-semibold">
+              <Icon
+                icon={
+                  eventCompleted ? "mdi:calendar-check" : "mdi:calendar-star"
+                }
+                width={20}
+              />
+              {eventCompleted ? "Completed Event" : event.category}
+            </div>
+            {event.season && (
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-semibold border border-white/30">
+                <Icon icon="mdi:calendar-range" width={20} />
+                Season {event.season}
+              </div>
+            )}
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-lg">
             {event.title}
@@ -171,9 +198,15 @@ export default function EventPage({ params }) {
           {!eventCompleted && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
-                text="Register Now"
+                text={
+                  event.season
+                    ? `Register for Season ${event.season}`
+                    : "Register Now"
+                }
                 type="primary"
-                link={`/events/${slug}/register`}
+                link={`/events/season/${
+                  event.season || "current"
+                }/register?from=${slug}`}
                 className="bg-gradient-to-r from-brand-primary to-brand-secondary"
               />
               <Button
@@ -525,10 +558,16 @@ export default function EventPage({ params }) {
                   {!eventCompleted ? (
                     <>
                       <Button
-                        text="Company Registration"
+                        text={
+                          event.season
+                            ? `Season ${event.season} Registration`
+                            : "Company Registration"
+                        }
                         type="primary"
                         className="w-full mb-3"
-                        link={`/events/${event.slug}/register`}
+                        link={`/events/season/${
+                          event.season || "current"
+                        }/register?from=${event.slug}`}
                       />
                       <Button
                         text="Share Event"
@@ -579,6 +618,81 @@ export default function EventPage({ params }) {
           </div>
         </Container>
       </Section>
+
+      {/* Season Events */}
+      {event.season && seasonEvents.length > 0 && (
+        <Section className="py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50/30">
+          <Container>
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Other Events in Season {event.season}
+              </h2>
+              <p className="text-xl text-gray-600">
+                Register once for the entire season and choose which events to
+                attend
+              </p>
+              <div className="mt-6">
+                <Button
+                  text={`Register for Season ${event.season}`}
+                  type="primary"
+                  link={`/events/season/${event.season}/register?from=${slug}`}
+                  className="bg-gradient-to-r from-brand-primary to-brand-secondary"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {seasonEvents.map((seasonEvent, index) => (
+                <div
+                  key={seasonEvent.id || index}
+                  className="group transform transition-all duration-300 hover:scale-105"
+                >
+                  <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-transparent hover:border-brand-primary/20">
+                    <div className="relative h-48">
+                      <Image
+                        src={seasonEvent.background || "/images/hero.png"}
+                        alt={seasonEvent.title}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute top-4 left-4 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        {seasonEvent.category}
+                      </div>
+                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">
+                        Season {seasonEvent.season}
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="font-bold text-gray-900 mb-2">
+                        {seasonEvent.title}
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                        <div className="flex items-center gap-1">
+                          <Icon icon="mdi:calendar" width={16} />
+                          <span>
+                            {formatEventDate(seasonEvent.date) ||
+                              seasonEvent.date}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Icon icon="mdi:map-marker" width={16} />
+                          <span>{seasonEvent.location}</span>
+                        </div>
+                      </div>
+                      <Button
+                        text="View Details"
+                        type="secondary"
+                        link={`/events/${seasonEvent.slug}`}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </Section>
+      )}
 
       {/* Related Events */}
       <Section className="py-20 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">

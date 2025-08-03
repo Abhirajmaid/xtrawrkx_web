@@ -9,6 +9,7 @@ export default function EventCard({
   location,
   date,
   slug,
+  season,
 }) {
   // Ensure we have a valid image source
   const imageSrc =
@@ -28,6 +29,13 @@ export default function EventCard({
       />
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-black/10 to-black" />
+
+      {/* Season badge (top right) */}
+      {season && (
+        <div className="absolute top-4 right-4 z-20 bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold border border-white/20 shadow-lg">
+          {season}
+        </div>
+      )}
 
       {/* Info (title, date, location) directly over image */}
       <div className="absolute left-0 right-0 bottom-20 flex flex-col items-center px-6">
