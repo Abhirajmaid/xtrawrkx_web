@@ -119,7 +119,6 @@ export default function ContactForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log("Form submitted:", form);
       // Handle form submission here
       alert("Thank you for your inquiry! We'll get back to you soon.");
     }

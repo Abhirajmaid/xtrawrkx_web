@@ -23,6 +23,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.1.0",
     "tailwindcss": "^4.1.7"
   }
 }

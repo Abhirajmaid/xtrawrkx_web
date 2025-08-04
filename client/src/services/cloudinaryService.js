@@ -70,7 +70,7 @@ export class CloudinaryService {
 
             // Upload to Cloudinary
             const uploadUrl = this.getUploadUrl('image');
-            console.log('Uploading to Cloudinary:', { uploadUrl, cloudName: this.config.cloudName, uploadPreset: this.config.uploadPreset });
+
 
             const response = await fetch(uploadUrl, {
                 method: 'POST',
@@ -160,7 +160,7 @@ export class CloudinaryService {
 
             // Upload to Cloudinary
             const uploadUrl = this.getUploadUrl('raw');
-            console.log('Uploading file to Cloudinary:', { uploadUrl, cloudName: this.config.cloudName, uploadPreset: this.config.uploadPreset });
+
 
             const response = await fetch(uploadUrl, {
                 method: 'POST',

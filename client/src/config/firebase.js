@@ -40,7 +40,7 @@ try {
             analytics = getAnalytics(app);
         }
 
-        console.log('Firebase initialized successfully');
+
     } else {
         console.warn('Firebase configuration is incomplete. Check your environment variables.');
         throw new Error('Firebase configuration is incomplete');

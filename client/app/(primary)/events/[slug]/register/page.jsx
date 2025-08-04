@@ -11,6 +11,7 @@ import {
   EventService,
 } from "@/src/services/databaseService";
 import { formatEventDate } from "@/src/utils/dateUtils";
+import Script from "next/script";
 
 const communityOptions = [
   { id: "none", name: "Not a member", discount: 0, freeSlots: 0 },
@@ -18,6 +19,22 @@ const communityOptions = [
   { id: "xev-fin", name: "XEV.FiN Community", discount: 10, freeSlots: 0 },
   { id: "xevtg", name: "XEVTG Community", discount: 5, freeSlots: 0 },
   { id: "xd-d", name: "xD&D Community", discount: 15, freeSlots: 0 },
+];
+
+const ticketTypes = [
+  {
+    id: "gnp",
+    name: "General Networking Pass (GNP)",
+    price: 8000,
+    description: "Access to networking sessions and general event activities",
+  },
+  {
+    id: "asp",
+    name: "Active Support Pass (ASP)",
+    price: 60000,
+    description:
+      "Full access to all sessions, workshops, and premium networking opportunities",
+  },
 ];
 
 const designations = [
@@ -107,13 +124,16 @@ export default function CompanyEventRegistration({ params }) {
     companySize: "",
     companyCommunity: "none", // Company-level community membership
 
+    // Ticket Information
+    ticketType: "gnp", // Default to General Networking Pass
+
     // Primary Contact
     primaryContactName: "",
     primaryContactEmail: "",
     primaryContactPhone: "",
     primaryContactDesignation: "",
 
-    // Personnel List
+    // Personnel List (for seasonal events, this represents attendees under the company ticket)
     personnel: [
       {
         id: 1,
@@ -138,6 +158,7 @@ export default function CompanyEventRegistration({ params }) {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -195,10 +216,13 @@ export default function CompanyEventRegistration({ params }) {
   };
 
   const calculatePricing = () => {
-    const basePrice = 4000; // ₹4,000 per person
-    let totalCost = 0;
-    let freeSlots = 0;
+    const selectedTicket = ticketTypes.find(
+      (t) => t.id === formData.ticketType
+    );
+    const basePrice = selectedTicket ? selectedTicket.price : 8000; // Default to GNP price
+    let totalCost = basePrice;
     let discountAmount = 0;
+    let isFree = false;
 
     const attendingCount = formData.personnel.filter(
       (p) => p.isAttending
@@ -207,30 +231,29 @@ export default function CompanyEventRegistration({ params }) {
       (c) => c.id === formData.companyCommunity
     );
 
-    // Apply company-level community benefits to all attendees
-    if (formData.companyCommunity === "xen" && attendingCount > 0) {
-      // First person is free for XEN companies
-      freeSlots = 1;
-      const paidAttendees = attendingCount - 1;
-      totalCost = paidAttendees * basePrice;
-    } else {
-      // Apply company discount to all attendees
-      const discountedPrice = basePrice * (1 - companyCommunity.discount / 100);
-      totalCost = attendingCount * discountedPrice;
-
-      if (companyCommunity.discount > 0) {
-        discountAmount = attendingCount * (basePrice - discountedPrice);
-      }
+    // Apply company-level community benefits to the ticket
+    if (formData.companyCommunity === "xen") {
+      // XEN companies get the ticket for free
+      isFree = true;
+      totalCost = 0;
+      discountAmount = basePrice;
+    } else if (companyCommunity && companyCommunity.discount > 0) {
+      // Apply company discount to the ticket price
+      discountAmount = basePrice * (companyCommunity.discount / 100);
+      totalCost = basePrice - discountAmount;
     }
 
     return {
       attendingCount,
-      baseAmount: attendingCount * basePrice,
+      ticketType: selectedTicket
+        ? selectedTicket.name
+        : "General Networking Pass (GNP)",
+      baseAmount: basePrice,
       discountAmount,
-      freeSlots,
       totalCost,
-      savings: attendingCount * basePrice - totalCost,
+      savings: basePrice - totalCost,
       companyCommunity: companyCommunity.name,
+      isFree,
     };
   };
 
@@ -278,6 +301,69 @@ export default function CompanyEventRegistration({ params }) {
     return Object.keys(newErrors).length === 0;
   };
 
+  const processPayment = (registrationData, registrationId, pricing) => {
+    return new Promise((resolve, reject) => {
+      if (!window.Razorpay) {
+        reject(new Error("Razorpay SDK not loaded"));
+        return;
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_key", // Replace with your actual test/live key
+        amount: pricing.totalCost * 100, // Amount in paise
+        currency: "INR",
+        name: "XtraWrkx Events",
+        description: `${event.title} - ${pricing.ticketType}`,
+        order_id: `event_${registrationId}_${Date.now()}`, // You might want to create this via Razorpay Orders API
+        handler: async function (response) {
+          try {
+            // Update registration with payment details
+            const updatedRegistrationData = {
+              ...registrationData,
+              paymentStatus: "completed",
+              status: "confirmed",
+              paymentId: response.razorpay_payment_id,
+              paymentSignature: response.razorpay_signature,
+              paidAt: new Date().toISOString(),
+            };
+
+            // Update the registration in database
+            await eventRegistrationService.updateRegistration(
+              registrationId,
+              updatedRegistrationData
+            );
+
+            resolve(response);
+          } catch (error) {
+            console.error("Error updating payment status:", error);
+            reject(error);
+          }
+        },
+        prefill: {
+          name: formData.primaryContactName,
+          email: formData.primaryContactEmail,
+          contact: formData.primaryContactPhone,
+        },
+        notes: {
+          registrationId: registrationId,
+          eventTitle: event.title,
+          companyName: formData.companyName,
+        },
+        theme: {
+          color: "#3B82F6", // Brand primary color
+        },
+        modal: {
+          ondismiss: function () {
+            reject(new Error("Payment cancelled by user"));
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -308,6 +394,10 @@ export default function CompanyEventRegistration({ params }) {
         companySize: formData.companySize,
         companyCommunity: formData.companyCommunity,
 
+        // Ticket Information
+        ticketType: formData.ticketType,
+        ticketName: pricing.ticketType,
+
         // Primary Contact
         primaryContactName: formData.primaryContactName,
         primaryContactEmail: formData.primaryContactEmail,
@@ -326,7 +416,7 @@ export default function CompanyEventRegistration({ params }) {
         totalCost: pricing.totalCost,
         baseAmount: pricing.baseAmount,
         discountAmount: pricing.discountAmount,
-        freeSlots: pricing.freeSlots,
+        isFree: pricing.isFree,
         attendingCount: pricing.attendingCount,
 
         // Agreement
@@ -334,8 +424,8 @@ export default function CompanyEventRegistration({ params }) {
         privacyAccepted: formData.privacyAccepted,
 
         // Registration Status
-        status: "pending", // Can be changed to "confirmed" if payment is processed
-        paymentStatus: "pending",
+        status: pricing.isFree ? "confirmed" : "pending", // Free registrations are confirmed immediately
+        paymentStatus: pricing.isFree ? "completed" : "pending",
       };
 
       // Save registration to database
@@ -344,53 +434,104 @@ export default function CompanyEventRegistration({ params }) {
       );
 
       console.log("Registration saved with ID:", registrationId);
-      console.log("Company registration submitted:", {
-        event: event.title,
-        company: formData.companyName,
-        personnel: formData.personnel.filter((p) => p.isAttending),
-        pricing,
-        registrationId,
-      });
 
-      alert(
-        `Registration successful! Your company has been registered for ${
-          event.title
-        }. Registration ID: ${registrationId}. Total cost: ₹${pricing.totalCost.toLocaleString()}\n\nYou will receive a confirmation email shortly with payment instructions.`
-      );
+      // If it's a free registration, complete immediately
+      if (pricing.isFree) {
+        alert(
+          `Registration successful! Your company has been registered for ${event.title}. Registration ID: ${registrationId}. Ticket: ${pricing.ticketType}. This is a FREE registration.\n\nYou will receive a confirmation email shortly.`
+        );
 
-      // Reset form after successful submission
-      setFormData({
-        companyName: "",
-        companyEmail: "",
-        companyPhone: "",
-        companyAddress: "",
-        industry: "",
-        companySize: "",
-        companyCommunity: "none",
-        primaryContactName: "",
-        primaryContactEmail: "",
-        primaryContactPhone: "",
-        primaryContactDesignation: "",
-        personnel: [
-          {
-            id: 1,
-            name: "",
-            email: "",
-            phone: "",
-            designation: "",
-            dietaryRequirements: "No restrictions",
-            isAttending: true,
-          },
-        ],
-        specialRequests: "",
-        emergencyContact: "",
-        emergencyPhone: "",
-        termsAccepted: false,
-        privacyAccepted: false,
-      });
+        // Reset form after successful free registration
+        setFormData({
+          companyName: "",
+          companyEmail: "",
+          companyPhone: "",
+          companyAddress: "",
+          industry: "",
+          companySize: "",
+          companyCommunity: "none",
+          ticketType: "gnp",
+          primaryContactName: "",
+          primaryContactEmail: "",
+          primaryContactPhone: "",
+          primaryContactDesignation: "",
+          personnel: [
+            {
+              id: 1,
+              name: "",
+              email: "",
+              phone: "",
+              designation: "",
+              dietaryRequirements: "No restrictions",
+              isAttending: true,
+            },
+          ],
+          specialRequests: "",
+          emergencyContact: "",
+          emergencyPhone: "",
+          termsAccepted: false,
+          privacyAccepted: false,
+        });
+      } else {
+        // Process payment for paid registrations
+        try {
+          await processPayment(registrationData, registrationId, pricing);
 
-      // Optionally redirect back to event page
-      // router.push(`/events/${slug}`);
+          alert(
+            `Payment successful! Your company has been registered for ${
+              event.title
+            }. Registration ID: ${registrationId}. Ticket: ${
+              pricing.ticketType
+            }. Amount paid: ₹${pricing.totalCost.toLocaleString()}\n\nYou will receive a confirmation email shortly.`
+          );
+
+          // Reset form after successful paid registration
+          setFormData({
+            companyName: "",
+            companyEmail: "",
+            companyPhone: "",
+            companyAddress: "",
+            industry: "",
+            companySize: "",
+            companyCommunity: "none",
+            ticketType: "gnp",
+            primaryContactName: "",
+            primaryContactEmail: "",
+            primaryContactPhone: "",
+            primaryContactDesignation: "",
+            personnel: [
+              {
+                id: 1,
+                name: "",
+                email: "",
+                phone: "",
+                designation: "",
+                dietaryRequirements: "No restrictions",
+                isAttending: true,
+              },
+            ],
+            specialRequests: "",
+            emergencyContact: "",
+            emergencyPhone: "",
+            termsAccepted: false,
+            privacyAccepted: false,
+          });
+        } catch (paymentError) {
+          console.error("Payment error:", paymentError);
+
+          if (paymentError.message === "Payment cancelled by user") {
+            alert(
+              "Payment was cancelled. Your registration has been saved and you can complete the payment later. Registration ID: " +
+                registrationId
+            );
+          } else {
+            alert(
+              "Payment failed. Your registration has been saved and you can retry payment later. Registration ID: " +
+                registrationId
+            );
+          }
+        }
+      }
     } catch (error) {
       console.error("Registration error:", error);
       alert(
@@ -637,6 +778,60 @@ export default function CompanyEventRegistration({ params }) {
                       placeholder="Enter company address"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Ticket Selection */}
+              <div className="bg-white rounded-xl p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                  <Icon
+                    icon="solar:ticket-bold"
+                    width={24}
+                    className="mr-2 text-brand-primary"
+                  />
+                  Ticket Selection
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ticketTypes.map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                        formData.ticketType === ticket.id
+                          ? "border-brand-primary bg-brand-primary/5"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
+                      onClick={() =>
+                        handleInputChange({
+                          target: { name: "ticketType", value: ticket.id },
+                        })
+                      }
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <input
+                              type="radio"
+                              name="ticketType"
+                              value={ticket.id}
+                              checked={formData.ticketType === ticket.id}
+                              onChange={handleInputChange}
+                              className="text-brand-primary"
+                            />
+                            <h3 className="font-semibold text-gray-900">
+                              {ticket.name}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-3">
+                            {ticket.description}
+                          </p>
+                          <div className="text-2xl font-bold text-brand-primary">
+                            ₹{ticket.price.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -953,16 +1148,15 @@ export default function CompanyEventRegistration({ params }) {
                             <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm">
                               <span className="text-blue-700 font-medium">
                                 Company Benefit:{" "}
-                                {formData.companyCommunity === "xen" &&
-                                index === 0
-                                  ? "FREE"
+                                {formData.companyCommunity === "xen"
+                                  ? "FREE Ticket"
                                   : formData.companyCommunity !== "none"
                                   ? `${
                                       communityOptions.find(
                                         (c) =>
                                           c.id === formData.companyCommunity
                                       )?.discount || 0
-                                    }% OFF`
+                                    }% OFF Ticket`
                                   : "No discount"}
                               </span>
                             </div>
@@ -1113,6 +1307,13 @@ export default function CompanyEventRegistration({ params }) {
 
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Selected Ticket:</span>
+                      <span className="font-medium text-right">
+                        {pricing.ticketType}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Total Attendees:</span>
                       <span className="font-medium">
                         {pricing.attendingCount}
@@ -1124,16 +1325,14 @@ export default function CompanyEventRegistration({ params }) {
                       <span>₹{pricing.baseAmount.toLocaleString()}</span>
                     </div>
 
-                    {pricing.freeSlots > 0 && (
+                    {pricing.isFree && (
                       <div className="flex justify-between text-sm text-green-600">
-                        <span>XEN Member (Free):</span>
-                        <span>
-                          -₹{(pricing.freeSlots * 4000).toLocaleString()}
-                        </span>
+                        <span>XEN Member (Free Ticket):</span>
+                        <span>-₹{pricing.baseAmount.toLocaleString()}</span>
                       </div>
                     )}
 
-                    {pricing.discountAmount > 0 && (
+                    {pricing.discountAmount > 0 && !pricing.isFree && (
                       <div className="flex justify-between text-sm text-green-600">
                         <span>{pricing.companyCommunity} Discount:</span>
                         <span>-₹{pricing.discountAmount.toLocaleString()}</span>
@@ -1144,7 +1343,9 @@ export default function CompanyEventRegistration({ params }) {
                       <div className="flex justify-between text-lg font-bold">
                         <span>Total Amount:</span>
                         <span className="text-brand-primary">
-                          ₹{pricing.totalCost.toLocaleString()}
+                          {pricing.isFree
+                            ? "FREE"
+                            : `₹${pricing.totalCost.toLocaleString()}`}
                         </span>
                       </div>
 
@@ -1175,7 +1376,7 @@ export default function CompanyEventRegistration({ params }) {
                         width={16}
                         className="text-green-500"
                       />
-                      <span>XEN Companies: First person FREE</span>
+                      <span>XEN Companies: FREE ticket (any pass)</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Icon
@@ -1183,7 +1384,7 @@ export default function CompanyEventRegistration({ params }) {
                         width={16}
                         className="text-green-500"
                       />
-                      <span>xD&D Companies: 15% discount for all</span>
+                      <span>xD&D Companies: 15% discount on ticket price</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Icon
@@ -1191,7 +1392,9 @@ export default function CompanyEventRegistration({ params }) {
                         width={16}
                         className="text-green-500"
                       />
-                      <span>XEV.FiN Companies: 10% discount for all</span>
+                      <span>
+                        XEV.FiN Companies: 10% discount on ticket price
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Icon
@@ -1199,7 +1402,7 @@ export default function CompanyEventRegistration({ params }) {
                         width={16}
                         className="text-green-500"
                       />
-                      <span>XEVTG Companies: 5% discount for all</span>
+                      <span>XEVTG Companies: 5% discount on ticket price</span>
                     </div>
                   </div>
                 </div>
@@ -1209,6 +1412,8 @@ export default function CompanyEventRegistration({ params }) {
                   text={
                     isSubmitting
                       ? "Processing..."
+                      : pricing.isFree
+                      ? "Complete Registration (FREE)"
                       : `Complete Registration (₹${pricing.totalCost.toLocaleString()})`
                   }
                   type="primary"
@@ -1221,6 +1426,13 @@ export default function CompanyEventRegistration({ params }) {
           </div>
         </Container>
       </form>
+
+      {/* Razorpay Script */}
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        onLoad={() => setRazorpayLoaded(true)}
+        onError={() => console.error("Failed to load Razorpay SDK")}
+      />
     </div>
   );
 }

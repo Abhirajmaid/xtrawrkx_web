@@ -52,9 +52,9 @@ export const metadata = {
     apple: [{ url: "/logo.png", sizes: "180x180", type: "image/png" }],
   },
   manifest: "/site.webmanifest",
-  other: {
-    "google-site-verification": "your-google-verification-code", // Add your actual verification code
-  },
+  // other: {
+  //   "google-site-verification": "your-google-verification-code", // Add your actual verification code when available
+  // },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -91,11 +91,11 @@ export const metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "your-google-verification-code",
-    yandex: "your-yandex-verification-code",
-    yahoo: "your-yahoo-verification-code",
-  },
+  // verification: {
+  //   google: "your-google-verification-code",
+  //   yandex: "your-yandex-verification-code",
+  //   yahoo: "your-yahoo-verification-code",
+  // },
 };
 
 export default function RootLayout({ children }) {

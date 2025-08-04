@@ -62,7 +62,6 @@ export default function PastEvents({ initialCategoryFilter }) {
           return event.status && event.status.toLowerCase() === "completed";
         });
 
-        console.log("Past events found:", past);
         setPastEvents(past);
         setError(null);
       } catch (err) {

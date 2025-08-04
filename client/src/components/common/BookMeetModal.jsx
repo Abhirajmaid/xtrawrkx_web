@@ -175,8 +175,6 @@ const BookMeetModal = ({ isOpen, onClose }) => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      console.log("Meeting booking submitted:", formData);
-
       // Show success and close modal
       alert(
         "Consultation call booked successfully! You'll receive a confirmation email shortly."

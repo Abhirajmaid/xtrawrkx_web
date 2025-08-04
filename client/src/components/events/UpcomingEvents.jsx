@@ -62,7 +62,6 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
       try {
         setLoading(true);
         let events = await eventService.getAll("date", "desc");
-        console.log("All events from Firebase:", events);
 
         // Filter for upcoming events
         const upcoming = events.filter((event) => {
@@ -71,12 +70,8 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
 
         // If no upcoming events found, show the 6 most recent events as fallback
         if (upcoming.length > 0) {
-          console.log("Upcoming events found:", upcoming);
           setUpcomingEvents(upcoming);
         } else {
-          console.log(
-            "No upcoming events found, showing recent events as fallback"
-          );
           // setUpcomingEvents(events.slice(0, 6)); // Show first 6 events
         }
 

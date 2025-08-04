@@ -1,101 +1,205 @@
-# Xtrawrkx Web Platform
+# 🚀 Xtrawrkx Web Platform
+
+A comprehensive professional development platform built with **Next.js 15**, **Firebase**, and **Cloudinary** offering events, resources, networking opportunities, and community engagement.
+
+## ✨ Features
+
+- 🎯 **Event Management** - Create, manage, and register for professional events
+- 📚 **Resource Center** - Whitepapers, articles, reports, and industry insights
+- 👥 **Team Management** - Dynamic team profiles with professional image uploads
+- 🏢 **Service Catalog** - Showcase consulting services and engagement models
+- 🌐 **Community Platform** - Multiple specialized communities (XEN, XevFin, XD&D, XevTG)
+- 📱 **Responsive Design** - Optimized for all devices
+- 🔐 **Admin Panel** - Complete content management system
+- ☁️ **Cloud Integration** - Firebase Firestore & Cloudinary CDN
 
 ## 🚀 Quick Start
 
-1. **Install dependencies:**
+### 1. Install Dependencies
 
-   ```bash
-   cd client
-   npm install
-   ```
+```bash
+cd client
+npm install
+```
 
-2. **Create `.env.local` in the `client` directory:**
+### 2. Environment Setup
 
-   ```env
-   # Cloudinary (for all file/image uploads)
-   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
-   NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
+Copy the environment template and configure your credentials:
 
-   # Firebase (for authentication & database)
-   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```bash
+cp .env.example .env.local
+```
 
-   # Admin emails (comma-separated)
-   NEXT_PUBLIC_ADMIN_EMAILS=admin@xtrawrkx.com,test@example.com
-   # Use CMS (true/false)
-   NEXT_PUBLIC_USE_CMS_DATA=true
-   ```
+Edit `.env.local` with your actual credentials:
 
-   - For **testing only**, you can use:
-     ```env
-     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=demo
-     NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=ml_default
-     ```
+```env
+# Cloudinary Configuration (for file uploads)
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
 
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000)
+# Firebase Configuration (for database & auth)
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+
+# Admin Configuration
+NEXT_PUBLIC_ADMIN_EMAILS=admin@xtrawrkx.com,admin2@xtrawrkx.com
+
+# Application Configuration
+NEXT_PUBLIC_USE_CMS_DATA=true
+```
+
+> **For Testing Only**: Use demo Cloudinary values:
+>
+> ```env
+> NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=demo
+> NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=ml_default
+> ```
+
+### 3. Start Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## 🛠️ Available Scripts
+
+| Command         | Description                   |
+| --------------- | ----------------------------- |
+| `npm run dev`   | Start development server      |
+| `npm run build` | Build for production          |
+| `npm run start` | Start production server       |
+| `npm run lint`  | Run ESLint code quality check |
+
+## 🏗️ Project Structure
+
+```
+client/
+├── app/                    # Next.js App Router
+│   ├── (admin)/           # Admin panel routes
+│   ├── (primary)/         # Main website routes
+│   └── (statics)/         # Static pages (privacy, terms)
+├── src/
+│   ├── components/        # React components
+│   │   ├── common/        # Shared components
+│   │   ├── layout/        # Layout components
+│   │   ├── admin/         # Admin-specific components
+│   │   └── [feature]/     # Feature-specific components
+│   ├── services/          # API services
+│   ├── data/              # Static data and configurations
+│   ├── contexts/          # React contexts
+│   ├── hooks/             # Custom hooks
+│   └── utils/             # Utility functions
+├── public/                # Static assets
+└── .env.example          # Environment template
+```
+
+## 🔧 Key Technologies
+
+- **Framework**: Next.js 15 with App Router
+- **Styling**: Tailwind CSS 4.1
+- **Database**: Firebase Firestore
+- **Authentication**: Firebase Auth
+- **File Storage**: Cloudinary CDN
+- **Animation**: Framer Motion
+- **Icons**: Iconify & Lucide React
+- **Date Handling**: date-fns
+
+## 🎯 Main Features
+
+### Public Website
+
+- **Homepage** - Hero, services overview, events, communities
+- **About** - Company information, team, values, FAQ
+- **Services** - Detailed service offerings with engagement models
+- **Events** - Upcoming and past events with registration
+- **Communities** - XEN, XevFin, XD&D, XevTG community pages
+- **Resources** - Filterable library of professional content
+- **Contact** - Contact form and company information
+- **Teams** - Dynamic team member profiles
+
+### Admin Panel (`/admin`)
+
+- **Dashboard** - Overview and statistics
+- **Events** - Create, edit, manage events
+- **Services** - Manage service offerings
+- **Team** - Add/edit team members with photo uploads
+- **Resources** - Content management for articles and reports
+- **Gallery** - Image management
+- **Registrations** - View event registrations
+
+## 🔐 Authentication & Access
+
+- **Public Access**: All main website content
+- **Admin Access**: Only emails listed in `NEXT_PUBLIC_ADMIN_EMAILS`
+- **Protected Routes**: All `/admin/*` routes require authentication
+
+## 📱 Responsive Design
+
+The platform is fully responsive and optimized for:
+
+- **Desktop**: Full-featured experience with hover effects
+- **Tablet**: Adaptive layouts and touch-friendly interactions
+- **Mobile**: Optimized mobile experience with collapsible navigation
+
+## 🚨 Common Issues & Quick Fixes
+
+### Image Upload Fails
+
+- ✅ Check Cloudinary credentials in `.env.local`
+- ✅ Ensure upload preset is "unsigned"
+- ✅ Restart development server after env changes
+
+### Admin Login Issues
+
+- ✅ Verify your email is in `NEXT_PUBLIC_ADMIN_EMAILS`
+- ✅ Check Firebase Auth configuration
+- ✅ Clear browser cache and cookies
+
+### Data Not Loading
+
+- ✅ Check Firebase credentials
+- ✅ Verify network connection
+- ✅ Check browser console for errors
+
+### Environment Variables Not Working
+
+- ✅ Ensure `.env.local` is in the `client` directory
+- ✅ All variables must start with `NEXT_PUBLIC_`
+- ✅ Restart development server after changes
+
+## 📚 Additional Resources
+
+- **[Technical Documentation](./DOCUMENTATION.md)** - Detailed setup and architecture
+- **[Next.js Documentation](https://nextjs.org/docs)** - Framework documentation
+- **[Firebase Console](https://console.firebase.google.com/)** - Database management
+- **[Cloudinary Dashboard](https://cloudinary.com/console)** - File management
+
+## 🎉 Success Indicators
+
+Your setup is working correctly when you can:
+
+- ✅ Access the website at `localhost:3000`
+- ✅ Navigate to all public pages without errors
+- ✅ Log into admin panel with authorized email
+- ✅ Upload images in admin forms
+- ✅ Create and edit content through admin panel
+
+## 🆘 Need Help?
+
+1. **Check the browser console** for detailed error messages
+2. **Review the [DOCUMENTATION.md](./DOCUMENTATION.md)** for technical details
+3. **Verify environment variables** are correctly set
+4. **Restart the development server** after any configuration changes
 
 ---
 
-## 📝 How Event Data & Images Are Stored
+**Built with ❤️ by the Xtrawrkx Team**
 
-- **Event data** is stored in **Firebase Firestore** via the `eventService` (see `src/services/databaseService.js`).
-- **Images** (hero/background) are uploaded to **Cloudinary** using the `uploadImage` function (see `src/services/cloudinaryService.js`).
-- The returned Cloudinary URL is saved in the event's Firestore document under `heroImage` and `background` fields.
-
-### Event Creation Flow
-
-1. **Admin fills out the event form** (`/admin/events/new`)
-2. **Image upload:**
-   - When an image is selected, it is uploaded to Cloudinary immediately.
-   - The returned URL is set in the form state.
-3. **On submit:**
-   - The form data (including image URLs) is sent to Firestore via `eventService.createEvent(formData)`.
-
----
-
-## 🔑 Environment Variables
-
-- All required variables are shown above.
-- Cloudinary **upload preset** must be set to **unsigned** in your Cloudinary dashboard.
-- See comments in `.env.local` for details.
-
----
-
-## 🛠️ Useful Scripts
-
-- `npm run dev` — Start development server
-- `npm run build` — Build for production
-- `npm run start` — Start production server
-
----
-
-## 📦 File Uploads: Cloudinary
-
-- All images/files are uploaded to Cloudinary.
-- Only the returned URL is stored in Firestore.
-- No files are stored in Firebase Storage.
-
----
-
-## 🔒 Authentication
-
-- Admin login uses Firebase Auth.
-- Only emails in `NEXT_PUBLIC_ADMIN_EMAILS` can access admin routes.
-
----
-
-## 📚 More
-
-- For advanced configuration, see `src/services/cloudinaryService.js` and `src/services/databaseService.js`.
-- For troubleshooting, check browser console and `.env.local` values.
-
----
-
-**This README is your main setup and usage guide.**
+This platform provides a complete solution for professional development, community engagement, and business growth. The modular architecture ensures easy maintenance and scalability for future enhancements.

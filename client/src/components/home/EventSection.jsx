@@ -19,10 +19,9 @@ export default function EventSection() {
     const fetchUpcomingEvents = async () => {
       try {
         setLoading(true);
-        // const upcomingEvents = await eventService.getUpcomingEvents(); #TODO: Uncomment this when we have a way to filter for upcoming events
+        // Get upcoming events by filtering for status === "upcoming"
 
         let events = await eventService.getAll("date", "desc");
-        console.log("All events from Firebase:", events);
 
         // Filter for upcoming events
         const upcoming = events.filter((event) => {

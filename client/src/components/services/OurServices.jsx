@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ServiceCard from "../common/ServiceCard";
 import SectionHeader from "../common/SectionHeader";
 import Section from "../layout/Section";

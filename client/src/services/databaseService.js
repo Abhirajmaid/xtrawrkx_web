@@ -86,7 +86,7 @@ class BaseDatabaseService {
     // Get all documents
     async getAll(orderField = 'createdAt', orderDirection = 'desc') {
         try {
-            console.log(`Fetching all documents from collection: ${this.collectionName}`);
+
 
             // First try to get all documents with ordering
             let querySnapshot;
@@ -138,7 +138,7 @@ class BaseDatabaseService {
                 });
             }
 
-            console.log(`Found ${results.length} documents in ${this.collectionName}`);
+
             return results;
         } catch (error) {
             console.error(`Error getting documents from ${this.collectionName}:`, error);
@@ -324,7 +324,7 @@ export class EventService extends BaseDatabaseService {
     // Get event by slug
     async getEventBySlug(slug) {
         try {
-            console.log(`Looking for event with slug: ${slug}`);
+
             const q = query(
                 collection(db, this.collectionName),
                 where('slug', '==', slug)
@@ -340,10 +340,10 @@ export class EventService extends BaseDatabaseService {
                     date: convertFirestoreTimestampToDate(doc.data().date),
                     registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
                 };
-                console.log(`Found event:`, result);
+
                 return result;
             }
-            console.log(`No event found with slug: ${slug}`);
+
             return null;
         } catch (error) {
             console.error(`Error getting event by slug ${slug}:`, error);
@@ -382,7 +382,7 @@ export class EventService extends BaseDatabaseService {
             // Set to start of today to exclude today's events
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Start of today
-            console.log('Filtering past events before:', today);
+
 
             const q = query(
                 collection(db, this.collectionName),
@@ -399,10 +399,10 @@ export class EventService extends BaseDatabaseService {
                     date: convertFirestoreTimestampToDate(doc.data().date),
                     registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
                 };
-                console.log('Past event found:', eventData.title, 'Date:', eventData.date);
+
                 return eventData;
             });
-            console.log(`Found ${pastEvents.length} past events`);
+
             return pastEvents;
         } catch (error) {
             console.error('Error getting past events:', error);
@@ -428,7 +428,7 @@ export class EventService extends BaseDatabaseService {
     // Get events by season
     async getEventsBySeason(season) {
         try {
-            console.log(`Fetching events for season: ${season}`);
+
 
             // Use the most basic query possible - just filter by season
             const q = query(
@@ -453,16 +453,16 @@ export class EventService extends BaseDatabaseService {
                 return dateA - dateB; // ascending order
             });
 
-            console.log(`Found ${events.length} events for season ${season}`);
+
             return events;
         } catch (error) {
             console.error('Error getting events by season:', error);
             // Fallback: get all events and filter in JavaScript
             try {
-                console.log('Fallback: getting all events and filtering by season');
+
                 const allEvents = await this.getAll();
                 const seasonEvents = allEvents.filter(event => event.season === season);
-                console.log(`Fallback found ${seasonEvents.length} events for season ${season}`);
+
                 return seasonEvents;
             } catch (fallbackError) {
                 console.error('Fallback also failed:', fallbackError);
@@ -474,7 +474,7 @@ export class EventService extends BaseDatabaseService {
     // Get upcoming events by season
     async getUpcomingEventsBySeason(season) {
         try {
-            console.log(`Fetching upcoming events for season: ${season}`);
+
 
             // Get all events for the season first
             const seasonEvents = await this.getEventsBySeason(season);
@@ -484,7 +484,7 @@ export class EventService extends BaseDatabaseService {
                 event.status && event.status.toLowerCase() === 'upcoming'
             );
 
-            console.log(`Found ${upcomingEvents.length} upcoming events for season ${season}`);
+
             return upcomingEvents;
         } catch (error) {
             console.error('Error getting upcoming events by season:', error);
@@ -767,7 +767,7 @@ export class TeamService extends BaseDatabaseService {
     // Create a new team member
     async createTeamMember(memberData) {
         try {
-            console.log('Creating team member:', memberData);
+
 
             const docData = {
                 ...memberData,
@@ -785,7 +785,7 @@ export class TeamService extends BaseDatabaseService {
     // Get all team members
     async getAllTeamMembers() {
         try {
-            console.log('Fetching all team members from Firestore');
+
 
             const members = await this.getAll('name', 'asc');
 
@@ -813,7 +813,7 @@ export class TeamService extends BaseDatabaseService {
     // Get team members by category
     async getTeamMembersByCategory(category) {
         try {
-            console.log(`Fetching team members for category: ${category}`);
+
 
             const members = await this.getByField('category', category, 'name', 'asc');
 
@@ -876,7 +876,7 @@ export class TeamService extends BaseDatabaseService {
     // Update team member
     async updateTeamMember(id, memberData) {
         try {
-            console.log('Updating team member:', id, memberData);
+
 
             return await this.update(id, memberData);
         } catch (error) {
@@ -888,7 +888,7 @@ export class TeamService extends BaseDatabaseService {
     // Delete team member
     async deleteTeamMember(id) {
         try {
-            console.log('Deleting team member:', id);
+
 
             await this.delete(id);
             return { id, deleted: true };
@@ -901,7 +901,7 @@ export class TeamService extends BaseDatabaseService {
     // Toggle team member active status
     async toggleTeamMemberStatus(id, isActive) {
         try {
-            console.log('Toggling team member status:', id, isActive);
+
 
             const updateData = {
                 isActive: !isActive

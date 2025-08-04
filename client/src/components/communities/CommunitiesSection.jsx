@@ -21,7 +21,6 @@ const CommunitiesSection = () => {
 
   const handleJoinCommunity = useCallback((community) => {
     // Handle join community logic here
-    console.log(`Joining community: ${community.name}`);
 
     // Handle different community join processes
     if (community.slug === "xen") {
@@ -29,7 +28,6 @@ const CommunitiesSection = () => {
       window.location.href = `/communities/xen#membership`;
     } else {
       // Default join behavior for other communities
-      console.log(`Redirecting to ${community.name} community page`);
     }
   }, []);
 
@@ -128,11 +126,11 @@ const CommunitiesSection = () => {
               innovators who are shaping the future of mobility.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-brand-primary px-8 py-4 rounded-full font-semibold hover:shadow-lg transition-all duration-300">
+              <button className="bg-white text-brand-primary cursor-pointer px-8 py-4 rounded-full font-semibold hover:shadow-lg transition-all duration-300">
                 <Icon icon="mdi:account-plus" className="inline mr-2" />
                 Create Account
               </button>
-              <button className="bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold hover:bg-white/30 transition-all duration-300">
+              <button className="bg-white/20 backdrop-blur-sm cursor-pointer text-white px-8 py-4 rounded-full font-semibold hover:bg-white/30 transition-all duration-300">
                 <Icon icon="mdi:information" className="inline mr-2" />
                 Learn More
               </button>

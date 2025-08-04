@@ -11,6 +11,7 @@ import {
   EventService,
 } from "@/src/services/databaseService";
 import { formatEventDate } from "@/src/utils/dateUtils";
+import Script from "next/script";
 
 const communityOptions = [
   { id: "none", name: "Not a member", discount: 0, freeSlots: 0 },
@@ -18,6 +19,22 @@ const communityOptions = [
   { id: "xev-fin", name: "XEV.FiN Community", discount: 10, freeSlots: 0 },
   { id: "xevtg", name: "XEVTG Community", discount: 5, freeSlots: 0 },
   { id: "xd-d", name: "xD&D Community", discount: 15, freeSlots: 0 },
+];
+
+const ticketTypes = [
+  {
+    id: "gnp",
+    name: "General Networking Pass (GNP)",
+    price: 8000,
+    description: "Access to networking sessions and general event activities",
+  },
+  {
+    id: "asp",
+    name: "Active Support Pass (ASP)",
+    price: 60000,
+    description:
+      "Full access to all sessions, workshops, and premium networking opportunities",
+  },
 ];
 
 const designations = [
@@ -43,6 +60,7 @@ export default function SeasonRegistration({ params }) {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   const eventService = new EventService();
 
@@ -59,6 +77,9 @@ export default function SeasonRegistration({ params }) {
     industry: "",
     companySize: "",
     companyCommunity: "none",
+
+    // Ticket Information
+    ticketType: "gnp", // Default to General Networking Pass
 
     // Primary Contact
     primaryContactName: "",
@@ -183,10 +204,13 @@ export default function SeasonRegistration({ params }) {
   };
 
   const calculatePricing = () => {
-    const basePrice = 4000; // ₹4,000 per person per event
-    let totalCost = 0;
-    let freeSlots = 0;
+    const selectedTicket = ticketTypes.find(
+      (t) => t.id === formData.ticketType
+    );
+    const basePrice = selectedTicket ? selectedTicket.price : 8000; // Default to GNP price
+    let totalCost = basePrice;
     let discountAmount = 0;
+    let isFree = false;
 
     const attendingCount = formData.personnel.filter(
       (p) => p.isAttending
@@ -196,36 +220,30 @@ export default function SeasonRegistration({ params }) {
       (c) => c.id === formData.companyCommunity
     );
 
-    // Calculate total cost for all selected events
-    const totalEventAttendances = attendingCount * selectedEventCount;
-
-    // Apply company-level community benefits
-    if (formData.companyCommunity === "xen" && attendingCount > 0) {
-      // First person gets free entry to all selected events for XEN companies
-      const freeEventAttendances = selectedEventCount;
-      const paidEventAttendances = totalEventAttendances - freeEventAttendances;
-      freeSlots = freeEventAttendances;
-      totalCost = paidEventAttendances * basePrice;
-    } else {
-      // Apply company discount to all event attendances
-      const discountedPrice = basePrice * (1 - companyCommunity.discount / 100);
-      totalCost = totalEventAttendances * discountedPrice;
-
-      if (companyCommunity.discount > 0) {
-        discountAmount = totalEventAttendances * (basePrice - discountedPrice);
-      }
+    // Apply company-level community benefits to the ticket
+    if (formData.companyCommunity === "xen") {
+      // XEN companies get the ticket for free
+      isFree = true;
+      totalCost = 0;
+      discountAmount = basePrice;
+    } else if (companyCommunity && companyCommunity.discount > 0) {
+      // Apply company discount to the ticket price
+      discountAmount = basePrice * (companyCommunity.discount / 100);
+      totalCost = basePrice - discountAmount;
     }
 
     return {
       attendingCount,
       selectedEventCount,
-      totalEventAttendances,
-      baseAmount: totalEventAttendances * basePrice,
+      ticketType: selectedTicket
+        ? selectedTicket.name
+        : "General Networking Pass (GNP)",
+      baseAmount: basePrice,
       discountAmount,
-      freeSlots,
       totalCost,
-      savings: totalEventAttendances * basePrice - totalCost,
+      savings: basePrice - totalCost,
       companyCommunity: companyCommunity.name,
+      isFree,
     };
   };
 
@@ -278,6 +296,75 @@ export default function SeasonRegistration({ params }) {
     return Object.keys(newErrors).length === 0;
   };
 
+  const processPayment = (registrationData, registrationId, pricing) => {
+    return new Promise((resolve, reject) => {
+      if (!window.Razorpay) {
+        reject(new Error("Razorpay SDK not loaded"));
+        return;
+      }
+
+      const selectedEventTitles = seasonEvents
+        .filter((event) => formData.selectedEvents.includes(event.id))
+        .map((event) => event.title)
+        .join(", ");
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_key", // Replace with your actual test/live key
+        amount: pricing.totalCost * 100, // Amount in paise
+        currency: "INR",
+        name: "XtraWrkx Events",
+        description: `Season ${season} - ${pricing.ticketType}`,
+        order_id: `season_${registrationId}_${Date.now()}`, // You might want to create this via Razorpay Orders API
+        handler: async function (response) {
+          try {
+            // Update registration with payment details
+            const updatedRegistrationData = {
+              ...registrationData,
+              paymentStatus: "completed",
+              status: "confirmed",
+              paymentId: response.razorpay_payment_id,
+              paymentSignature: response.razorpay_signature,
+              paidAt: new Date().toISOString(),
+            };
+
+            // Update the registration in database
+            await eventRegistrationService.updateSeasonRegistration(
+              registrationId,
+              updatedRegistrationData
+            );
+
+            resolve(response);
+          } catch (error) {
+            console.error("Error updating payment status:", error);
+            reject(error);
+          }
+        },
+        prefill: {
+          name: formData.primaryContactName,
+          email: formData.primaryContactEmail,
+          contact: formData.primaryContactPhone,
+        },
+        notes: {
+          registrationId: registrationId,
+          season: season,
+          selectedEvents: selectedEventTitles,
+          companyName: formData.companyName,
+        },
+        theme: {
+          color: "#3B82F6", // Brand primary color
+        },
+        modal: {
+          ondismiss: function () {
+            reject(new Error("Payment cancelled by user"));
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -319,6 +406,10 @@ export default function SeasonRegistration({ params }) {
         companySize: formData.companySize,
         companyCommunity: formData.companyCommunity,
 
+        // Ticket Information
+        ticketType: formData.ticketType,
+        ticketName: pricing.ticketType,
+
         // Primary Contact
         primaryContactName: formData.primaryContactName,
         primaryContactEmail: formData.primaryContactEmail,
@@ -337,18 +428,17 @@ export default function SeasonRegistration({ params }) {
         totalCost: pricing.totalCost,
         baseAmount: pricing.baseAmount,
         discountAmount: pricing.discountAmount,
-        freeSlots: pricing.freeSlots,
+        isFree: pricing.isFree,
         attendingCount: pricing.attendingCount,
         selectedEventCount: pricing.selectedEventCount,
-        totalEventAttendances: pricing.totalEventAttendances,
 
         // Agreement
         termsAccepted: formData.termsAccepted,
         privacyAccepted: formData.privacyAccepted,
 
         // Registration Status
-        status: "pending",
-        paymentStatus: "pending",
+        status: pricing.isFree ? "confirmed" : "pending", // Free registrations are confirmed immediately
+        paymentStatus: pricing.isFree ? "completed" : "pending",
       };
 
       // Save season registration to database
@@ -358,12 +448,49 @@ export default function SeasonRegistration({ params }) {
         );
 
       console.log("Season registration saved with ID:", registrationId);
-      alert(
-        `Season registration successful! Your company has been registered for Season ${season} events. Registration ID: ${registrationId}`
-      );
 
-      // Redirect to success page or events list
-      window.location.href = "/events";
+      // If it's a free registration, complete immediately
+      if (pricing.isFree) {
+        alert(
+          `Season registration successful! Your company has been registered for Season ${season} events. Registration ID: ${registrationId}. Ticket: ${pricing.ticketType}. This is a FREE registration.\n\nYou will receive a confirmation email shortly.`
+        );
+
+        // Redirect to success page or events list
+        window.location.href = "/events";
+      } else {
+        // Process payment for paid registrations
+        try {
+          await processPayment(registrationData, registrationId, pricing);
+
+          alert(
+            `Payment successful! Your company has been registered for Season ${season} events. Registration ID: ${registrationId}. Ticket: ${
+              pricing.ticketType
+            }. Amount paid: ₹${pricing.totalCost.toLocaleString()}\n\nYou will receive a confirmation email shortly.`
+          );
+
+          // Redirect to success page or events list
+          window.location.href = "/events";
+        } catch (paymentError) {
+          console.error("Payment error:", paymentError);
+
+          if (paymentError.message === "Payment cancelled by user") {
+            alert(
+              "Payment was cancelled. Your registration has been saved and you can complete the payment later. Registration ID: " +
+                registrationId
+            );
+          } else {
+            alert(
+              "Payment failed. Your registration has been saved and you can retry payment later. Registration ID: " +
+                registrationId
+            );
+          }
+
+          // Still redirect after payment failure (user can access registration and retry payment)
+          setTimeout(() => {
+            window.location.href = "/events";
+          }, 3000);
+        }
+      }
     } catch (error) {
       console.error("Error submitting season registration:", error);
       alert("Registration failed. Please try again.");
@@ -677,6 +804,60 @@ export default function SeasonRegistration({ params }) {
                       <option value="1000+">1000+ employees</option>
                     </select>
                   </div>
+                </div>
+              </div>
+
+              {/* Ticket Selection */}
+              <div className="bg-white rounded-xl p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                  <Icon
+                    icon="solar:ticket-bold"
+                    width={24}
+                    className="mr-2 text-brand-primary"
+                  />
+                  Ticket Selection
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ticketTypes.map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                        formData.ticketType === ticket.id
+                          ? "border-brand-primary bg-brand-primary/5"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
+                      onClick={() =>
+                        handleInputChange({
+                          target: { name: "ticketType", value: ticket.id },
+                        })
+                      }
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <input
+                              type="radio"
+                              name="ticketType"
+                              value={ticket.id}
+                              checked={formData.ticketType === ticket.id}
+                              onChange={handleInputChange}
+                              className="text-brand-primary"
+                            />
+                            <h3 className="font-semibold text-gray-900">
+                              {ticket.name}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-3">
+                            {ticket.description}
+                          </p>
+                          <div className="text-2xl font-bold text-brand-primary">
+                            ₹{ticket.price.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -1108,6 +1289,16 @@ export default function SeasonRegistration({ params }) {
                       </div>
                     </div>
 
+                    {/* Selected Ticket */}
+                    <div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Selected Ticket:</span>
+                        <span className="font-medium text-right">
+                          {pricing.ticketType}
+                        </span>
+                      </div>
+                    </div>
+
                     {/* Selected Events */}
                     <div>
                       <div className="flex items-center justify-between text-sm">
@@ -1147,28 +1338,32 @@ export default function SeasonRegistration({ params }) {
                         </span>
                       </div>
 
+                      {/* Free Ticket */}
+                      {pricing.isFree && (
+                        <div className="flex justify-between text-sm text-green-600">
+                          <span>XEN Member (Free Ticket):</span>
+                          <span>-₹{pricing.baseAmount.toLocaleString()}</span>
+                        </div>
+                      )}
+
                       {/* Discount */}
-                      {pricing.discountAmount > 0 && (
+                      {pricing.discountAmount > 0 && !pricing.isFree && (
                         <div className="flex items-center justify-between text-sm text-green-600">
-                          <span>Discount:</span>
+                          <span>{pricing.companyCommunity} Discount:</span>
                           <span>
                             -₹{pricing.discountAmount.toLocaleString()}
                           </span>
                         </div>
                       )}
 
-                      {/* Free Slots */}
-                      {pricing.freeSlots > 0 && (
-                        <div className="flex items-center justify-between text-sm text-green-600">
-                          <span>Free Slots:</span>
-                          <span>{pricing.freeSlots} event entries</span>
-                        </div>
-                      )}
-
                       {/* Total */}
                       <div className="flex items-center justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
                         <span>Total Amount:</span>
-                        <span>₹{pricing.totalCost.toLocaleString()}</span>
+                        <span className="text-brand-primary">
+                          {pricing.isFree
+                            ? "FREE"
+                            : `₹${pricing.totalCost.toLocaleString()}`}
+                        </span>
                       </div>
 
                       {/* Savings */}
@@ -1182,7 +1377,11 @@ export default function SeasonRegistration({ params }) {
                     {/* Submit Button */}
                     <Button
                       text={
-                        isSubmitting ? "Processing..." : "Complete Registration"
+                        isSubmitting
+                          ? "Processing..."
+                          : pricing.isFree
+                          ? "Complete Registration (FREE)"
+                          : `Complete Registration (₹${pricing.totalCost.toLocaleString()})`
                       }
                       type="primary"
                       onClick={handleSubmit}
@@ -1202,6 +1401,13 @@ export default function SeasonRegistration({ params }) {
           </div>
         </Container>
       </form>
+
+      {/* Razorpay Script */}
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        onLoad={() => setRazorpayLoaded(true)}
+        onError={() => console.error("Failed to load Razorpay SDK")}
+      />
     </div>
   );
 }
