@@ -12,7 +12,7 @@ const ResourceFilter = ({
   resourceCategories = [],
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+    <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200 ">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Search */}
         <div>

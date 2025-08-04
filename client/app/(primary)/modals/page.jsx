@@ -36,7 +36,6 @@ export default function ModalsPage() {
       <Hero
         title="Engagement Models"
         description="Choose the perfect engagement model that fits your business stage and goals. From startup support to enterprise consulting, we have the right solution for your growth journey."
-        backgroundImage="/images/hero1.png"
         showButton={true}
         buttonText="Get Started"
         buttonLink="/contact-us"

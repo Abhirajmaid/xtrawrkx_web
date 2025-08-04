@@ -6,6 +6,7 @@ import ProtectedRoute from "@/src/components/admin/ProtectedRoute";
 import {
   eventService,
   eventRegistrationService,
+  galleryService,
 } from "@/src/services/databaseService";
 import { uploadImage } from "@/src/services/cloudinaryService";
 import { formatDate } from "@/src/utils/dateUtils";
@@ -2236,7 +2237,13 @@ function EventRow({
 
 // Event Modal Component
 function EventModal({ isOpen, onClose, event, onSave }) {
-  const seasonOptions = ["2024", "2025", "2026", "2027", "2028"];
+  const seasonOptions = [
+    "XSOS2024",
+    "XSOS2025",
+    "XSOS2026",
+    "XSOS2027",
+    "XSOS2028",
+  ];
 
   const [formData, setFormData] = useState({
     title: "",
@@ -2263,8 +2270,18 @@ function EventModal({ isOpen, onClose, event, onSave }) {
   const [errors, setErrors] = useState({});
   const [uploadingField, setUploadingField] = useState(null);
 
+  // Gallery upload states
+  const [originalStatus, setOriginalStatus] = useState("");
+  const [showGalleryUpload, setShowGalleryUpload] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadResults, setUploadResults] = useState([]);
+
   useEffect(() => {
     if (event) {
+      const eventStatus = event.status || "upcoming";
+      setOriginalStatus(eventStatus);
       setFormData({
         title: event.title || "",
         slug: event.slug || "",
@@ -2280,11 +2297,12 @@ function EventModal({ isOpen, onClose, event, onSave }) {
         longDescription: event.longDescription || "",
         heroImage: event.heroImage || "",
         background: event.background || "",
-        status: event.status || "upcoming",
+        status: eventStatus,
         agenda: event.agenda || [],
         speakers: event.speakers || [],
       });
     } else {
+      setOriginalStatus("");
       setFormData({
         title: "",
         slug: "",
@@ -2307,6 +2325,9 @@ function EventModal({ isOpen, onClose, event, onSave }) {
     }
     setErrors({});
     setActiveTab("basic");
+    setShowGalleryUpload(false);
+    setSelectedFiles([]);
+    setUploadResults([]);
   }, [event]);
 
   const validateForm = () => {
@@ -2349,6 +2370,21 @@ function EventModal({ isOpen, onClose, event, onSave }) {
         ...prev,
         slug,
       }));
+    }
+
+    // Check for status change from upcoming to completed
+    if (
+      name === "status" &&
+      originalStatus === "upcoming" &&
+      value === "completed" &&
+      event?.id
+    ) {
+      setShowGalleryUpload(true);
+    } else if (
+      name === "status" &&
+      (originalStatus !== "upcoming" || value !== "completed")
+    ) {
+      setShowGalleryUpload(false);
     }
   };
 
@@ -2452,6 +2488,76 @@ function EventModal({ isOpen, onClose, event, onSave }) {
       setUploading(false);
       setUploadingField(null);
     }
+  };
+
+  // Gallery upload functions
+  const handleGalleryFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles(files);
+  };
+
+  const handleBulkGalleryUpload = async () => {
+    if (!selectedFiles.length || !event?.id) return;
+
+    try {
+      setGalleryUploading(true);
+      setUploadProgress(0);
+      const results = [];
+
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const progressPercent = Math.round(
+          ((i + 1) / selectedFiles.length) * 100
+        );
+        setUploadProgress(progressPercent);
+
+        try {
+          // Upload image to Cloudinary
+          const uploadResult = await uploadImage(file, { folder: "gallery" });
+
+          // Create gallery item data
+          const galleryData = {
+            title: file.name.split(".").slice(0, -1).join("."),
+            description: `Event photos from ${formData.title}`,
+            image: uploadResult.url,
+            category: "events",
+            eventId: event.id,
+            date: new Date(),
+            tags: [formData.category.toLowerCase(), "event-photos"],
+            featured: false,
+          };
+
+          // Save to gallery
+          await galleryService.createGalleryItem(galleryData);
+          results.push({
+            filename: file.name,
+            success: true,
+            message: "Successfully uploaded",
+          });
+        } catch (error) {
+          results.push({
+            filename: file.name,
+            success: false,
+            message: error.message,
+          });
+        }
+      }
+
+      setUploadResults(results);
+      setUploadProgress(100);
+    } catch (error) {
+      console.error("Error during bulk upload:", error);
+      setErrors({ gallery: `Bulk upload failed: ${error.message}` });
+    } finally {
+      setGalleryUploading(false);
+    }
+  };
+
+  const clearGalleryUpload = () => {
+    setSelectedFiles([]);
+    setUploadResults([]);
+    setUploadProgress(0);
+    setShowGalleryUpload(false);
   };
 
   const handleSubmit = async (e) => {
@@ -2641,6 +2747,18 @@ function EventModal({ isOpen, onClose, event, onSave }) {
                       <option value="completed">Completed</option>
                       <option value="cancelled">Cancelled</option>
                     </select>
+                    {originalStatus === "upcoming" &&
+                      formData.status === "completed" && (
+                        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2 text-green-700">
+                            <Icon icon="mdi:camera-plus" width={16} />
+                            <span className="text-sm font-medium">
+                              Event completed! You can now add event photos to
+                              the gallery.
+                            </span>
+                          </div>
+                        </div>
+                      )}
                   </div>
 
                   <div>
@@ -2777,6 +2895,171 @@ function EventModal({ isOpen, onClose, event, onSave }) {
                     )}
                   </div>
                 </div>
+
+                {/* Gallery Upload Section - Shows when event status changes from upcoming to completed */}
+                {showGalleryUpload && (
+                  <div className="mt-8 border-t pt-8">
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200 p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <Icon
+                            icon="mdi:camera-multiple"
+                            width={24}
+                            className="text-green-600"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            Add Event Photos to Gallery
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Upload photos from this completed event to the
+                            website gallery
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* File Selection */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Select Photos
+                        </label>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleGalleryFileSelect}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                        {selectedFiles.length > 0 && (
+                          <p className="text-sm text-gray-600 mt-2">
+                            {selectedFiles.length} file(s) selected
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Upload Controls */}
+                      <div className="flex items-center gap-3 mb-4">
+                        <button
+                          type="button"
+                          onClick={handleBulkGalleryUpload}
+                          disabled={!selectedFiles.length || galleryUploading}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            selectedFiles.length && !galleryUploading
+                              ? "bg-green-600 text-white hover:bg-green-700"
+                              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          }`}
+                        >
+                          {galleryUploading ? (
+                            <>
+                              <Icon
+                                icon="mdi:loading"
+                                width={16}
+                                className="inline mr-2 animate-spin"
+                              />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Icon
+                                icon="mdi:upload"
+                                width={16}
+                                className="inline mr-2"
+                              />
+                              Upload to Gallery
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={clearGalleryUpload}
+                          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                        >
+                          Clear
+                        </button>
+                      </div>
+
+                      {/* Upload Progress */}
+                      {galleryUploading && (
+                        <div className="mb-4">
+                          <div className="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Uploading photos...</span>
+                            <span>{uploadProgress}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Upload Results */}
+                      {uploadResults.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">
+                            Upload Results:
+                          </h4>
+                          <div className="max-h-32 overflow-y-auto space-y-1">
+                            {uploadResults.map((result, index) => (
+                              <div
+                                key={index}
+                                className={`flex items-center gap-2 text-sm p-2 rounded ${
+                                  result.success
+                                    ? "bg-green-50 text-green-700"
+                                    : "bg-red-50 text-red-700"
+                                }`}
+                              >
+                                <Icon
+                                  icon={
+                                    result.success
+                                      ? "mdi:check-circle"
+                                      : "mdi:alert-circle"
+                                  }
+                                  width={16}
+                                />
+                                <span className="font-medium">
+                                  {result.filename}:
+                                </span>
+                                <span>{result.message}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {uploadResults.some((r) => r.success) && (
+                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <div className="flex items-center gap-2 text-blue-700">
+                                <Icon icon="mdi:information" width={16} />
+                                <span className="text-sm">
+                                  Successfully uploaded photos are now available
+                                  in the{" "}
+                                  <a
+                                    href="/admin/gallery"
+                                    target="_blank"
+                                    className="underline font-medium"
+                                  >
+                                    gallery management
+                                  </a>{" "}
+                                  section.
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Error Display */}
+                      {errors.gallery && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex items-center gap-2 text-red-700">
+                            <Icon icon="mdi:alert-circle" width={16} />
+                            <span className="text-sm">{errors.gallery}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

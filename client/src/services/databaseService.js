@@ -632,6 +632,27 @@ export class GalleryService extends BaseDatabaseService {
         return this.delete(id);
     }
 
+    // Get gallery items by event
+    async getGalleryItemsByEvent(eventId) {
+        return this.getByField('eventId', eventId, 'date', 'desc');
+    }
+
+    // Get gallery items by event slug
+    async getGalleryItemsByEventSlug(eventSlug) {
+        try {
+            // First get the event by slug to get its ID
+            const eventService = new EventService();
+            const event = await eventService.getEventBySlug(eventSlug);
+            if (!event) {
+                return [];
+            }
+            return this.getGalleryItemsByEvent(event.id);
+        } catch (error) {
+            console.error('Error getting gallery items by event slug:', error);
+            throw error;
+        }
+    }
+
     // Search gallery items
     async searchGalleryItems(searchTerm) {
         try {

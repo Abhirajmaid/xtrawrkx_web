@@ -6,12 +6,13 @@ import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import Button from "@/src/components/common/Button";
 import { Icon } from "@iconify/react";
-import { EventService } from "@/src/services/databaseService";
+import { EventService, galleryService } from "@/src/services/databaseService";
 import { formatEventDate } from "@/src/utils/dateUtils";
 
 export default function EventPage({ params }) {
   const { slug } = use(params);
   const [event, setEvent] = useState(null);
+  const [eventGallery, setEventGallery] = useState([]);
   const [relatedEvents, setRelatedEvents] = useState([]);
   const [seasonEvents, setSeasonEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +57,17 @@ export default function EventPage({ params }) {
         }
 
         setEvent(fetchedEvent);
+
+        // Fetch gallery items for this event
+        try {
+          const galleryItems = await galleryService.getGalleryItemsByEventSlug(
+            slug
+          );
+          setEventGallery(galleryItems);
+        } catch (galleryErr) {
+          console.warn("Error fetching event gallery:", galleryErr);
+          setEventGallery([]);
+        }
 
         // Fetch events from the same season
         try {
@@ -140,6 +152,10 @@ export default function EventPage({ params }) {
 
   const eventCompleted = isEventCompleted(event.date);
 
+  console.log(
+    "Event:",
+    event.speakers.length === 0 ? "No speakers" : "Speakers"
+  );
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -362,24 +378,33 @@ export default function EventPage({ params }) {
               </div>
 
               {/* Event Gallery - Only show for completed events */}
-              {eventCompleted && event.gallery && event.gallery.length > 0 && (
+              {eventCompleted && eventGallery && eventGallery.length > 0 && (
                 <div className="mb-12">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                    Event Gallery
-                  </h2>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Event Gallery
+                    </h2>
+                    <Button
+                      text="View All Photos"
+                      type="secondary"
+                      link={`/events/${slug}/gallery`}
+                      icon="mdi:arrow-right"
+                      className="text-sm"
+                    />
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {event.gallery.map((image, index) => (
+                    {eventGallery.slice(0, 6).map((galleryItem, index) => (
                       <div
-                        key={index}
+                        key={galleryItem.id}
                         className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer"
                         onClick={() => {
                           // You can add a lightbox/modal here later
-                          window.open(image.url || image, "_blank");
+                          window.open(galleryItem.image, "_blank");
                         }}
                       >
                         <Image
-                          src={image.url || image}
-                          alt={image.caption || `Event photo ${index + 1}`}
+                          src={galleryItem.image}
+                          alt={galleryItem.title || `Event photo ${index + 1}`}
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-110"
                         />
@@ -391,9 +416,9 @@ export default function EventPage({ params }) {
                             className="text-white"
                           />
                         </div>
-                        {image.caption && (
+                        {galleryItem.title && (
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            {image.caption}
+                            {galleryItem.title}
                           </div>
                         )}
                       </div>
@@ -403,7 +428,7 @@ export default function EventPage({ params }) {
               )}
 
               {/* Agenda - Hide for completed events unless specifically needed */}
-              {!eventCompleted && event.agenda && (
+              {!eventCompleted && event.agenda && event.agenda.length > 0 && (
                 <div className="mb-12">
                   <h2 className="text-3xl font-bold text-gray-900 mb-6">
                     Event Agenda
@@ -435,7 +460,7 @@ export default function EventPage({ params }) {
               )}
 
               {/* Speakers */}
-              {event.speakers && (
+              {event.speakers && event.speakers.length > 0 && (
                 <div className="mb-12">
                   <h2 className="text-3xl font-bold text-gray-900 mb-6">
                     {eventCompleted ? "Event Speakers" : "Featured Speakers"}
@@ -631,16 +656,7 @@ export default function EventPage({ params }) {
                 Register once for the entire season and choose which events to
                 attend
               </p>
-              <div className="mt-6">
-                <Button
-                  text={`Register for Season ${event.season}`}
-                  type="primary"
-                  link={`/events/season/${event.season}/register?from=${slug}`}
-                  className="bg-gradient-to-r from-brand-primary to-brand-secondary"
-                />
-              </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {seasonEvents.map((seasonEvent, index) => (
                 <div
@@ -689,6 +705,14 @@ export default function EventPage({ params }) {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="mt-6">
+              <Button
+                text={`Register for Season ${event.season}`}
+                type="primary"
+                link={`/events/season/${event.season}/register?from=${slug}`}
+                className="bg-gradient-to-r from-brand-primary to-brand-secondary w-[30%] mx-auto"
+              />
             </div>
           </Container>
         </Section>

@@ -4,7 +4,7 @@ import { Icon } from "@iconify/react";
 import Image from "next/image";
 import AdminLayout from "@/src/components/admin/AdminLayout";
 import ProtectedRoute from "@/src/components/admin/ProtectedRoute";
-import { galleryService } from "@/src/services/databaseService";
+import { galleryService, eventService } from "@/src/services/databaseService";
 import { uploadImage } from "@/src/services/cloudinaryService";
 import Button from "@/src/components/common/Button";
 
@@ -13,19 +13,38 @@ export default function GalleryManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedEvent, setSelectedEvent] = useState("All");
+  const [events, setEvents] = useState([]);
   const [bulkSelection, setBulkSelection] = useState([]);
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
   const [viewMode, setViewMode] = useState("grid");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
+  const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
 
   const categories = ["All", "events", "communities", "achievements", "team"];
 
-  // Load gallery items
+  // Load gallery items and events
   useEffect(() => {
-    loadGalleryItems();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [items, allEvents] = await Promise.all([
+        galleryService.getGalleryItems(),
+        eventService.getEvents(),
+      ]);
+      setGalleryItems(items);
+      setEvents(allEvents);
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadGalleryItems = async () => {
     try {
@@ -50,7 +69,9 @@ export default function GalleryManagement() {
         );
       const matchesCategory =
         selectedCategory === "All" || item.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      const matchesEvent =
+        selectedEvent === "All" || item.eventId === selectedEvent;
+      return matchesSearch && matchesCategory && matchesEvent;
     })
     .sort((a, b) => {
       let aValue, bValue;
@@ -210,6 +231,13 @@ export default function GalleryManagement() {
               </p>
             </div>
             <div className="flex items-center gap-4 mt-4 md:mt-0">
+              <Button
+                text="Bulk Upload"
+                type="secondary"
+                onClick={() => setIsBulkUploadModalOpen(true)}
+                icon="mdi:cloud-upload"
+                className="hover:shadow-lg"
+              />
               <Button
                 text="Add Gallery Item"
                 type="primary"
@@ -474,6 +502,20 @@ export default function GalleryManagement() {
                 ))}
               </select>
 
+              {/* Event Filter */}
+              <select
+                value={selectedEvent}
+                onChange={(e) => setSelectedEvent(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="All">All Events</option>
+                {events.map((event) => (
+                  <option key={event.id} value={event.id}>
+                    {event.title}
+                  </option>
+                ))}
+              </select>
+
               {/* Sort */}
               <select
                 value={`${sortBy}-${sortOrder}`}
@@ -651,6 +693,17 @@ export default function GalleryManagement() {
               setCurrentItem(null);
             }}
             item={currentItem}
+            events={events}
+            onSave={loadGalleryItems}
+          />
+        )}
+
+        {/* Bulk Upload Modal */}
+        {isBulkUploadModalOpen && (
+          <BulkUploadModal
+            isOpen={isBulkUploadModalOpen}
+            onClose={() => setIsBulkUploadModalOpen(false)}
+            events={events}
             onSave={loadGalleryItems}
           />
         )}
@@ -898,12 +951,13 @@ function GalleryRow({
 }
 
 // Gallery Modal Component
-function GalleryModal({ isOpen, onClose, item, onSave }) {
+function GalleryModal({ isOpen, onClose, item, onSave, events = [] }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     image: "",
     category: "events",
+    eventId: "",
     date: new Date().toISOString().split("T")[0],
     tags: [],
     featured: false,
@@ -919,6 +973,7 @@ function GalleryModal({ isOpen, onClose, item, onSave }) {
         description: item.description || "",
         image: item.image || "",
         category: item.category || "events",
+        eventId: item.eventId || "",
         date: item.date
           ? new Date(item.date).toISOString().split("T")[0]
           : new Date().toISOString().split("T")[0],
@@ -931,6 +986,7 @@ function GalleryModal({ isOpen, onClose, item, onSave }) {
         description: "",
         image: "",
         category: "events",
+        eventId: "",
         date: new Date().toISOString().split("T")[0],
         tags: [],
         featured: false,
@@ -1100,6 +1156,28 @@ function GalleryModal({ isOpen, onClose, item, onSave }) {
               </div>
             </div>
 
+            {/* Event Selection - Only show when category is "events" */}
+            {formData.category === "events" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Associated Event
+                </label>
+                <select
+                  name="eventId"
+                  value={formData.eventId}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">No specific event</option>
+                  {events.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Image Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1227,6 +1305,266 @@ function GalleryModal({ isOpen, onClose, item, onSave }) {
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Bulk Upload Modal Component
+function BulkUploadModal({ isOpen, onClose, events, onSave }) {
+  const [selectedEvent, setSelectedEvent] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [uploadResults, setUploadResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles(files);
+    setShowResults(false);
+    setUploadResults([]);
+  };
+
+  const handleBulkUpload = async () => {
+    if (!selectedEvent || selectedFiles.length === 0) {
+      alert("Please select an event and at least one image.");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      setUploadProgress(0);
+      setUploadResults([]);
+
+      const results = [];
+      const totalFiles = selectedFiles.length;
+
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const progress = ((i + 1) / totalFiles) * 100;
+        setUploadProgress(progress);
+
+        try {
+          // Upload image to Cloudinary
+          const uploadResult = await uploadImage(file, {
+            folder: "gallery",
+          });
+
+          // Create gallery item
+          const galleryData = {
+            title: file.name.split(".").slice(0, -1).join("."), // Remove file extension
+            description: `Uploaded from ${
+              events.find((e) => e.id === selectedEvent)?.title ||
+              "Unknown Event"
+            }`,
+            image: uploadResult.url,
+            category: "events",
+            eventId: selectedEvent,
+            date: new Date(),
+            tags: [],
+            featured: false,
+          };
+
+          await galleryService.createGalleryItem(galleryData);
+
+          results.push({
+            filename: file.name,
+            success: true,
+            message: "Successfully uploaded",
+          });
+        } catch (error) {
+          console.error(`Error uploading ${file.name}:`, error);
+          results.push({
+            filename: file.name,
+            success: false,
+            message: error.message,
+          });
+        }
+      }
+
+      setUploadResults(results);
+      setShowResults(true);
+      setUploadProgress(100);
+
+      // Refresh gallery items
+      onSave();
+    } catch (error) {
+      console.error("Bulk upload error:", error);
+      alert("An error occurred during bulk upload. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (!uploading) {
+      setSelectedEvent("");
+      setSelectedFiles([]);
+      setUploadResults([]);
+      setShowResults(false);
+      setUploadProgress(0);
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Bulk Upload Images
+            </h2>
+            <button
+              onClick={handleClose}
+              disabled={uploading}
+              className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+            >
+              <Icon icon="mdi:close" width={24} />
+            </button>
+          </div>
+
+          {!showResults ? (
+            <>
+              {/* Event Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Event *
+                </label>
+                <select
+                  value={selectedEvent}
+                  onChange={(e) => setSelectedEvent(e.target.value)}
+                  disabled={uploading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                >
+                  <option value="">Choose an event...</option>
+                  {events.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* File Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Images *
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  disabled={uploading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 disabled:opacity-50"
+                />
+                {selectedFiles.length > 0 && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    {selectedFiles.length} file(s) selected
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Progress */}
+              {uploading && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Upload Progress
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {Math.round(uploadProgress)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={handleClose}
+                  disabled={uploading}
+                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkUpload}
+                  disabled={
+                    uploading || !selectedEvent || selectedFiles.length === 0
+                  }
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {uploading ? (
+                    <>
+                      <Icon
+                        icon="mdi:loading"
+                        className="animate-spin"
+                        width={16}
+                      />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Icon icon="mdi:cloud-upload" width={16} />
+                      Upload Images
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
+            /* Upload Results */
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Upload Results
+              </h3>
+              <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+                {uploadResults.map((result, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                      result.success
+                        ? "bg-green-50 border-green-200 text-green-800"
+                        : "bg-red-50 border-red-200 text-red-800"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        icon={
+                          result.success
+                            ? "mdi:check-circle"
+                            : "mdi:alert-circle"
+                        }
+                        width={16}
+                      />
+                      <span className="font-medium">{result.filename}</span>
+                    </div>
+                    <span className="text-sm">{result.message}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={handleClose}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

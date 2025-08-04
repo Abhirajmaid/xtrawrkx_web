@@ -8,10 +8,17 @@ const GalleryFilter = ({
   onCategoryChange,
   onSearchChange,
   onClearFilters,
+  showCategoryFilter = true,
 }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div
+        className={
+          showCategoryFilter
+            ? "grid grid-cols-1 md:grid-cols-2 gap-6"
+            : "grid grid-cols-1 gap-6"
+        }
+      >
         {/* Search */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -33,28 +40,30 @@ const GalleryFilter = ({
           </div>
         </div>
 
-        {/* Category Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category
-          </label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {galleryCategories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Category Filter - Only show if showCategoryFilter is true */}
+        {showCategoryFilter && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => onCategoryChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {galleryCategories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Active Filters */}
       <div className="mt-4 flex flex-wrap gap-2">
-        {selectedCategory !== "all" && (
+        {showCategoryFilter && selectedCategory !== "all" && (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
             Category:{" "}
             {galleryCategories.find((c) => c.value === selectedCategory)?.label}
@@ -77,7 +86,8 @@ const GalleryFilter = ({
             </button>
           </span>
         )}
-        {(selectedCategory !== "all" || searchQuery) && (
+        {((showCategoryFilter && selectedCategory !== "all") ||
+          searchQuery) && (
           <button
             onClick={onClearFilters}
             className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200"

@@ -51,7 +51,13 @@ export default function NewEvent() {
 
   const statusOptions = ["upcoming", "ongoing", "completed", "cancelled"];
 
-  const seasonOptions = ["2024", "2025", "2026", "2027", "2028"];
+  const seasonOptions = [
+    "XSOS2024",
+    "XSOS2025",
+    "XSOS2026",
+    "XSOS2027",
+    "XSOS2028",
+  ];
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;

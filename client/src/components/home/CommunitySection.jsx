@@ -269,7 +269,7 @@ export default function CommunitySection() {
                 alt="Community member"
                 fill
                 className="object-cover rounded-2xl shadow-lg"
-                sizes="(max-width: 768px) 80px, 120px"
+                sizes="(max-width: 768px) 380px, 380px"
               />
             </motion.div>
           </motion.div>

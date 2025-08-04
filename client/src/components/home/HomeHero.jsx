@@ -11,12 +11,12 @@ export default function HomeHero() {
       {/* Background video */}
       <div className="static md:absolute inset-0 w-full h-full z-0">
         <video
-          src="/mountain_vid.webm"
+          src="/mountain_vid1.webm"
           autoPlay
           muted
           loop
           playsInline
-          className="w-full h-full object-cover object-top md:translate-y-[-50px]"
+          className="w-full h-full object-cover object-top md:translate-y-[-50px] scale-130"
         />
       </div>
 

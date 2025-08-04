@@ -32,7 +32,7 @@ export default function EventCard({
 
       {/* Season badge (top right) */}
       {season && (
-        <div className="absolute top-4 right-4 z-20 bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold border border-white/20 shadow-lg">
+        <div className="absolute top-12 left-4 z-20 bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold border border-white/20 shadow-lg">
           {season}
         </div>
       )}

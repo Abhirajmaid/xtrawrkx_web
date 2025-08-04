@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import AdminLayout from "@/src/components/admin/AdminLayout";
 import ProtectedRoute from "@/src/components/admin/ProtectedRoute";
-import { galleryService } from "@/src/services/databaseService";
+import { galleryService, eventService } from "@/src/services/databaseService";
 import { uploadImage } from "@/src/services/cloudinaryService";
 import Button from "@/src/components/common/Button";
 
@@ -16,6 +16,7 @@ export default function NewGalleryItem() {
     description: "",
     image: "",
     category: "events",
+    eventId: "",
     date: new Date().toISOString().split("T")[0],
     tags: [],
     featured: false,
@@ -26,8 +27,26 @@ export default function NewGalleryItem() {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [currentTag, setCurrentTag] = useState("");
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
 
   const categories = ["events", "communities", "achievements", "team"];
+
+  // Load events
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        setLoadingEvents(true);
+        const allEvents = await eventService.getEvents();
+        setEvents(allEvents);
+      } catch (error) {
+        console.error("Error loading events:", error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+    loadEvents();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -222,6 +241,34 @@ export default function NewGalleryItem() {
                     </p>
                   )}
                 </div>
+
+                {/* Event Selection - Only show when category is "events" */}
+                {formData.category === "events" && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Associated Event
+                    </label>
+                    <select
+                      name="eventId"
+                      value={formData.eventId}
+                      onChange={handleInputChange}
+                      disabled={loadingEvents}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition-colors disabled:opacity-50"
+                    >
+                      <option value="">No specific event</option>
+                      {events.map((event) => (
+                        <option key={event.id} value={event.id}>
+                          {event.title}
+                        </option>
+                      ))}
+                    </select>
+                    {loadingEvents && (
+                      <p className="text-gray-500 text-sm mt-1">
+                        Loading events...
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">

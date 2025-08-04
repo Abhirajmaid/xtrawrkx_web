@@ -8,7 +8,13 @@ import GalleryFilter from "./GalleryFilter";
 import GalleryItem from "./GalleryItem";
 import { galleryService } from "../../services/databaseService";
 
-const GalleryGrid = () => {
+const GalleryGrid = ({
+  eventSlug = null,
+  eventId = null,
+  title = "Our Gallery",
+  label = "Moments",
+  showCategoryFilter = true,
+}) => {
   const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,13 +36,25 @@ const GalleryGrid = () => {
   // Load gallery items from Firebase
   useEffect(() => {
     loadGalleryItems();
-  }, []);
+  }, [eventSlug, eventId]);
 
   const loadGalleryItems = async () => {
     try {
       setLoading(true);
       setError(null);
-      const items = await galleryService.getGalleryItems();
+      let items;
+
+      if (eventSlug) {
+        // Load gallery items for specific event by slug
+        items = await galleryService.getGalleryItemsByEventSlug(eventSlug);
+      } else if (eventId) {
+        // Load gallery items for specific event by ID
+        items = await galleryService.getGalleryItemsByEvent(eventId);
+      } else {
+        // Load all gallery items (original behavior)
+        items = await galleryService.getGalleryItems();
+      }
+
       setGalleryItems(items);
     } catch (error) {
       console.error("Error loading gallery items:", error);
@@ -72,7 +90,7 @@ const GalleryGrid = () => {
     return (
       <Section className="bg-white">
         <Container>
-          <SectionHeader title="Our Gallery" label="Moments" className="mb-6" />
+          <SectionHeader title={title} label={label} className="mb-6" />
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -88,7 +106,7 @@ const GalleryGrid = () => {
     return (
       <Section className="bg-white">
         <Container>
-          <SectionHeader title="Our Gallery" label="Moments" className="mb-6" />
+          <SectionHeader title={title} label={label} className="mb-6" />
           <div className="text-center py-12">
             <div className="text-red-600 mb-4">
               <svg
@@ -124,7 +142,7 @@ const GalleryGrid = () => {
   return (
     <Section className="bg-white">
       <Container>
-        <SectionHeader title="Our Gallery" label="Moments" className="mb-6" />
+        <SectionHeader title={title} label={label} className="mb-6" />
 
         <GalleryFilter
           selectedCategory={selectedCategory}
@@ -132,6 +150,7 @@ const GalleryGrid = () => {
           onCategoryChange={setSelectedCategory}
           onSearchChange={setSearchQuery}
           onClearFilters={handleClearFilters}
+          showCategoryFilter={showCategoryFilter}
         />
 
         {/* Results Count */}
