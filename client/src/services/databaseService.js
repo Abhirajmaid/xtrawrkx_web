@@ -437,7 +437,7 @@ export class EventService extends BaseDatabaseService {
             );
             const querySnapshot = await getDocs(q);
 
-            let events = querySnapshot.docs.map(doc => ({
+            const events = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
                 createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),

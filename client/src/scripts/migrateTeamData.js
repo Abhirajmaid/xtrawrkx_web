@@ -13,6 +13,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { team } from '../data/teamData.js';
+import readline from 'readline';
 
 // Firebase configuration (use the same as in your app)
 const firebaseConfig = {
@@ -112,7 +113,6 @@ async function migrateTeamData() {
 // Simple prompt function for Node.js
 function promptUser(question) {
     return new Promise((resolve) => {
-        const readline = require('readline');
         const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout

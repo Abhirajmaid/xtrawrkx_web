@@ -61,7 +61,7 @@ export default function UpcomingEvents({ initialCategoryFilter }) {
     const fetchUpcomingEvents = async () => {
       try {
         setLoading(true);
-        let events = await eventService.getAll("date", "desc");
+        const events = await eventService.getAll("date", "desc");
 
         // Filter for upcoming events
         const upcoming = events.filter((event) => {

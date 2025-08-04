@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 
 // Global state for the modal
-let modalState = {
+const modalState = {
     isOpen: false,
     listeners: new Set()
 };

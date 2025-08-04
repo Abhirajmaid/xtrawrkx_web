@@ -21,7 +21,7 @@ export default function EventSection() {
         setLoading(true);
         // Get upcoming events by filtering for status === "upcoming"
 
-        let events = await eventService.getAll("date", "desc");
+        const events = await eventService.getAll("date", "desc");
 
         // Filter for upcoming events
         const upcoming = events.filter((event) => {

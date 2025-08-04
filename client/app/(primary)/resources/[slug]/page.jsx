@@ -1,6 +1,7 @@
 "use client";
 import React, { use, useState, useEffect } from "react";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import Section from "../../../../src/components/layout/Section";
 import Container from "../../../../src/components/layout/Container";
 import Hero from "../../../../src/components/common/Hero";
@@ -162,12 +163,12 @@ const SingleResourcePage = ({ params }) => {
                 {error ||
                   "This resource could not be found or may have been removed."}
               </div>
-              <a
+              <Link
                 href="/resources"
                 className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
                 Back to Resources
-              </a>
+              </Link>
             </div>
           </Container>
         </Section>
