@@ -24,11 +24,11 @@ const communityOptions = [
 ];
 
 const xenLevelOptions = [
-  { id: "x1", name: "X1", freeSlots: 1, totalFree: false },
-  { id: "x2", name: "X2", freeSlots: 5, totalFree: false },
-  { id: "x3", name: "X3", freeSlots: 5, totalFree: false },
-  { id: "x4", name: "X4", freeSlots: 5, totalFree: false },
-  { id: "x5", name: "X5", freeSlots: 5, totalFree: false },
+  { id: "x1", name: "X1", freeSlots: 1, totalFree: false, gnpOnly: true },
+  { id: "x2", name: "X2", freeSlots: 5, totalFree: false, gnpOnly: false },
+  { id: "x3", name: "X3", freeSlots: 5, totalFree: false, gnpOnly: false },
+  { id: "x4", name: "X4", freeSlots: 5, totalFree: false, gnpOnly: false },
+  { id: "x5", name: "X5", freeSlots: 5, totalFree: false, gnpOnly: false },
 ];
 
 const clientStatusOptions = [
@@ -37,7 +37,7 @@ const clientStatusOptions = [
     id: "existing-client",
     name: "Existing Client",
     discount: 0,
-    specialOffer: "5_gnp_only",
+    specialOffer: "5_gnp_or_1_asp",
   },
   {
     id: "former-client",
@@ -174,6 +174,7 @@ export default function SeasonRegistration({ params }) {
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [errors, setErrors] = useState({});
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   const eventService = new EventService();
 
@@ -401,8 +402,8 @@ export default function SeasonRegistration({ params }) {
     }
 
     // Step 1: Handle special client status offers first (highest priority)
-    if (clientStatus && clientStatus.specialOffer === "5_gnp_only") {
-      // Existing clients: 5 free GNPs only (not ASP)
+    if (clientStatus && clientStatus.specialOffer === "5_gnp_or_1_asp") {
+      // Existing clients: 5 free GNPs OR 1 free ASP
       if (formData.ticketType === "gnp") {
         // GNP: Up to 5 members free, additional members pay ₹8000
         if (attendingCount <= 5) {
@@ -417,12 +418,13 @@ export default function SeasonRegistration({ params }) {
           discountAmount = basePrice * 5;
         }
       } else if (formData.ticketType === "asp") {
-        // ASP: No free ASP for existing clients, they pay full fixed price
+        // ASP: 1 free ASP for existing clients (covers up to 2 members)
         if (attendingCount <= 2) {
-          totalCost = basePrice; // Fixed ₹60,000 for 1-2 members
-          freeMembers = 0;
-          paidMembers = 1; // Count as 1 "unit" since ASP is fixed price
-          discountAmount = 0;
+          totalCost = 0; // FREE ASP
+          isFree = true;
+          freeMembers = attendingCount;
+          paidMembers = 0;
+          discountAmount = basePrice; // Full ASP price as discount
         } else {
           violatesRules = true;
           ruleViolationMessage =
@@ -462,89 +464,131 @@ export default function SeasonRegistration({ params }) {
         }
       }
     }
-    // Step 3: Apply community free slots + other client status discounts (GNP ONLY)
+    // Step 3: Apply community free slots + other client status discounts
     else {
-      // Calculate community free slots based on new rules - ALL FREE SLOTS ARE GNP ONLY
-      let communityFreeSlots = 0;
-
-      if (isPartOfCommunity && formData.ticketType === "gnp") {
-        // Free slots only apply to GNP tickets
-        if (formData.companyCommunity === "xen" && xenLevel) {
-          // XEN rules: X1 gets 1 free GNP slot, X2+ gets 5 free GNP slots
-          communityFreeSlots = xenLevel.freeSlots;
-        } else {
-          // XEV.FIN, XEVTG, XD&D get 1 free GNP slot each
-          const community = communityOptions.find(
-            (c) => c.id === formData.companyCommunity
-          );
-          if (community && community.slotType === "gnp") {
-            communityFreeSlots = 1;
+      // Check for XEN X2+ special benefits (5 free GNPs OR 1 free ASP)
+      if (
+        formData.companyCommunity === "xen" &&
+        xenLevel &&
+        !xenLevel.gnpOnly &&
+        clientStatus?.id !== "existing-client"
+      ) {
+        // XEN X2-X5: 5 free GNPs OR 1 free ASP (same as existing client benefits)
+        if (formData.ticketType === "gnp") {
+          // GNP: Up to 5 members free, additional members pay ₹8000
+          if (attendingCount <= 5) {
+            totalCost = 0;
+            isFree = true;
+            freeMembers = attendingCount;
+            discountAmount = basePrice * attendingCount;
+          } else {
+            freeMembers = 5;
+            paidMembers = attendingCount - 5;
+            totalCost = paidMembers * basePrice;
+            discountAmount = basePrice * 5;
+          }
+        } else if (formData.ticketType === "asp") {
+          // ASP: 1 free ASP for XEN X2+ (covers up to 2 members)
+          if (attendingCount <= 2) {
+            totalCost = 0; // FREE ASP
+            isFree = true;
+            freeMembers = attendingCount;
+            paidMembers = 0;
+            discountAmount = basePrice; // Full ASP price as discount
+          } else {
+            violatesRules = true;
+            ruleViolationMessage =
+              "ASP includes maximum 2 members only. Please reduce team size.";
           }
         }
-      }
-
-      if (attendingCount === 0) {
-        totalCost = 0;
-        isFree = true;
       } else {
-        // Calculate with community free slots (GNP only)
-        let freeFromCommunity = 0;
+        // Regular community benefits (GNP ONLY)
+        let communityFreeSlots = 0;
 
-        if (formData.ticketType === "gnp") {
-          // Free slots only apply to GNP
-          freeFromCommunity = Math.min(attendingCount, communityFreeSlots);
-        } else {
-          // ASP gets no free slots from community membership
-          freeFromCommunity = 0;
+        if (isPartOfCommunity && formData.ticketType === "gnp") {
+          // Free slots only apply to GNP tickets
+          if (formData.companyCommunity === "xen" && xenLevel) {
+            // XEN X1 gets 1 free GNP slot, X2+ handled above
+            if (xenLevel.gnpOnly) {
+              communityFreeSlots = xenLevel.freeSlots; // X1: 1 slot
+            } else {
+              // X2+ already handled in the special case above
+              communityFreeSlots = 0;
+            }
+          } else {
+            // XEV.FIN, XEVTG, XD&D get 1 free GNP slot each
+            const community = communityOptions.find(
+              (c) => c.id === formData.companyCommunity
+            );
+            if (community && community.slotType === "gnp") {
+              communityFreeSlots = 1;
+            }
+          }
         }
 
-        if (formData.ticketType === "asp") {
-          // ASP is fixed price for 1-2 members
-          if (attendingCount <= 2) {
+        if (attendingCount === 0) {
+          totalCost = 0;
+          isFree = true;
+        } else {
+          // Calculate with community free slots (GNP only)
+          let freeFromCommunity = 0;
+
+          if (formData.ticketType === "gnp") {
+            // Free slots only apply to GNP
+            freeFromCommunity = Math.min(attendingCount, communityFreeSlots);
+          } else {
+            // ASP gets no free slots from community membership
+            freeFromCommunity = 0;
+          }
+
+          if (formData.ticketType === "asp") {
+            // ASP is fixed price for 1-2 members
+            if (attendingCount <= 2) {
+              freeMembers = freeFromCommunity;
+              paidMembers = 1; // Count as 1 "unit" since ASP is fixed price
+
+              // Calculate base cost - ASP is fixed price regardless of 1 or 2 members
+              let baseCostForPaid = basePrice; // Fixed ASP price
+
+              // Apply client status discount (former client gets 25% off)
+              if (clientStatus && clientStatus.discount > 0) {
+                const clientDiscount =
+                  baseCostForPaid * (clientStatus.discount / 100);
+                totalCost = baseCostForPaid - clientDiscount;
+                discountAmount = clientDiscount;
+              } else {
+                totalCost = baseCostForPaid;
+                discountAmount = 0;
+              }
+            } else {
+              violatesRules = true;
+              ruleViolationMessage = "ASP includes maximum 2 members only.";
+            }
+          } else {
+            // GNP pricing - per member
+            const paidCount = attendingCount - freeFromCommunity;
+
             freeMembers = freeFromCommunity;
-            paidMembers = 1; // Count as 1 "unit" since ASP is fixed price
+            paidMembers = paidCount;
 
-            // Calculate base cost - ASP is fixed price regardless of 1 or 2 members
-            let baseCostForPaid = basePrice; // Fixed ASP price
+            // Calculate base cost for paid members
+            let baseCostForPaid = paidCount * basePrice;
 
-            // Apply client status discount (former client gets 25% off)
+            // Apply client status discount to paid members (former client gets 25% off)
             if (clientStatus && clientStatus.discount > 0) {
               const clientDiscount =
                 baseCostForPaid * (clientStatus.discount / 100);
               totalCost = baseCostForPaid - clientDiscount;
-              discountAmount = clientDiscount;
+              discountAmount = freeFromCommunity * basePrice + clientDiscount;
             } else {
               totalCost = baseCostForPaid;
-              discountAmount = 0;
+              discountAmount = freeFromCommunity * basePrice;
             }
-          } else {
-            violatesRules = true;
-            ruleViolationMessage = "ASP includes maximum 2 members only.";
           }
-        } else {
-          // GNP pricing - per member
-          const paidCount = attendingCount - freeFromCommunity;
 
-          freeMembers = freeFromCommunity;
-          paidMembers = paidCount;
-
-          // Calculate base cost for paid members
-          let baseCostForPaid = paidCount * basePrice;
-
-          // Apply client status discount to paid members (former client gets 25% off)
-          if (clientStatus && clientStatus.discount > 0) {
-            const clientDiscount =
-              baseCostForPaid * (clientStatus.discount / 100);
-            totalCost = baseCostForPaid - clientDiscount;
-            discountAmount = freeFromCommunity * basePrice + clientDiscount;
-          } else {
-            totalCost = baseCostForPaid;
-            discountAmount = freeFromCommunity * basePrice;
+          if (totalCost === 0) {
+            isFree = true;
           }
-        }
-
-        if (totalCost === 0) {
-          isFree = true;
         }
       }
     }
@@ -1223,10 +1267,10 @@ export default function SeasonRegistration({ params }) {
                         {xenLevelOptions.map((level) => (
                           <option key={level.id} value={level.id}>
                             {level.name}
-                            {level.freeSlots === 1
-                              ? " (1 free slot)"
+                            {level.gnpOnly
+                              ? " (1 free GNP slot only)"
                               : level.freeSlots === 5
-                              ? " (5 free slots)"
+                              ? " (5 free GNPs or 1 free ASP)"
                               : ""}
                           </option>
                         ))}
@@ -1253,9 +1297,9 @@ export default function SeasonRegistration({ params }) {
                       {clientStatusOptions.map((option) => (
                         <option key={option.id} value={option.id}>
                           {option.name}
-                          {option.specialOffer === "5_gnp_only" &&
+                          {option.specialOffer === "5_gnp_or_1_asp" &&
                             option.id === "existing-client" &&
-                            " (5 free GNPs only)"}
+                            " (5 free GNPs or 1 free ASP)"}
                           {option.specialOffer === "discount_only" &&
                             option.id === "sponsor-partner" &&
                             " (50% off: up to 5 GNPs or ASP)"}
@@ -1908,14 +1952,24 @@ export default function SeasonRegistration({ params }) {
             <div className="lg:col-span-1">
               <div className="sticky top-24">
                 <div className="bg-white rounded-xl p-6 shadow-sm border">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-                    <Icon
-                      icon="solar:calculator-bold"
-                      width={20}
-                      className="mr-2 text-brand-primary"
-                    />
-                    Registration Summary
-                  </h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <Icon
+                        icon="solar:calculator-bold"
+                        width={20}
+                        className="mr-2 text-brand-primary"
+                      />
+                      Registration Summary
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowPricingModal(true)}
+                      className="flex items-center space-x-1 px-3 py-1.5 text-xs font-medium text-brand-primary bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+                    >
+                      <Icon icon="mdi:help-circle" width={14} />
+                      <span>Pricing Rules</span>
+                    </button>
+                  </div>
 
                   <div className="space-y-4">
                     {/* Season Info */}
@@ -1993,7 +2047,7 @@ export default function SeasonRegistration({ params }) {
                               <div className="text-green-700 text-xs mb-2 font-medium">
                                 {formData.ticketType === "gnp"
                                   ? "Existing Client: 5 free GNP passes"
-                                  : "Existing Client: No free ASP (GNP benefits only)"}
+                                  : "Existing Client: 1 free ASP pass"}
                               </div>
                             )}
                             {formData.clientStatus === "sponsor-partner" && (
@@ -2012,13 +2066,11 @@ export default function SeasonRegistration({ params }) {
                                     ? `XEN ${formData.xenLevel.toUpperCase()} Member: ${
                                         xenLevelOptions.find(
                                           (x) => x.id === formData.xenLevel
-                                        )?.freeSlots
-                                      } free slot${
-                                        xenLevelOptions.find(
-                                          (x) => x.id === formData.xenLevel
-                                        )?.freeSlots > 1
-                                          ? "s"
-                                          : ""
+                                        )?.gnpOnly
+                                          ? "1 free GNP slot only"
+                                          : formData.ticketType === "gnp"
+                                          ? "5 free GNP slots"
+                                          : "1 free ASP"
                                       }`
                                     : formData.companyCommunity !== "none"
                                     ? `${
@@ -2127,13 +2179,18 @@ export default function SeasonRegistration({ params }) {
                     {/* Help Text */}
                     <div className="text-xs text-gray-500 text-center mt-4">
                       <p>
-                        * <strong>FREE SLOTS APPLY TO GNP ONLY</strong>
+                        *{" "}
+                        <strong>
+                          FREE SLOTS: GNP ONLY (except XEN X2+ & Existing
+                          Clients get ASP too)
+                        </strong>
                       </p>
                       <p>* XEV.FIN/XEVTG/XD&D: 1 free GNP slot</p>
                       <p>
-                        * XEN X1: 1 free GNP slot | XEN X2+: 5 free GNP slots
+                        * XEN X1: 1 free GNP slot | XEN X2+: 5 free GNPs or 1
+                        free ASP
                       </p>
-                      <p>* Existing clients: 5 free GNPs only</p>
+                      <p>* Existing clients: 5 free GNPs OR 1 free ASP</p>
                       <p>* Sponsors/Partners: 50% off (up to 5 GNPs or ASP)</p>
                       <p>
                         * <strong>ASP: Fixed ₹60,000 for 1-2 members</strong>
@@ -2147,6 +2204,259 @@ export default function SeasonRegistration({ params }) {
           </div>
         </Container>
       </form>
+
+      {/* Pricing Rules Modal */}
+      {showPricingModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                  <Icon
+                    icon="mdi:information"
+                    width={24}
+                    className="mr-2 text-brand-primary"
+                  />
+                  Complete Pricing Rules & Benefits
+                </h2>
+                <button
+                  onClick={() => setShowPricingModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Icon icon="mdi:close" width={20} className="text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Ticket Types */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
+                  <Icon icon="solar:ticket-bold" width={20} className="mr-2" />
+                  Ticket Types
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-4 border">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      General Networking Pass (GNP)
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-2">
+                      ₹8,000 per member
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Access to networking sessions and general event activities
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Active Support Pass (ASP)
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-2">
+                      ₹60,000 fixed price
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Full access to all sessions. Fixed price for 1-2 members
+                      maximum per company.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Free Benefits */}
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h3 className="text-lg font-semibold text-green-900 mb-3 flex items-center">
+                  <Icon icon="mdi:gift" width={20} className="mr-2" />
+                  Free Benefits (Priority Order)
+                </h3>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      1. Existing Clients (Highest Priority)
+                    </h4>
+                    <div className="text-sm space-y-1">
+                      <p>
+                        • <strong>GNP:</strong> 5 free passes (additional
+                        members pay ₹8,000 each)
+                      </p>
+                      <p>
+                        • <strong>ASP:</strong> 1 completely free ASP (₹0 total
+                        cost)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      2. XEN Community Levels
+                    </h4>
+                    <div className="text-sm space-y-1">
+                      <p>
+                        • <strong>XEN X1:</strong> 1 free GNP slot only (no ASP
+                        benefits)
+                      </p>
+                      <p>
+                        • <strong>XEN X2-X5:</strong> 5 free GNPs OR 1 free ASP
+                        (same as existing clients)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      3. Other Community Members (GNP Only)
+                    </h4>
+                    <div className="text-sm space-y-1">
+                      <p>
+                        • <strong>XEV.FIN:</strong> 1 free GNP slot
+                      </p>
+                      <p>
+                        • <strong>XEVTG:</strong> 1 free GNP slot
+                      </p>
+                      <p>
+                        • <strong>XD&D:</strong> 1 free GNP slot
+                      </p>
+                      <p className="text-red-600">
+                        • <strong>Note:</strong> No ASP benefits for these
+                        communities
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Discount Benefits */}
+              <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                <h3 className="text-lg font-semibold text-orange-900 mb-3 flex items-center">
+                  <Icon icon="mdi:percent" width={20} className="mr-2" />
+                  Discount Benefits
+                </h3>
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Sponsors/Partners (50% Discount)
+                    </h4>
+                    <div className="text-sm space-y-1">
+                      <p>
+                        • <strong>GNP:</strong> 50% off up to 5 members (₹4,000
+                        each), then ₹8,000 for additional
+                      </p>
+                      <p>
+                        • <strong>ASP:</strong> 50% off fixed price (₹30,000)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Former Clients (25% Discount)
+                    </h4>
+                    <div className="text-sm space-y-1">
+                      <p>
+                        • <strong>GNP:</strong> 25% off all members (₹6,000
+                        each)
+                      </p>
+                      <p>
+                        • <strong>ASP:</strong> 25% off fixed price (₹45,000)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Important Rules */}
+              <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                <h3 className="text-lg font-semibold text-red-900 mb-3 flex items-center">
+                  <Icon icon="mdi:alert" width={20} className="mr-2" />
+                  Important Rules & Limitations
+                </h3>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    • <strong>ASP Limit:</strong> Maximum 2 members per ASP
+                    ticket
+                  </p>
+                  <p>
+                    • <strong>Company Purchase:</strong> 1 ASP maximum OR
+                    multiple GNPs per company
+                  </p>
+                  <p>
+                    • <strong>Free Slot Priority:</strong> Existing Client → XEN
+                    X2+ → Community Benefits
+                  </p>
+                  <p>
+                    • <strong>No Benefit Stacking:</strong> Cannot combine
+                    existing client + XEN X2+ benefits
+                  </p>
+                  <p>
+                    • <strong>ASP Pricing:</strong> Fixed ₹60,000 covers 1-2
+                    members (not per member)
+                  </p>
+                  <p>
+                    • <strong>Free ASP Access:</strong> Only Existing Clients &
+                    XEN X2+ levels
+                  </p>
+                </div>
+              </div>
+
+              {/* Examples */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <Icon icon="mdi:lightbulb" width={20} className="mr-2" />
+                  Pricing Examples
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="bg-white rounded-lg p-3 border">
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Example 1: Existing Client + GNP
+                    </h4>
+                    <p>3 members, GNP ticket</p>
+                    <p className="text-green-600">
+                      • 3 members = FREE (5 free slots available)
+                    </p>
+                    <p className="font-medium">Total: ₹0</p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-3 border">
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Example 2: XEN X1 + GNP
+                    </h4>
+                    <p>3 members, GNP ticket</p>
+                    <p className="text-green-600">• 1 member = FREE</p>
+                    <p className="text-blue-600">• 2 members = ₹16,000</p>
+                    <p className="font-medium">Total: ₹16,000</p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-3 border">
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Example 3: Sponsor + ASP
+                    </h4>
+                    <p>2 members, ASP ticket</p>
+                    <p className="text-orange-600">• 50% discount on ₹60,000</p>
+                    <p className="font-medium">Total: ₹30,000</p>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-3 border">
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Example 4: XEN X3 + ASP
+                    </h4>
+                    <p>2 members, ASP ticket</p>
+                    <p className="text-green-600">• 1 free ASP = FREE</p>
+                    <p className="font-medium">Total: ₹0</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-xl">
+              <button
+                onClick={() => setShowPricingModal(false)}
+                className="w-full bg-brand-primary text-white py-2 px-4 rounded-lg hover:bg-brand-primary/90 transition-colors font-medium"
+              >
+                Got it, close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Razorpay Script */}
       <Script
