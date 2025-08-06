@@ -6,6 +6,7 @@ import { Icon } from "@iconify/react";
 import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import Button from "@/src/components/common/Button";
+import Image from "next/image";
 import {
   eventRegistrationService,
   EventService,
@@ -14,11 +15,42 @@ import { formatEventDate } from "@/src/utils/dateUtils";
 import Script from "next/script";
 
 const communityOptions = [
-  { id: "none", name: "Not a member", discount: 0, freeSlots: 0 },
-  { id: "xen", name: "XEN Community", discount: 0, freeSlots: 1 },
-  { id: "xev-fin", name: "XEV.FiN Community", discount: 10, freeSlots: 0 },
-  { id: "xevtg", name: "XEVTG Community", discount: 5, freeSlots: 0 },
-  { id: "xd-d", name: "xD&D Community", discount: 15, freeSlots: 0 },
+  { id: "none", name: "Not a member" },
+  { id: "xen", name: "XEN Community" },
+  { id: "xev-fin", name: "XEV.FiN Community" },
+  { id: "xevtg", name: "XEVTG Community" },
+  { id: "xd-d", name: "xD&D Community" },
+];
+
+const xenLevelOptions = [
+  { id: "x1", name: "X1", freeSlots: 1, totalFree: false },
+  { id: "x2", name: "X2", freeSlots: 0, totalFree: true },
+  { id: "x3", name: "X3", freeSlots: 0, totalFree: true },
+  { id: "x4", name: "X4", freeSlots: 0, totalFree: true },
+  { id: "x5", name: "X5", freeSlots: 0, totalFree: true },
+];
+
+const clientStatusOptions = [
+  { id: "none", name: "None", discount: 0, specialOffer: null },
+  {
+    id: "existing-client",
+    name: "Existing Client",
+    discount: 0,
+    specialOffer: "2_gnp_or_1_asp",
+  },
+  {
+    id: "former-client",
+    name: "Former Client",
+    discount: 25,
+    specialOffer: null,
+  },
+  {
+    id: "sponsor-partner",
+    name: "Sponsor/Partner",
+    discount: 50,
+    specialOffer: null,
+    maxPasses: 5,
+  },
 ];
 
 const ticketTypes = [
@@ -50,6 +82,45 @@ const designations = [
   "Other",
 ];
 
+const companyTypes = [
+  { id: "startup-corporate", name: "Startup and Corporates" },
+  { id: "investor", name: "Investors" },
+];
+
+const subTypeOptions = {
+  "startup-corporate": [
+    "Electric Vehicles (EV)",
+    "Technology & Software",
+    "Manufacturing",
+    "Automotive",
+    "Energy & Renewable",
+    "Mobility Solutions",
+    "IoT & Connected Devices",
+    "Artificial Intelligence",
+    "Fintech",
+    "Healthcare & Medical Devices",
+    "Aerospace & Defense",
+    "Consumer Electronics",
+    "Transportation & Logistics",
+    "Other",
+  ],
+  investor: [
+    "Venture Capital",
+    "Private Equity",
+    "Angel Investment",
+    "Corporate Venture Capital",
+    "Impact Investing",
+    "Government & Public Sector",
+    "Family Office",
+    "Investment Banking",
+    "Hedge Funds",
+    "Insurance & Pension Funds",
+    "Sovereign Wealth Funds",
+    "Accelerators & Incubators",
+    "Other Financial Services",
+  ],
+};
+
 export default function SeasonRegistration({ params }) {
   const { season } = use(params);
   const searchParams = useSearchParams();
@@ -74,9 +145,14 @@ export default function SeasonRegistration({ params }) {
     companyEmail: "",
     companyPhone: "",
     companyAddress: "",
-    industry: "",
+    companyType: "",
+    subType: "",
     companySize: "",
     companyCommunity: "none",
+    xenLevel: "",
+    clientStatus: "none",
+    linkedinUrl: "",
+    pitchDeck: null,
 
     // Ticket Information
     ticketType: "gnp", // Default to General Networking Pass
@@ -151,14 +227,48 @@ export default function SeasonRegistration({ params }) {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+
+    // Special handling for company type change
+    if (name === "companyType") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+        subType: "", // Clear sub-type when company type changes
+        pitchDeck: null, // Clear pitch deck when company type changes
+      }));
+    }
+    // Special handling for community change
+    else if (name === "companyCommunity") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+        xenLevel: value === "xen" ? "" : "", // Reset XEN level when community changes
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
 
     // Clear errors
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+
+    // Clear sub-type error when company type changes
+    if (name === "companyType" && errors.subType) {
+      setErrors((prev) => ({ ...prev, subType: "" }));
+    }
+
+    // Clear pitch deck error when company type changes
+    if (name === "companyType" && errors.pitchDeck) {
+      setErrors((prev) => ({ ...prev, pitchDeck: "" }));
+    }
+
+    // Clear XEN level error when community changes
+    if (name === "companyCommunity" && errors.xenLevel) {
+      setErrors((prev) => ({ ...prev, xenLevel: "" }));
     }
   };
 
@@ -203,14 +313,26 @@ export default function SeasonRegistration({ params }) {
     }));
   };
 
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (files && files[0]) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: files[0],
+      }));
+    }
+  };
+
   const calculatePricing = () => {
     const selectedTicket = ticketTypes.find(
       (t) => t.id === formData.ticketType
     );
     const basePrice = selectedTicket ? selectedTicket.price : 8000; // Default to GNP price
-    let totalCost = basePrice;
+    let totalCost = 0;
     let discountAmount = 0;
     let isFree = false;
+    let freeMembers = 0;
+    let paidMembers = 0;
 
     const attendingCount = formData.personnel.filter(
       (p) => p.isAttending
@@ -219,18 +341,108 @@ export default function SeasonRegistration({ params }) {
     const companyCommunity = communityOptions.find(
       (c) => c.id === formData.companyCommunity
     );
+    const clientStatus = clientStatusOptions.find(
+      (s) => s.id === formData.clientStatus
+    );
+    const xenLevel = xenLevelOptions.find((x) => x.id === formData.xenLevel);
 
-    // Apply company-level community benefits to the ticket
-    if (formData.companyCommunity === "xen") {
-      // XEN companies get the ticket for free
-      isFree = true;
+    // Check if company is part of any community (not "none")
+    const isPartOfCommunity = formData.companyCommunity !== "none";
+
+    // Step 1: Handle special XEN levels (X2 and above get 100% off everything)
+    if (formData.companyCommunity === "xen" && xenLevel && xenLevel.totalFree) {
       totalCost = 0;
-      discountAmount = basePrice;
-    } else if (companyCommunity && companyCommunity.discount > 0) {
-      // Apply company discount to the ticket price
-      discountAmount = basePrice * (companyCommunity.discount / 100);
-      totalCost = basePrice - discountAmount;
+      isFree = true;
+      freeMembers = attendingCount;
+      paidMembers = 0;
+      discountAmount = basePrice * attendingCount;
     }
+    // Step 2: Handle special client status offers
+    else if (clientStatus && clientStatus.specialOffer === "2_gnp_or_1_asp") {
+      // Existing clients: 100% off on 2 GNPs or 1 ASP
+      if (formData.ticketType === "gnp") {
+        // GNP: Up to 2 members free, additional members pay ₹8000
+        if (attendingCount <= 2) {
+          totalCost = 0;
+          isFree = true;
+          freeMembers = attendingCount;
+          discountAmount = basePrice * attendingCount;
+        } else {
+          freeMembers = 2;
+          paidMembers = attendingCount - 2;
+          totalCost = paidMembers * 8000;
+          discountAmount = basePrice * 2;
+        }
+      } else if (formData.ticketType === "asp") {
+        // ASP: 1 member free, additional members pay ₹8000 (GNP rate)
+        if (attendingCount <= 1) {
+          totalCost = 0;
+          isFree = true;
+          freeMembers = attendingCount;
+          discountAmount = basePrice * attendingCount;
+        } else {
+          freeMembers = 1;
+          paidMembers = attendingCount - 1;
+          totalCost = paidMembers * 8000;
+          discountAmount = basePrice;
+        }
+      }
+    }
+    // Step 3: Apply community free slots + client status discounts
+    else {
+      // Calculate community free slots
+      let communityFreeSlots = 0;
+      if (isPartOfCommunity) {
+        if (formData.companyCommunity === "xen" && xenLevel) {
+          // XEN X1 gets 1 free slot
+          communityFreeSlots = xenLevel.freeSlots;
+        } else {
+          // Other communities get 1 free slot
+          communityFreeSlots = 1;
+        }
+      }
+
+      if (attendingCount === 0) {
+        totalCost = 0;
+        isFree = true;
+      } else {
+        // Calculate with community free slots
+        const freeFromCommunity = Math.min(attendingCount, communityFreeSlots);
+        const paidCount = attendingCount - freeFromCommunity;
+
+        freeMembers = freeFromCommunity;
+        paidMembers = paidCount;
+
+        // Calculate base cost for paid members
+        let baseCostForPaid = paidCount * basePrice;
+
+        // Apply client status discount to paid members
+        if (clientStatus && clientStatus.discount > 0) {
+          const clientDiscount =
+            baseCostForPaid * (clientStatus.discount / 100);
+          totalCost = baseCostForPaid - clientDiscount;
+          discountAmount = freeFromCommunity * basePrice + clientDiscount;
+        } else {
+          totalCost = baseCostForPaid;
+          discountAmount = freeFromCommunity * basePrice;
+        }
+
+        if (totalCost === 0) {
+          isFree = true;
+        }
+      }
+    }
+
+    // Debug logging
+    console.log("Pricing Debug:", {
+      companyCommunity: formData.companyCommunity,
+      attendingCount,
+      totalCost,
+      freeMembers,
+      paidMembers,
+      basePrice,
+      discountAmount,
+    });
 
     return {
       attendingCount,
@@ -241,9 +453,15 @@ export default function SeasonRegistration({ params }) {
       baseAmount: basePrice,
       discountAmount,
       totalCost,
-      savings: basePrice - totalCost,
-      companyCommunity: companyCommunity.name,
-      isFree,
+      savings: basePrice * attendingCount - totalCost,
+      companyCommunity: companyCommunity
+        ? companyCommunity.name
+        : "Not a member",
+      clientStatus: clientStatus ? clientStatus.name : "None",
+      isFree: totalCost === 0,
+      freeMembers,
+      paidMembers,
+      isPartOfCommunity,
     };
   };
 
@@ -262,6 +480,32 @@ export default function SeasonRegistration({ params }) {
       newErrors.companyEmail = "Company email is required";
     if (!formData.companyPhone.trim())
       newErrors.companyPhone = "Company phone is required";
+    if (!formData.companyType.trim())
+      newErrors.companyType = "Company type is required";
+    if (!formData.subType.trim()) newErrors.subType = "Sub-type is required";
+    if (formData.companyCommunity === "xen" && !formData.xenLevel.trim())
+      newErrors.xenLevel = "XEN membership level is required";
+    if (formData.companyType && !formData.pitchDeck)
+      newErrors.pitchDeck = `${
+        formData.companyType === "startup-corporate"
+          ? "Pitch deck"
+          : "Corporate deck"
+      } is required`;
+
+    // Validate file size (10MB max)
+    if (formData.pitchDeck && formData.pitchDeck.size > 10 * 1024 * 1024) {
+      newErrors.pitchDeck = "File size must be less than 10MB";
+    }
+
+    // Validate file type
+    if (formData.pitchDeck) {
+      const allowedTypes = [".pdf", ".ppt", ".pptx"];
+      const fileName = formData.pitchDeck.name.toLowerCase();
+      const isValidType = allowedTypes.some((type) => fileName.endsWith(type));
+      if (!isValidType) {
+        newErrors.pitchDeck = "File must be PDF, PPT, or PPTX format";
+      }
+    }
 
     // Primary contact validation
     if (!formData.primaryContactName.trim())
@@ -309,7 +553,7 @@ export default function SeasonRegistration({ params }) {
         .join(", ");
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_key", // Replace with your actual test/live key
+        key: "rzp_live_JB7S2UmHSR0kL5", // Replace with your actual test/live key
         amount: pricing.totalCost * 100, // Amount in paise
         currency: "INR",
         name: "XtraWrkx Events",
@@ -402,9 +646,15 @@ export default function SeasonRegistration({ params }) {
         companyEmail: formData.companyEmail,
         companyPhone: formData.companyPhone,
         companyAddress: formData.companyAddress,
-        industry: formData.industry,
+        companyType: formData.companyType,
+        subType: formData.subType,
         companySize: formData.companySize,
         companyCommunity: formData.companyCommunity,
+        xenLevel: formData.xenLevel,
+        clientStatus: formData.clientStatus,
+        linkedinUrl: formData.linkedinUrl,
+        pitchDeckName: formData.pitchDeck ? formData.pitchDeck.name : null,
+        pitchDeckSize: formData.pitchDeck ? formData.pitchDeck.size : null,
 
         // Ticket Information
         ticketType: formData.ticketType,
@@ -431,6 +681,10 @@ export default function SeasonRegistration({ params }) {
         isFree: pricing.isFree,
         attendingCount: pricing.attendingCount,
         selectedEventCount: pricing.selectedEventCount,
+        freeMembers: pricing.freeMembers,
+        paidMembers: pricing.paidMembers,
+        isPartOfCommunity: pricing.isPartOfCommunity,
+        savings: pricing.savings,
 
         // Agreement
         termsAccepted: formData.termsAccepted,
@@ -542,25 +796,38 @@ export default function SeasonRegistration({ params }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Section className="bg-white border-b">
-        <Container>
+      <Section className="relative border-b overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 w-full h-full">
+          <Image
+            src="/images/hero.png"
+            alt="Registration Header Background"
+            fill
+            className="object-cover object-center"
+            priority
+          />
+          {/* Overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
+        </div>
+
+        <Container className="relative z-10">
           <div className="py-6 pt-[100px]">
             <div className="flex items-center space-x-3 mb-4">
               <Button
                 text="← Back to Events"
                 type="secondary"
                 link="/events"
-                className="text-sm"
+                className="text-sm bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-white/30"
               />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
               Season {season} Registration
             </h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-white/90 mb-4 drop-shadow">
               Register once for the entire season and choose which events to
               attend
             </p>
-            <div className="flex items-center space-x-6 text-gray-600">
+            <div className="flex items-center space-x-6 text-white/80">
               <div className="flex items-center space-x-2">
                 <Icon icon="mdi:calendar-range" width={20} />
                 <span>Season {season}</span>
@@ -746,10 +1013,70 @@ export default function SeasonRegistration({ params }) {
                       {communityOptions.map((option) => (
                         <option key={option.id} value={option.id}>
                           {option.name}
+                          {option.id !== "none" &&
+                            option.id !== "xen" &&
+                            " (1 free slot)"}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* XEN Membership Level - Only show if XEN Community is selected */}
+                  {formData.companyCommunity === "xen" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        XEN Membership Level *
+                      </label>
+                      <select
+                        name="xenLevel"
+                        value={formData.xenLevel}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                          errors.xenLevel
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">Select XEN level</option>
+                        {xenLevelOptions.map((level) => (
+                          <option key={level.id} value={level.id}>
+                            {level.name}
+                            {level.totalFree
+                              ? " (100% off total billing)"
+                              : level.freeSlots > 0
+                              ? ` (${level.freeSlots} free slot)`
+                              : ""}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.xenLevel && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.xenLevel}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Relationship with Company */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Relationship with Company
+                    </label>
+                    <select
+                      name="clientStatus"
+                      value={formData.clientStatus}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    >
+                      {clientStatusOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.name}
+                          {option.specialOffer === "2_gnp_or_1_asp" &&
+                            " (100% off: 2 GNPs or 1 ASP)"}
                           {option.discount > 0 &&
                             ` (${option.discount}% discount)`}
-                          {option.freeSlots > 0 &&
-                            ` (${option.freeSlots} free slot)`}
+                          {option.maxPasses &&
+                            `, max ${option.maxPasses} passes`}
                         </option>
                       ))}
                     </select>
@@ -770,19 +1097,68 @@ export default function SeasonRegistration({ params }) {
                     />
                   </div>
 
-                  {/* Industry */}
+                  {/* Company Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Industry
+                      Company Type *
                     </label>
-                    <input
-                      type="text"
-                      name="industry"
-                      value={formData.industry}
+                    <select
+                      name="companyType"
+                      value={formData.companyType}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                      placeholder="e.g., Electric Vehicles, Technology"
-                    />
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                        errors.companyType
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      <option value="">Select company type</option>
+                      {companyTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.companyType && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.companyType}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Sub-type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Sub-type *
+                    </label>
+                    <select
+                      name="subType"
+                      value={formData.subType}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                        errors.subType
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
+                      disabled={!formData.companyType}
+                    >
+                      <option value="">
+                        {formData.companyType
+                          ? "Select sub-type"
+                          : "Please select company type first"}
+                      </option>
+                      {formData.companyType &&
+                        subTypeOptions[formData.companyType]?.map((subType) => (
+                          <option key={subType} value={subType}>
+                            {subType}
+                          </option>
+                        ))}
+                    </select>
+                    {errors.subType && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.subType}
+                      </p>
+                    )}
                   </div>
 
                   {/* Company Size */}
@@ -804,6 +1180,65 @@ export default function SeasonRegistration({ params }) {
                       <option value="1000+">1000+ employees</option>
                     </select>
                   </div>
+
+                  {/* LinkedIn URL */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company LinkedIn URL
+                    </label>
+                    <input
+                      type="url"
+                      name="linkedinUrl"
+                      value={formData.linkedinUrl}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                        errors.linkedinUrl
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="https://linkedin.com/company/your-company"
+                    />
+                    {errors.linkedinUrl && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.linkedinUrl}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Pitch Deck Upload - Conditional based on company type */}
+                  {formData.companyType && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {formData.companyType === "startup-corporate"
+                          ? "Pitch Deck"
+                          : "Corporate Deck"}{" "}
+                        *
+                      </label>
+                      <input
+                        type="file"
+                        name="pitchDeck"
+                        onChange={handleFileChange}
+                        accept=".pdf,.ppt,.pptx"
+                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                          errors.pitchDeck
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        Upload your{" "}
+                        {formData.companyType === "startup-corporate"
+                          ? "pitch deck"
+                          : "corporate deck"}{" "}
+                        (PDF, PPT, PPTX - Max 10MB)
+                      </p>
+                      {errors.pitchDeck && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.pitchDeck}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1329,30 +1764,94 @@ export default function SeasonRegistration({ params }) {
                       </div>
                     </div>
 
-                    <div className="border-t border-gray-200 pt-4">
-                      {/* Base Amount */}
+                    {/* Relationship with Company */}
+                    <div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Base Amount:</span>
+                        <span className="text-gray-600">Relationship:</span>
                         <span className="font-medium">
-                          ₹{pricing.baseAmount.toLocaleString()}
+                          {pricing.clientStatus}
                         </span>
                       </div>
+                    </div>
 
-                      {/* Free Ticket */}
-                      {pricing.isFree && (
-                        <div className="flex justify-between text-sm text-green-600">
-                          <span>XEN Member (Free Ticket):</span>
-                          <span>-₹{pricing.baseAmount.toLocaleString()}</span>
+                    {/* Member Breakdown */}
+                    {pricing.attendingCount > 0 &&
+                      (pricing.isPartOfCommunity ||
+                        formData.clientStatus !== "none") && (
+                        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                          <div className="text-sm font-medium text-blue-900 mb-2">
+                            Benefits Breakdown:
+                          </div>
+                          <div className="space-y-1 text-xs">
+                            {formData.clientStatus === "existing-client" && (
+                              <div className="text-green-700 text-xs mb-2 font-medium">
+                                {formData.ticketType === "gnp"
+                                  ? "Existing Client: 100% off on 2 GNP passes"
+                                  : "Existing Client: 100% off on 1 ASP pass"}
+                              </div>
+                            )}
+                            {pricing.isPartOfCommunity && (
+                              <div className="text-green-700 text-xs mb-2 font-medium">
+                                {formData.companyCommunity === "xen" &&
+                                formData.xenLevel
+                                  ? `XEN ${formData.xenLevel.toUpperCase()} Member${
+                                      xenLevelOptions.find(
+                                        (x) => x.id === formData.xenLevel
+                                      )?.totalFree
+                                        ? ": 100% off total billing"
+                                        : ": 1 free slot"
+                                    }`
+                                  : "Community Member: 1 free slot"}
+                              </div>
+                            )}
+                            {pricing.freeMembers > 0 && (
+                              <div className="flex items-center justify-between text-green-700">
+                                <span>Free Members:</span>
+                                <span className="font-semibold">
+                                  {pricing.freeMembers}
+                                </span>
+                              </div>
+                            )}
+                            {pricing.paidMembers > 0 && (
+                              <div className="flex items-center justify-between text-blue-700">
+                                <span>
+                                  Paid Members (
+                                  {formData.clientStatus === "existing-client"
+                                    ? "₹8,000"
+                                    : `₹${pricing.baseAmount.toLocaleString()}`}{" "}
+                                  each):
+                                </span>
+                                <span className="font-semibold">
+                                  {pricing.paidMembers}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
 
-                      {/* Discount */}
-                      {pricing.discountAmount > 0 && !pricing.isFree && (
-                        <div className="flex items-center justify-between text-sm text-green-600">
-                          <span>{pricing.companyCommunity} Discount:</span>
-                          <span>
-                            -₹{pricing.discountAmount.toLocaleString()}
-                          </span>
+                    <div className="border-t border-gray-200 pt-4">
+                      {/* Base Amount */}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">
+                          {pricing.isPartOfCommunity
+                            ? "Regular Price (without benefits):"
+                            : "Base Amount:"}
+                        </span>
+                        <span className="font-medium">
+                          {pricing.isPartOfCommunity
+                            ? `₹${(
+                                pricing.baseAmount * pricing.attendingCount
+                              ).toLocaleString()}`
+                            : `₹${pricing.baseAmount.toLocaleString()}`}
+                        </span>
+                      </div>
+
+                      {/* Community Benefits */}
+                      {pricing.isPartOfCommunity && pricing.savings > 0 && (
+                        <div className="flex justify-between text-sm text-green-600">
+                          <span>Community Savings:</span>
+                          <span>-₹{pricing.savings.toLocaleString()}</span>
                         </div>
                       )}
 
@@ -1391,7 +1890,9 @@ export default function SeasonRegistration({ params }) {
 
                     {/* Help Text */}
                     <div className="text-xs text-gray-500 text-center mt-4">
-                      <p>* Prices are per person per event</p>
+                      <p>* Any community membership: 1 free slot</p>
+                      <p>* Existing clients: 100% off on 2 GNPs or 1 ASP</p>
+                      <p>* Relationship discounts apply to paid members</p>
                       <p>* Payment will be processed after registration</p>
                     </div>
                   </div>
