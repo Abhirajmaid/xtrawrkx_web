@@ -8,6 +8,7 @@ import {
   eventRegistrationService,
   galleryService,
 } from "@/src/services/databaseService";
+import { getPDFViewingUrl } from "@/src/services/cloudinaryService";
 import { uploadImage } from "@/src/services/cloudinaryService";
 import { formatDate } from "@/src/utils/dateUtils";
 import Button from "@/src/components/common/Button";
@@ -1326,6 +1327,9 @@ function RegistrationManagement({
                   Type / Season
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Community & Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Event(s)
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1374,6 +1378,14 @@ function RegistrationManagement({
                       <div className="text-sm text-gray-500">
                         {registration.primaryContactEmail}
                       </div>
+                      {registration.companyType && (
+                        <div className="text-xs text-gray-400 mt-1">
+                          {registration.companyType === "startup-corporate"
+                            ? "Startup/Corporate"
+                            : "Investor"}
+                          {registration.subType && ` • ${registration.subType}`}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -1402,6 +1414,64 @@ function RegistrationManagement({
                           Single Event
                         </div>
                       )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="space-y-1">
+                      {/* Community */}
+                      <div className="text-xs">
+                        {registration.companyCommunity &&
+                        registration.companyCommunity !== "none" ? (
+                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <Icon
+                              icon="mdi:account-group"
+                              width={12}
+                              className="mr-1"
+                            />
+                            {registration.companyCommunity === "xen"
+                              ? "XEN"
+                              : registration.companyCommunity === "xev-fin"
+                              ? "XEV.FiN"
+                              : registration.companyCommunity === "xevtg"
+                              ? "XEVTG"
+                              : registration.companyCommunity === "xd-d"
+                              ? "xD&D"
+                              : registration.companyCommunity}
+                            {registration.companyCommunity === "xen" &&
+                              registration.xenLevel && (
+                                <span className="ml-1 font-bold">
+                                  {registration.xenLevel.toUpperCase()}
+                                </span>
+                              )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">
+                            No Community
+                          </span>
+                        )}
+                      </div>
+                      {/* Client Status */}
+                      <div className="text-xs">
+                        {registration.clientStatus &&
+                        registration.clientStatus !== "none" ? (
+                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <Icon
+                              icon="mdi:handshake"
+                              width={12}
+                              className="mr-1"
+                            />
+                            {registration.clientStatus === "existing-client"
+                              ? "Existing"
+                              : registration.clientStatus === "former-client"
+                              ? "Former"
+                              : registration.clientStatus === "sponsor-partner"
+                              ? "Sponsor"
+                              : registration.clientStatus}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">Regular</span>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -1519,8 +1589,14 @@ function RegistrationManagement({
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => setShowRegistrationDetails(registration)}
-                        className="text-primary hover:text-blue-900"
+                        onClick={() => {
+                          console.log(
+                            "Opening modal for registration:",
+                            registration
+                          );
+                          setShowRegistrationDetails(registration);
+                        }}
+                        className="text-primary hover:text-blue-900 p-2 rounded-full hover:bg-blue-50 transition-colors"
                         title="View Details"
                       >
                         <Icon icon="mdi:eye" width={16} />
@@ -1602,28 +1678,59 @@ ${registration.companyName || "N/A"},${
 
       {/* Registration Details Modal */}
       {showRegistrationDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowRegistrationDetails(null);
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Registration Details
-                </h2>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-full">
+                    <Icon
+                      icon="mdi:account-details"
+                      width={24}
+                      className="text-blue-600"
+                    />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Registration Details
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      {showRegistrationDetails.companyName} •{" "}
+                      {showRegistrationDetails.registrationType === "season"
+                        ? `Season ${showRegistrationDetails.season}`
+                        : "Single Event"}
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setShowRegistrationDetails(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
                 >
                   <Icon icon="mdi:close" width={24} />
                 </button>
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-8">
               {/* Company Information */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Company Information
-                </h3>
+              <div className="bg-gray-50 rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon
+                    icon="mdi:office-building"
+                    width={20}
+                    className="text-blue-600"
+                  />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Company Information
+                  </h3>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -1635,10 +1742,31 @@ ${registration.companyName || "N/A"},${
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Industry
+                      Company Type
                     </label>
                     <p className="text-sm text-gray-900">
-                      {showRegistrationDetails.industry || "N/A"}
+                      {showRegistrationDetails.companyType ===
+                      "startup-corporate"
+                        ? "Startup and Corporates"
+                        : showRegistrationDetails.companyType === "investor"
+                        ? "Investors"
+                        : showRegistrationDetails.companyType || (
+                            <span className="text-gray-400">
+                              N/A (Legacy registration)
+                            </span>
+                          )}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Sub-type
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {showRegistrationDetails.subType || (
+                        <span className="text-gray-400">
+                          N/A (Legacy registration)
+                        </span>
+                      )}
                     </p>
                   </div>
                   <div>
@@ -1651,20 +1779,111 @@ ${registration.companyName || "N/A"},${
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Website
+                      LinkedIn URL
                     </label>
                     <p className="text-sm text-gray-900">
-                      {showRegistrationDetails.website || "N/A"}
+                      {showRegistrationDetails.linkedinUrl ? (
+                        <a
+                          href={showRegistrationDetails.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          {showRegistrationDetails.linkedinUrl}
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">
+                          N/A (Not provided)
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {showRegistrationDetails.companyType ===
+                      "startup-corporate"
+                        ? "Pitch Deck"
+                        : "Corporate Deck"}
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {showRegistrationDetails.pitchDeckUrl &&
+                      showRegistrationDetails.pitchDeckName ? (
+                        <div className="flex items-center gap-2">
+                          <Icon
+                            icon="mdi:file-document"
+                            width={16}
+                            className="text-gray-500"
+                          />
+                          <a
+                            href={showRegistrationDetails.pitchDeckUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline"
+                            onClick={() => {
+                              console.log("Opening PDF directly:", {
+                                url: showRegistrationDetails.pitchDeckUrl,
+                              });
+                            }}
+                          >
+                            {showRegistrationDetails.pitchDeckName}
+                          </a>
+                          {showRegistrationDetails.pitchDeckSize && (
+                            <span className="text-xs text-gray-500">
+                              (
+                              {(
+                                showRegistrationDetails.pitchDeckSize /
+                                1024 /
+                                1024
+                              ).toFixed(1)}{" "}
+                              MB)
+                            </span>
+                          )}
+                          <Icon
+                            icon="mdi:download"
+                            width={14}
+                            className="text-gray-400"
+                          />
+                        </div>
+                      ) : showRegistrationDetails.pitchDeckName ? (
+                        <div className="flex items-center gap-2">
+                          <Icon
+                            icon="mdi:file-document"
+                            width={16}
+                            className="text-gray-500"
+                          />
+                          <span className="text-gray-600">
+                            {showRegistrationDetails.pitchDeckName}
+                          </span>
+                          <span className="text-xs text-red-500">
+                            (File not accessible)
+                          </span>
+                        </div>
+                      ) : showRegistrationDetails.companyType ? (
+                        <span className="text-gray-400 text-sm">
+                          Not uploaded
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-sm">
+                          N/A (Legacy registration)
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Primary Contact */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Primary Contact
-                </h3>
+              <div className="bg-green-50 rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon
+                    icon="mdi:account"
+                    width={20}
+                    className="text-green-600"
+                  />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Primary Contact
+                  </h3>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -1702,10 +1921,17 @@ ${registration.companyName || "N/A"},${
               </div>
 
               {/* Registration Information */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Registration Information
-                </h3>
+              <div className="bg-purple-50 rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon
+                    icon="mdi:clipboard-list"
+                    width={20}
+                    className="text-purple-600"
+                  />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Registration Information
+                  </h3>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -1780,13 +2006,106 @@ ${registration.companyName || "N/A"},${
                 </div>
               </div>
 
+              {/* Community & Relationship Information */}
+              <div className="bg-orange-50 rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon
+                    icon="mdi:account-group"
+                    width={20}
+                    className="text-orange-600"
+                  />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Community & Relationship
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Community Membership
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {showRegistrationDetails.companyCommunity === "none"
+                        ? "Not a member"
+                        : showRegistrationDetails.companyCommunity === "xen"
+                        ? "XEN Community"
+                        : showRegistrationDetails.companyCommunity === "xev-fin"
+                        ? "XEV.FiN Community"
+                        : showRegistrationDetails.companyCommunity === "xevtg"
+                        ? "XEVTG Community"
+                        : showRegistrationDetails.companyCommunity === "xd-d"
+                        ? "xD&D Community"
+                        : showRegistrationDetails.companyCommunity || (
+                            <span className="text-gray-400">
+                              N/A (Legacy registration)
+                            </span>
+                          )}
+                    </p>
+                  </div>
+                  {showRegistrationDetails.companyCommunity === "xen" &&
+                    showRegistrationDetails.xenLevel && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          XEN Membership Level
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-gray-900 font-medium">
+                            {showRegistrationDetails.xenLevel.toUpperCase()}
+                          </p>
+                          {["x2", "x3", "x4", "x5"].includes(
+                            showRegistrationDetails.xenLevel
+                          ) && (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              100% Off
+                            </span>
+                          )}
+                          {showRegistrationDetails.xenLevel === "x1" && (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              1 Free Slot
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Relationship with Company
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {showRegistrationDetails.clientStatus === "none"
+                        ? "None"
+                        : showRegistrationDetails.clientStatus ===
+                          "existing-client"
+                        ? "Existing Client"
+                        : showRegistrationDetails.clientStatus ===
+                          "former-client"
+                        ? "Former Client"
+                        : showRegistrationDetails.clientStatus ===
+                          "sponsor-partner"
+                        ? "Sponsor/Partner"
+                        : showRegistrationDetails.clientStatus || (
+                            <span className="text-gray-400">
+                              N/A (Legacy registration)
+                            </span>
+                          )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Event Details */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  {showRegistrationDetails.registrationType === "season"
-                    ? "Selected Events"
-                    : "Event Details"}
-                </h3>
+              <div className="bg-indigo-50 rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon
+                    icon="mdi:calendar-multiple"
+                    width={20}
+                    className="text-indigo-600"
+                  />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {showRegistrationDetails.registrationType === "season"
+                      ? "Selected Events"
+                      : "Event Details"}
+                  </h3>
+                </div>
                 {showRegistrationDetails.registrationType === "season" ? (
                   <div>
                     {showRegistrationDetails.selectedEventDetails &&
@@ -1927,49 +2246,66 @@ ${registration.companyName || "N/A"},${
               )}
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex justify-end gap-4">
-              <button
-                onClick={() => setShowRegistrationDetails(null)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  const csvData = `Company,Contact,Email,Event,Attendees,Cost,Status,Date
+            <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-600">
+                    Registration ID: {showRegistrationDetails.id}
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    Created: {formatDate(showRegistrationDetails.createdAt)}
+                  </span>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      const csvData = `Company,Contact,Email,Event,Attendees,Cost,Status,Date
 ${showRegistrationDetails.companyName || "N/A"},${
-                    showRegistrationDetails.primaryContactName || "N/A"
-                  },${showRegistrationDetails.primaryContactEmail || "N/A"},${
-                    showRegistrationDetails.eventTitle || "N/A"
-                  },${
-                    showRegistrationDetails.personnel
-                      ? showRegistrationDetails.personnel.filter(
-                          (p) => p.isAttending
-                        ).length
-                      : 1
-                  },₹${(
-                    showRegistrationDetails.totalCost || 0
-                  ).toLocaleString()},${showRegistrationDetails.status},${
-                    showRegistrationDetails.registrationDate
-                      ? showRegistrationDetails.registrationDate instanceof Date
-                        ? showRegistrationDetails.registrationDate.toLocaleDateString()
-                        : new Date(
-                            showRegistrationDetails.registrationDate
-                          ).toLocaleDateString()
-                      : ""
-                  }`;
-                  const blob = new Blob([csvData], { type: "text/csv" });
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `registration-${showRegistrationDetails.id}.csv`;
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                }}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Export CSV
-              </button>
+                        showRegistrationDetails.primaryContactName || "N/A"
+                      },${
+                        showRegistrationDetails.primaryContactEmail || "N/A"
+                      },${showRegistrationDetails.eventTitle || "N/A"},${
+                        showRegistrationDetails.personnel
+                          ? showRegistrationDetails.personnel.filter(
+                              (p) => p.isAttending
+                            ).length
+                          : 0
+                      },₹${(
+                        showRegistrationDetails.totalCost || 0
+                      ).toLocaleString()},${showRegistrationDetails.status},${
+                        showRegistrationDetails.registrationDate
+                          ? showRegistrationDetails.registrationDate instanceof
+                            Date
+                            ? showRegistrationDetails.registrationDate.toLocaleDateString()
+                            : new Date(
+                                showRegistrationDetails.registrationDate
+                              ).toLocaleDateString()
+                          : ""
+                      }`;
+
+                      const blob = new Blob([csvData], {
+                        type: "text/csv;charset=utf-8;",
+                      });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `registration-${showRegistrationDetails.id}.csv`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    <Icon icon="mdi:download" width={16} />
+                    Download CSV
+                  </button>
+                  <button
+                    onClick={() => setShowRegistrationDetails(null)}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-white transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

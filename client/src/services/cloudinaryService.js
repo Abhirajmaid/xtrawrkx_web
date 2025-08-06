@@ -11,6 +11,11 @@ export class CloudinaryService {
     // Check if Cloudinary is properly configured
     static isConfigured() {
         const isValid = this.config.cloudName && this.config.uploadPreset;
+        console.log('Cloudinary Configuration Check:', {
+            cloudName: this.config.cloudName,
+            uploadPreset: this.config.uploadPreset,
+            isValid: isValid
+        });
         if (!isValid) {
             console.error('Cloudinary Configuration Error:', {
                 cloudName: this.config.cloudName,
@@ -137,11 +142,22 @@ export class CloudinaryService {
                 throw new Error('File size must be less than 10MB.');
             }
 
+            // Use 'raw' resource type for all file uploads
+            // PDFs should be uploaded as 'raw' to maintain file integrity
+            const resourceType = 'raw';
+
+            console.log('Uploading file:', {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                resourceType
+            });
+
             // Create form data
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', this.config.uploadPreset);
-            formData.append('resource_type', 'raw'); // Important for non-image files
+            formData.append('resource_type', resourceType);
 
             // Add optional parameters
             if (options.folder) {
@@ -159,7 +175,9 @@ export class CloudinaryService {
             }
 
             // Upload to Cloudinary
-            const uploadUrl = this.getUploadUrl('raw');
+            const uploadUrl = this.getUploadUrl(resourceType);
+
+            console.log('Upload URL:', uploadUrl);
 
 
             const response = await fetch(uploadUrl, {
@@ -190,6 +208,14 @@ export class CloudinaryService {
             }
 
             const result = await response.json();
+
+            console.log('Upload successful:', {
+                url: result.secure_url,
+                public_id: result.public_id,
+                format: result.format,
+                bytes: result.bytes,
+                resource_type: result.resource_type
+            });
 
             return {
                 url: result.secure_url,
@@ -320,6 +346,17 @@ export class CloudinaryService {
 
         return this.generateTransformedUrl(publicId, { quality, format });
     }
+
+    // Get PDF viewing URL (for raw files, return as-is)
+    static getPDFViewingUrl(url) {
+        if (!url || !url.includes('cloudinary.com')) {
+            return url;
+        }
+
+        // For raw files, return the URL as-is since they should work directly
+        // Raw files maintain their original format and can be viewed in browser
+        return url;
+    }
 }
 
 // Export convenient wrapper functions
@@ -345,4 +382,8 @@ export const getOptimizedImageUrl = (url, quality = 'auto', format = 'auto') => 
 
 export const getResizedImageUrl = (url, width, height, crop = 'fill') => {
     return CloudinaryService.getResizedImageUrl(url, width, height, crop);
+};
+
+export const getPDFViewingUrl = (url) => {
+    return CloudinaryService.getPDFViewingUrl(url);
 }; 
