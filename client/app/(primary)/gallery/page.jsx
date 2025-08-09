@@ -4,8 +4,8 @@ import Hero from "@/src/components/common/Hero";
 import {
   GalleryStatsSection,
   FeaturedGallerySection,
-  AllGallerySection,
 } from "@/src/components/gallery";
+import EventGallerySection from "@/src/components/gallery/EventGallerySection";
 import Marquee from "@/src/components/common/Marquee";
 
 export default function GalleryPage() {
@@ -14,18 +14,28 @@ export default function GalleryPage() {
       {/* Hero Section */}
       <Hero
         title="Gallery"
-        description="Explore our collection of moments, achievements, and milestones that showcase the journey and impact of Xtrawrkx community."
+        description="Explore our collection of moments, achievements, and milestones organized by events."
       />
 
       {/* Gallery Statistics Section */}
       <GalleryStatsSection />
 
-      {/* Featured Gallery Section */}
-      <FeaturedGallerySection />
-
-      {/* All Gallery Section - Needs Suspense for useSearchParams */}
-      <Suspense fallback={<div></div>}>
-        <AllGallerySection />
+      {/* Event-wise Gallery Section */}
+      <Suspense
+        fallback={
+          <div className="py-16 bg-white">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading gallery...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      >
+        <EventGallerySection />
       </Suspense>
 
       {/* Marquee */}

@@ -6,8 +6,63 @@ import { coreTeam, employees } from "@/src/data/teamData";
 import { teamService } from "@/src/services/databaseService";
 import SectionHeader from "../common/SectionHeader";
 
+// Function to get hierarchy rank for sorting
+const getHierarchyRank = (member) => {
+  const title = member.title?.toLowerCase() || "";
+
+  // CEO and Chief executives - highest priority
+  if (title.includes("ceo") || title.includes("chief executive")) return 1;
+
+  // Founders and Co-founders
+  if (title.includes("founder") || title.includes("co-founder")) return 2;
+
+  // Other C-level executives
+  if (title.includes("cto") || title.includes("cfo") || title.includes("coo"))
+    return 3;
+
+  // Chiefs (other than CEO)
+  if (title.includes("chief") && !title.includes("chief executive")) return 4;
+
+  // Presidents and VPs
+  if (
+    title.includes("president") ||
+    title.includes("vp") ||
+    title.includes("vice president")
+  )
+    return 5;
+
+  // Directors
+  if (title.includes("director")) return 6;
+
+  // Heads of departments
+  if (title.includes("head of") || title.includes("head,")) return 7;
+
+  // Managers and senior roles
+  if (title.includes("manager") || title.includes("senior")) return 8;
+
+  // All other roles
+  return 9;
+};
+
+// Function to sort team members hierarchically
+const sortTeamHierarchically = (members) => {
+  return [...members].sort((a, b) => {
+    const rankA = getHierarchyRank(a);
+    const rankB = getHierarchyRank(b);
+
+    // If ranks are the same, sort alphabetically by name
+    if (rankA === rankB) {
+      return a.name?.localeCompare(b.name || "") || 0;
+    }
+
+    return rankA - rankB;
+  });
+};
+
 export default function TeamSection() {
-  const [coreTeamMembers, setCoreTeamMembers] = useState(coreTeam);
+  const [coreTeamMembers, setCoreTeamMembers] = useState(() =>
+    sortTeamHierarchically(coreTeam)
+  );
   const [employeeMembers, setEmployeeMembers] = useState(employees);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +82,8 @@ export default function TeamSection() {
 
         // Only use Firebase data if we actually get results
         if (coreMembers.length > 0) {
-          setCoreTeamMembers(coreMembers.filter((m) => m.isActive));
+          const activeCoreMembers = coreMembers.filter((m) => m.isActive);
+          setCoreTeamMembers(sortTeamHierarchically(activeCoreMembers));
         }
         if (employeeMembers.length > 0) {
           setEmployeeMembers(employeeMembers.filter((m) => m.isActive));
@@ -36,7 +92,9 @@ export default function TeamSection() {
         console.error("Error loading team members:", error);
         setError(error.message);
 
-        // Keep using static data as fallback
+        // Keep using static data as fallback (sorted)
+        setCoreTeamMembers(sortTeamHierarchically(coreTeam));
+        setEmployeeMembers(employees);
         console.warn("Using static team data as fallback");
       } finally {
         setLoading(false);

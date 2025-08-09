@@ -756,6 +756,16 @@ export class EventRegistrationService extends BaseDatabaseService {
             throw new Error(`Failed to fetch registration: ${error.message}`);
         }
     }
+
+    // Update season registration (MISSING METHOD - CRITICAL FIX)
+    async updateSeasonRegistration(id, updateData) {
+        try {
+            return await this.update(id, updateData);
+        } catch (error) {
+            console.error('Error updating season registration:', error);
+            throw new Error(`Failed to update season registration: ${error.message}`);
+        }
+    }
 }
 
 // Team Service

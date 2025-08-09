@@ -5,6 +5,7 @@ import { Icon } from "@iconify/react";
 import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import Button from "@/src/components/common/Button";
+import RegistrationSuccess from "@/src/components/common/RegistrationSuccess";
 import { eventsData, getEventBySlug } from "@/src/data/EventsData";
 import {
   eventRegistrationService,
@@ -159,6 +160,8 @@ export default function CompanyEventRegistration({ params }) {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [showSuccessPage, setShowSuccessPage] = useState(false);
+  const [successData, setSuccessData] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -303,19 +306,71 @@ export default function CompanyEventRegistration({ params }) {
 
   const processPayment = (registrationData, registrationId, pricing) => {
     return new Promise((resolve, reject) => {
+      // Enhanced validation with ad blocker detection
       if (!window.Razorpay) {
-        reject(new Error("Razorpay SDK not loaded"));
+        console.error(
+          "Razorpay SDK not loaded - possible ad blocker interference"
+        );
+        reject(
+          new Error(
+            "🚫 Payment gateway blocked! This usually happens due to:\n\n" +
+              "1. Ad Blocker (most common) - Please disable ad blocker for this site\n" +
+              "2. Browser security settings - Try incognito/private mode\n" +
+              "3. Network restrictions - Try different network/device\n\n" +
+              "After fixing, please refresh the page and try again."
+          )
+        );
         return;
       }
 
+      if (!razorpayLoaded) {
+        console.error("Razorpay script not fully loaded");
+        reject(
+          new Error(
+            "🔄 Payment gateway still loading. Please wait a moment and try again.\n\n" +
+              "If this persists, try:\n" +
+              "1. Refreshing the page\n" +
+              "2. Checking your internet connection\n" +
+              "3. Disabling ad blocker"
+          )
+        );
+        return;
+      }
+
+      // Validate amount
+      if (!pricing.totalCost || pricing.totalCost <= 0) {
+        console.error("Invalid amount:", pricing.totalCost);
+        reject(
+          new Error("Invalid payment amount. Please refresh and try again.")
+        );
+        return;
+      }
+
+      // Validate registration ID
+      if (!registrationId) {
+        console.error("Registration ID missing");
+        reject(new Error("Registration error. Please try again."));
+        return;
+      }
+
+      const amountInPaise = Math.round(pricing.totalCost * 100);
+
+      console.log("Processing payment:", {
+        registrationId,
+        amount: pricing.totalCost,
+        amountInPaise,
+        eventTitle: event.title,
+      });
+
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_key", // Replace with your actual test/live key
-        amount: pricing.totalCost * 100, // Amount in paise
+        key: "rzp_live_JB7S2UmHSR0kL5", // Live Razorpay API Key
+        amount: amountInPaise, // Amount in paise (must be integer)
         currency: "INR",
         name: "XtraWrkx Events",
         description: `${event.title} - ${pricing.ticketType}`,
         order_id: `event_${registrationId}_${Date.now()}`, // You might want to create this via Razorpay Orders API
         handler: async function (response) {
+          console.log("Payment successful:", response);
           try {
             // Update registration with payment details
             const updatedRegistrationData = {
@@ -324,6 +379,7 @@ export default function CompanyEventRegistration({ params }) {
               status: "confirmed",
               paymentId: response.razorpay_payment_id,
               paymentSignature: response.razorpay_signature,
+              orderId: response.razorpay_order_id,
               paidAt: new Date().toISOString(),
             };
 
@@ -336,31 +392,132 @@ export default function CompanyEventRegistration({ params }) {
             resolve(response);
           } catch (error) {
             console.error("Error updating payment status:", error);
-            reject(error);
+            reject(
+              new Error(
+                "Payment completed but failed to update registration. Please contact support with payment ID: " +
+                  response.razorpay_payment_id
+              )
+            );
           }
         },
         prefill: {
-          name: formData.primaryContactName,
-          email: formData.primaryContactEmail,
-          contact: formData.primaryContactPhone,
+          name: formData.primaryContactName || "",
+          email: formData.primaryContactEmail || "",
+          contact: formData.primaryContactPhone || "",
         },
         notes: {
           registrationId: registrationId,
           eventTitle: event.title,
-          companyName: formData.companyName,
+          companyName: formData.companyName || "",
         },
         theme: {
           color: "#3B82F6", // Brand primary color
         },
         modal: {
           ondismiss: function () {
+            console.log("Payment modal dismissed by user");
             reject(new Error("Payment cancelled by user"));
           },
+          escape: true,
+          backdropclose: false,
         },
       };
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      try {
+        const razorpay = new window.Razorpay(options);
+
+        // Enhanced error handling for different failure types
+        razorpay.on("payment.failed", function (response) {
+          console.error("Payment failed:", response.error);
+          const error = response.error;
+
+          let errorMessage = "❌ Payment Failed\n\n";
+
+          if (error.code === "BAD_REQUEST_ERROR") {
+            errorMessage += "🚫 Bad Request Error - This usually indicates:\n";
+            errorMessage += "• Ad blocker corrupting payment data\n";
+            errorMessage += "• Browser security blocking requests\n";
+            errorMessage += "• Network interference\n\n";
+            errorMessage += "Please disable ad blocker and try again.";
+          } else if (error.code === "GATEWAY_ERROR") {
+            errorMessage +=
+              "🏦 Bank/Gateway Issue - Please try a different payment method.";
+          } else if (error.code === "NETWORK_ERROR") {
+            errorMessage +=
+              "🌐 Network Issue - Please check your internet connection and try again.";
+          } else if (
+            error.description &&
+            error.description.includes("blocked")
+          ) {
+            errorMessage +=
+              "🚫 Payment blocked - Please check with your bank or try a different card.";
+          } else if (error.description && error.description.includes("400")) {
+            errorMessage +=
+              "🚫 Request Error (400) - This indicates ad blocker interference:\n";
+            errorMessage += "• Please disable ad blocker for this website\n";
+            errorMessage += "• Try incognito/private browsing mode\n";
+            errorMessage += "• Clear browser cache and try again";
+          } else {
+            const desc =
+              error.description || error.reason || "Unknown payment error";
+            errorMessage += `Details: ${desc}`;
+
+            // Check if it might be ad blocker related
+            if (
+              desc.includes("400") ||
+              desc.includes("Bad Request") ||
+              desc.includes("blocked")
+            ) {
+              errorMessage +=
+                "\n\n💡 This looks like ad blocker interference. Please disable ad blocker and try again.";
+            }
+          }
+
+          errorMessage +=
+            "\n\nTip: Try incognito mode, disable ad blocker, or contact support if issue persists.";
+
+          reject(new Error(errorMessage));
+        });
+
+        // Add network error detection
+        const originalOpen = razorpay.open;
+        razorpay.open = function () {
+          try {
+            return originalOpen.call(this);
+          } catch (networkError) {
+            console.error("Network error opening Razorpay:", networkError);
+            reject(
+              new Error(
+                "🌐 Network Error: Unable to connect to payment gateway.\n\n" +
+                  "This often happens due to:\n" +
+                  "1. Ad blocker blocking payment scripts\n" +
+                  "2. Poor internet connectivity\n" +
+                  "3. Firewall/proxy restrictions\n\n" +
+                  "Please disable ad blocker and try again."
+              )
+            );
+          }
+        };
+
+        razorpay.open();
+      } catch (error) {
+        console.error("Error creating/opening Razorpay:", error);
+        let errorMessage = "🚫 Failed to open payment gateway.\n\n";
+
+        if (error.message && error.message.includes("blocked")) {
+          errorMessage +=
+            "This is typically caused by ad blockers or browser security settings.\n\n";
+          errorMessage += "Please:\n";
+          errorMessage += "1. Disable ad blocker for this website\n";
+          errorMessage += "2. Try incognito/private browsing mode\n";
+          errorMessage += "3. Check your internet connection";
+        } else {
+          errorMessage += "Error: " + error.message + "\n\n";
+          errorMessage += "Please refresh the page and try again.";
+        }
+
+        reject(new Error(errorMessage));
+      }
     });
   };
 
@@ -437,9 +594,15 @@ export default function CompanyEventRegistration({ params }) {
 
       // If it's a free registration, complete immediately
       if (pricing.isFree) {
-        alert(
-          `Registration successful! Your company has been registered for ${event.title}. Registration ID: ${registrationId}. Ticket: ${pricing.ticketType}. This is a FREE registration.\n\nYou will receive a confirmation email shortly.`
-        );
+        // Show success page for free registrations
+        setSuccessData({
+          registrationId,
+          companyName: formData.companyName,
+          eventTitle: event.title,
+          ticketType: pricing.ticketType,
+          totalCost: 0,
+        });
+        setShowSuccessPage(true);
 
         // Reset form after successful free registration
         setFormData({
@@ -477,13 +640,15 @@ export default function CompanyEventRegistration({ params }) {
         try {
           await processPayment(registrationData, registrationId, pricing);
 
-          alert(
-            `Payment successful! Your company has been registered for ${
-              event.title
-            }. Registration ID: ${registrationId}. Ticket: ${
-              pricing.ticketType
-            }. Amount paid: ₹${pricing.totalCost.toLocaleString()}\n\nYou will receive a confirmation email shortly.`
-          );
+          // Show success page for paid registrations
+          setSuccessData({
+            registrationId,
+            companyName: formData.companyName,
+            eventTitle: event.title,
+            ticketType: pricing.ticketType,
+            totalCost: pricing.totalCost,
+          });
+          setShowSuccessPage(true);
 
           // Reset form after successful paid registration
           setFormData({
@@ -521,13 +686,33 @@ export default function CompanyEventRegistration({ params }) {
 
           if (paymentError.message === "Payment cancelled by user") {
             alert(
-              "Payment was cancelled. Your registration has been saved and you can complete the payment later. Registration ID: " +
-                registrationId
+              "💳 Payment was cancelled. Your registration has been saved and you can complete the payment later.\n\nRegistration ID: " +
+                registrationId +
+                "\n\nYou can contact support to complete payment if needed."
+            );
+          } else if (paymentError.message.includes("Payment gateway")) {
+            alert(
+              "🔄 " +
+                paymentError.message +
+                "\n\nRegistration ID: " +
+                registrationId +
+                "\n\nPlease try again in a moment."
+            );
+          } else if (paymentError.message.includes("Payment failed:")) {
+            alert(
+              "❌ " +
+                paymentError.message +
+                "\n\nRegistration ID: " +
+                registrationId +
+                "\n\nPlease try a different payment method or contact support."
             );
           } else {
             alert(
-              "Payment failed. Your registration has been saved and you can retry payment later. Registration ID: " +
-                registrationId
+              "⚠️ Payment could not be completed. Your registration has been saved.\n\nRegistration ID: " +
+                registrationId +
+                "\n\nError: " +
+                paymentError.message +
+                "\n\nPlease contact support for assistance."
             );
           }
         }
@@ -578,6 +763,17 @@ export default function CompanyEventRegistration({ params }) {
           <Button text="Back to Events" type="primary" link="/events" />
         </div>
       </div>
+    );
+  }
+
+  // Show success page if registration is complete
+  if (showSuccessPage && successData) {
+    return (
+      <RegistrationSuccess
+        registrationData={successData}
+        onRedirect={() => (window.location.href = "/events")}
+        redirectDelay={5000}
+      />
     );
   }
 

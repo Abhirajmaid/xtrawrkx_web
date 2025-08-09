@@ -13,6 +13,130 @@ import { uploadImage } from "@/src/services/cloudinaryService";
 import { formatDate } from "@/src/utils/dateUtils";
 import Button from "@/src/components/common/Button";
 
+// Excel export utility
+const exportToExcel = (data, filename) => {
+  const headers = [
+    "Registration ID",
+    "Registration Type",
+    "Season",
+    "Company Name",
+    "Company Email",
+    "Company Phone",
+    "Company Address",
+    "Company Type",
+    "Sub Type",
+    "Company Size",
+    "LinkedIn URL",
+    "Community",
+    "XEN Level",
+    "Client Status",
+    "Ticket Type",
+    "Primary Contact Name",
+    "Primary Contact Email",
+    "Primary Contact Phone",
+    "Primary Contact Designation",
+    "Total Attendees",
+    "Personnel Names",
+    "Personnel Emails",
+    "Personnel Phones",
+    "Personnel Designations",
+    "Selected Events",
+    "Total Cost",
+    "Base Amount",
+    "Discount Amount",
+    "Free Members",
+    "Paid Members",
+    "Savings",
+    "Payment Status",
+    "Registration Status",
+    "Special Requests",
+    "Emergency Contact",
+    "Emergency Phone",
+    "Registration Date",
+    "Pitch Deck URL",
+  ];
+
+  const csvContent = [
+    headers.join(","),
+    ...data.map((registration) => {
+      const personnel = registration.personnel || [];
+      const selectedEvents =
+        registration.selectedEventDetails || registration.eventTitle
+          ? registration.selectedEventDetails
+            ? registration.selectedEventDetails.map((e) => e.title).join("; ")
+            : registration.eventTitle
+          : "N/A";
+
+      return [
+        registration.id || "",
+        registration.registrationType || "",
+        registration.season || "",
+        `"${(registration.companyName || "").replace(/"/g, '""')}"`,
+        registration.companyEmail || "",
+        registration.companyPhone || "",
+        `"${(registration.companyAddress || "").replace(/"/g, '""')}"`,
+        registration.companyType || "",
+        registration.subType || "",
+        registration.companySize || "",
+        registration.linkedinUrl || "",
+        registration.companyCommunity || "",
+        registration.xenLevel || "",
+        registration.clientStatus || "",
+        registration.ticketType || "",
+        `"${(registration.primaryContactName || "").replace(/"/g, '""')}"`,
+        registration.primaryContactEmail || "",
+        registration.primaryContactPhone || "",
+        registration.primaryContactDesignation || "",
+        registration.attendingCount ||
+          personnel.filter((p) => p.isAttending).length ||
+          0,
+        `"${personnel
+          .map((p) => p.name)
+          .join("; ")
+          .replace(/"/g, '""')}"`,
+        `"${personnel
+          .map((p) => p.email)
+          .join("; ")
+          .replace(/"/g, '""')}"`,
+        `"${personnel
+          .map((p) => p.phone)
+          .join("; ")
+          .replace(/"/g, '""')}"`,
+        `"${personnel
+          .map((p) => p.designation)
+          .join("; ")
+          .replace(/"/g, '""')}"`,
+        `"${selectedEvents.replace(/"/g, '""')}"`,
+        registration.totalCost || 0,
+        registration.baseAmount || 0,
+        registration.discountAmount || 0,
+        registration.freeMembers || 0,
+        registration.paidMembers || 0,
+        registration.savings || 0,
+        registration.paymentStatus || "",
+        registration.status || "",
+        `"${(registration.specialRequests || "").replace(/"/g, '""')}"`,
+        registration.emergencyContact || "",
+        registration.emergencyPhone || "",
+        registration.registrationDate || registration.createdAt || "",
+        registration.pitchDeckUrl || "",
+      ].join(",");
+    }),
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+};
+
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
   const [registrations, setRegistrations] = useState([]);
@@ -1257,6 +1381,29 @@ function RegistrationManagement({
             </select>
           </div>
         </div>
+
+        {/* Download Actions */}
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={() => {
+              const filename = selectedEvent
+                ? `registrations_${
+                    events
+                      .find((e) => e.id === selectedEvent)
+                      ?.title?.replace(/[^a-zA-Z0-9]/g, "_") || "event"
+                  }_${new Date().toISOString().split("T")[0]}.csv`
+                : `all_registrations_${
+                    new Date().toISOString().split("T")[0]
+                  }.csv`;
+              exportToExcel(filteredRegistrations, filename);
+            }}
+            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            disabled={filteredRegistrations.length === 0}
+          >
+            <Icon icon="mdi:download" width={20} />
+            <span>Download Excel ({filteredRegistrations.length} records)</span>
+          </button>
+        </div>
       </div>
 
       {/* Bulk Actions for Registrations */}
@@ -1328,6 +1475,9 @@ function RegistrationManagement({
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Community & Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ticket Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Event(s)
@@ -1474,6 +1624,42 @@ function RegistrationManagement({
                       </div>
                     </div>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm">
+                      {registration.ticketType ? (
+                        <div
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            registration.ticketType === "asp"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          <Icon
+                            icon={
+                              registration.ticketType === "asp"
+                                ? "mdi:star"
+                                : "mdi:account"
+                            }
+                            width={12}
+                            className="mr-1"
+                          />
+                          {registration.ticketType === "asp" ? "ASP" : "GNP"}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs">Not Set</span>
+                      )}
+                      {registration.ticketType === "asp" && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          ₹60,000 (Fixed)
+                        </div>
+                      )}
+                      {registration.ticketType === "gnp" && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          ₹8,000/member
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
                       {registration.registrationType === "season" ? (
@@ -1523,8 +1709,27 @@ function RegistrationManagement({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      ₹{(registration.totalCost || 0).toLocaleString()}
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        ₹{(registration.totalCost || 0).toLocaleString()}
+                      </div>
+                      {registration.discountAmount > 0 && (
+                        <div className="text-xs text-green-600">
+                          Saved: ₹
+                          {(registration.discountAmount || 0).toLocaleString()}
+                        </div>
+                      )}
+                      {registration.freeMembers > 0 && (
+                        <div className="text-xs text-blue-600">
+                          {registration.freeMembers} free +{" "}
+                          {registration.paidMembers} paid
+                        </div>
+                      )}
+                      {registration.totalCost === 0 && (
+                        <div className="text-xs text-green-600 font-medium">
+                          FREE
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

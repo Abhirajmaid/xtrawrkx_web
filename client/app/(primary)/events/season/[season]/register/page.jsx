@@ -14,6 +14,8 @@ import {
 import { CloudinaryService } from "@/src/services/cloudinaryService";
 import { formatEventDate } from "@/src/utils/dateUtils";
 import Script from "next/script";
+import RegistrationSuccess from "@/src/components/common/RegistrationSuccess";
+import { razorpayDebugger } from "@/src/utils/razorpayDebug";
 
 const communityOptions = [
   { id: "none", name: "Not a member" },
@@ -175,6 +177,9 @@ export default function SeasonRegistration({ params }) {
   const [errors, setErrors] = useState({});
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showSuccessPage, setShowSuccessPage] = useState(false);
+  const [successData, setSuccessData] = useState(null);
+  const [highlightPricingButton, setHighlightPricingButton] = useState(false);
 
   const eventService = new EventService();
 
@@ -267,6 +272,67 @@ export default function SeasonRegistration({ params }) {
 
     fetchSeasonEvents();
   }, [season, fromEvent]);
+
+  // Auto-open pricing modal or highlight button after page loads
+  useEffect(() => {
+    if (!loading && seasonEvents.length > 0) {
+      // Check if user has seen pricing rules before (localStorage)
+      const hasSeenPricingRules = localStorage.getItem("hasSeenPricingRules");
+
+      if (!hasSeenPricingRules) {
+        // Auto-open modal for first-time visitors
+        const timer = setTimeout(() => {
+          setShowPricingModal(true);
+          localStorage.setItem("hasSeenPricingRules", "true");
+        }, 2000); // Open modal 2 seconds after page loads
+
+        return () => clearTimeout(timer);
+      } else {
+        // For returning users, just highlight the button
+        const timer = setTimeout(() => {
+          setHighlightPricingButton(true);
+          // Auto-remove highlight after 5 seconds
+          const removeTimer = setTimeout(() => {
+            setHighlightPricingButton(false);
+          }, 5000);
+          return () => clearTimeout(removeTimer);
+        }, 1000); // Start highlighting 1 second after page loads
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [loading, seasonEvents]);
+
+  // Enhanced Razorpay initialization and debugging
+  useEffect(() => {
+    // Check for Razorpay availability periodically
+    const checkRazorpay = () => {
+      if (typeof window !== "undefined") {
+        if (window.Razorpay) {
+          console.log("✓ Razorpay SDK is available");
+          setRazorpayLoaded(true);
+        } else {
+          console.warn("⚠️ Razorpay SDK not yet available");
+        }
+      }
+    };
+
+    // Initial check
+    checkRazorpay();
+
+    // Set up periodic checks for the first 10 seconds
+    const checkInterval = setInterval(checkRazorpay, 1000);
+
+    // Clean up after 10 seconds
+    const cleanup = setTimeout(() => {
+      clearInterval(checkInterval);
+    }, 10000);
+
+    return () => {
+      clearInterval(checkInterval);
+      clearTimeout(cleanup);
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -724,8 +790,50 @@ export default function SeasonRegistration({ params }) {
 
   const processPayment = (registrationData, registrationId, pricing) => {
     return new Promise((resolve, reject) => {
+      // Enhanced validation with ad blocker detection
       if (!window.Razorpay) {
-        reject(new Error("Razorpay SDK not loaded"));
+        console.error(
+          "Razorpay SDK not loaded - possible ad blocker interference"
+        );
+        reject(
+          new Error(
+            "🚫 Payment gateway blocked! This usually happens due to:\n\n" +
+              "1. Ad Blocker (most common) - Please disable ad blocker for this site\n" +
+              "2. Browser security settings - Try incognito/private mode\n" +
+              "3. Network restrictions - Try different network/device\n\n" +
+              "After fixing, please refresh the page and try again."
+          )
+        );
+        return;
+      }
+
+      if (!razorpayLoaded) {
+        console.error("Razorpay script not fully loaded");
+        reject(
+          new Error(
+            "🔄 Payment gateway still loading. Please wait a moment and try again.\n\n" +
+              "If this persists, try:\n" +
+              "1. Refreshing the page\n" +
+              "2. Checking your internet connection\n" +
+              "3. Disabling ad blocker"
+          )
+        );
+        return;
+      }
+
+      // Validate amount
+      if (!pricing.totalCost || pricing.totalCost <= 0) {
+        console.error("Invalid amount:", pricing.totalCost);
+        reject(
+          new Error("Invalid payment amount. Please refresh and try again.")
+        );
+        return;
+      }
+
+      // Validate registration ID
+      if (!registrationId) {
+        console.error("Registration ID missing");
+        reject(new Error("Registration error. Please try again."));
         return;
       }
 
@@ -734,14 +842,45 @@ export default function SeasonRegistration({ params }) {
         .map((event) => event.title)
         .join(", ");
 
+      const amountInPaise = Math.round(pricing.totalCost * 100);
+
+      // Validate Razorpay key ID
+      const razorpayKeyId = "rzp_live_sJplWbjaaPEBXZ";
+
+      console.log("🔥 PAYMENT DEBUG - Processing payment:", {
+        registrationId,
+        amount: pricing.totalCost,
+        amountInPaise,
+        selectedEvents: selectedEventTitles,
+        razorpayKeyId: razorpayKeyId.substring(0, 10) + "...", // Log first 10 chars for security
+        windowRazorpay: !!window.Razorpay,
+        razorpayLoaded,
+        envKeyAvailable: !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      });
+      if (!razorpayKeyId || !razorpayKeyId.startsWith("rzp_")) {
+        reject(
+          new Error("Invalid Razorpay configuration. Please contact support.")
+        );
+        return;
+      }
+
+      // Generate a more robust order ID
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const orderId = `season_${season}_${registrationId}_${timestamp}_${randomSuffix}`;
+
       const options = {
-        key: "rzp_live_JB7S2UmHSR0kL5", // Replace with your actual test/live key
-        amount: pricing.totalCost * 100, // Amount in paise
+        key: razorpayKeyId, // Live Razorpay API Key
+        amount: amountInPaise, // Amount in paise (must be integer)
         currency: "INR",
         name: "XtraWrkx Events",
         description: `Season ${season} - ${pricing.ticketType}`,
-        order_id: `season_${registrationId}_${Date.now()}`, // You might want to create this via Razorpay Orders API
+        order_id: orderId, // Enhanced order ID for better tracking
         handler: async function (response) {
+          console.log("🎉 PAYMENT SUCCESS - Handler called:", response);
+          console.log("🔥 Payment ID:", response.razorpay_payment_id);
+          console.log("🔥 Order ID:", response.razorpay_order_id);
+          console.log("🔥 Signature:", response.razorpay_signature);
           try {
             // Update registration with payment details
             const updatedRegistrationData = {
@@ -750,6 +889,7 @@ export default function SeasonRegistration({ params }) {
               status: "confirmed",
               paymentId: response.razorpay_payment_id,
               paymentSignature: response.razorpay_signature,
+              orderId: response.razorpay_order_id,
               paidAt: new Date().toISOString(),
             };
 
@@ -762,32 +902,146 @@ export default function SeasonRegistration({ params }) {
             resolve(response);
           } catch (error) {
             console.error("Error updating payment status:", error);
-            reject(error);
+            reject(
+              new Error(
+                "Payment completed but failed to update registration. Please contact support with payment ID: " +
+                  response.razorpay_payment_id
+              )
+            );
           }
         },
         prefill: {
-          name: formData.primaryContactName,
-          email: formData.primaryContactEmail,
-          contact: formData.primaryContactPhone,
+          name: formData.primaryContactName || "",
+          email: formData.primaryContactEmail || "",
+          contact: formData.primaryContactPhone || "",
         },
         notes: {
           registrationId: registrationId,
           season: season,
           selectedEvents: selectedEventTitles,
-          companyName: formData.companyName,
+          companyName: formData.companyName || "",
         },
         theme: {
           color: "#3B82F6", // Brand primary color
         },
         modal: {
           ondismiss: function () {
+            console.log("Payment modal dismissed by user");
             reject(new Error("Payment cancelled by user"));
           },
+          escape: true,
+          backdropclose: false,
         },
       };
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      console.log("🔥 Creating Razorpay instance with options:", {
+        ...options,
+        key: options.key.substring(0, 10) + "...", // Don't log full key
+      });
+
+      try {
+        const razorpay = new window.Razorpay(options);
+        console.log("✅ Razorpay instance created successfully");
+
+        // Enhanced error handling for different failure types
+        razorpay.on("payment.failed", function (response) {
+          console.error("💥 PAYMENT FAILED - Handler called:", response);
+          console.error(
+            "🔥 Full response object:",
+            JSON.stringify(response, null, 2)
+          );
+          const error = response.error;
+          console.error("🔥 Error object:", JSON.stringify(error, null, 2));
+
+          let errorMessage = "❌ Payment Failed\n\n";
+
+          if (error.code === "BAD_REQUEST_ERROR") {
+            errorMessage += "🚫 Bad Request Error - This usually indicates:\n";
+            errorMessage += "• Ad blocker corrupting payment data\n";
+            errorMessage += "• Browser security blocking requests\n";
+            errorMessage += "• Network interference\n\n";
+            errorMessage += "Please disable ad blocker and try again.";
+          } else if (error.code === "GATEWAY_ERROR") {
+            errorMessage +=
+              "🏦 Bank/Gateway Issue - Please try a different payment method.";
+          } else if (error.code === "NETWORK_ERROR") {
+            errorMessage +=
+              "🌐 Network Issue - Please check your internet connection and try again.";
+          } else if (
+            error.description &&
+            error.description.includes("blocked")
+          ) {
+            errorMessage +=
+              "🚫 Payment blocked - Please check with your bank or try a different card.";
+          } else if (error.description && error.description.includes("400")) {
+            errorMessage +=
+              "🚫 Request Error (400) - This indicates ad blocker interference:\n";
+            errorMessage += "• Please disable ad blocker for this website\n";
+            errorMessage += "• Try incognito/private browsing mode\n";
+            errorMessage += "• Clear browser cache and try again";
+          } else {
+            const desc =
+              error.description || error.reason || "Unknown payment error";
+            errorMessage += `Details: ${desc}`;
+
+            // Check if it might be ad blocker related
+            if (
+              desc.includes("400") ||
+              desc.includes("Bad Request") ||
+              desc.includes("blocked")
+            ) {
+              errorMessage +=
+                "\n\n💡 This looks like ad blocker interference. Please disable ad blocker and try again.";
+            }
+          }
+
+          errorMessage +=
+            "\n\nTip: Try incognito mode, disable ad blocker, or contact support if issue persists.";
+
+          reject(new Error(errorMessage));
+        });
+
+        // Add network error detection
+        const originalOpen = razorpay.open;
+        razorpay.open = function () {
+          try {
+            return originalOpen.call(this);
+          } catch (networkError) {
+            console.error("Network error opening Razorpay:", networkError);
+            reject(
+              new Error(
+                "🌐 Network Error: Unable to connect to payment gateway.\n\n" +
+                  "This often happens due to:\n" +
+                  "1. Ad blocker blocking payment scripts\n" +
+                  "2. Poor internet connectivity\n" +
+                  "3. Firewall/proxy restrictions\n\n" +
+                  "Please disable ad blocker and try again."
+              )
+            );
+          }
+        };
+
+        console.log("🚀 Opening Razorpay payment modal...");
+        razorpay.open();
+        console.log("✅ Razorpay modal opened successfully");
+      } catch (error) {
+        console.error("Error creating/opening Razorpay:", error);
+        let errorMessage = "🚫 Failed to open payment gateway.\n\n";
+
+        if (error.message && error.message.includes("blocked")) {
+          errorMessage +=
+            "This is typically caused by ad blockers or browser security settings.\n\n";
+          errorMessage += "Please:\n";
+          errorMessage += "1. Disable ad blocker for this website\n";
+          errorMessage += "2. Try incognito/private browsing mode\n";
+          errorMessage += "3. Check your internet connection";
+        } else {
+          errorMessage += "Error: " + error.message + "\n\n";
+          errorMessage += "Please refresh the page and try again.";
+        }
+
+        reject(new Error(errorMessage));
+      }
     });
   };
 
@@ -931,37 +1185,63 @@ export default function SeasonRegistration({ params }) {
 
       // If it's a free registration, complete immediately
       if (pricing.isFree) {
-        alert(
-          `Season registration successful! Your company has been registered for Season ${season} events. Registration ID: ${registrationId}. Ticket: ${pricing.ticketType}. This is a FREE registration.\n\nYou will receive a confirmation email shortly.`
-        );
-
-        // Redirect to success page or events list
-        window.location.href = "/events";
+        // Show success page for free registrations
+        setSuccessData({
+          registrationId,
+          companyName: formData.companyName,
+          season: season,
+          ticketType: pricing.ticketType,
+          totalCost: 0,
+          eventTitle: `Season ${season} Events`,
+        });
+        setShowSuccessPage(true);
       } else {
         // Process payment for paid registrations
         try {
           await processPayment(registrationData, registrationId, pricing);
 
-          alert(
-            `Payment successful! Your company has been registered for Season ${season} events. Registration ID: ${registrationId}. Ticket: ${
-              pricing.ticketType
-            }. Amount paid: ₹${pricing.totalCost.toLocaleString()}\n\nYou will receive a confirmation email shortly.`
-          );
-
-          // Redirect to success page or events list
-          window.location.href = "/events";
+          // Show success page for paid registrations
+          setSuccessData({
+            registrationId,
+            companyName: formData.companyName,
+            season: season,
+            ticketType: pricing.ticketType,
+            totalCost: pricing.totalCost,
+            eventTitle: `Season ${season} Events`,
+          });
+          setShowSuccessPage(true);
         } catch (paymentError) {
           console.error("Payment error:", paymentError);
 
           if (paymentError.message === "Payment cancelled by user") {
             alert(
-              "Payment was cancelled. Your registration has been saved and you can complete the payment later. Registration ID: " +
-                registrationId
+              "💳 Payment was cancelled. Your registration has been saved and you can complete the payment later.\n\nRegistration ID: " +
+                registrationId +
+                "\n\nYou can contact support to complete payment if needed."
+            );
+          } else if (paymentError.message.includes("Payment gateway")) {
+            alert(
+              "🔄 " +
+                paymentError.message +
+                "\n\nRegistration ID: " +
+                registrationId +
+                "\n\nPlease try again in a moment."
+            );
+          } else if (paymentError.message.includes("Payment failed:")) {
+            alert(
+              "❌ " +
+                paymentError.message +
+                "\n\nRegistration ID: " +
+                registrationId +
+                "\n\nPlease try a different payment method or contact support."
             );
           } else {
             alert(
-              "Payment failed. Your registration has been saved and you can retry payment later. Registration ID: " +
-                registrationId
+              "⚠️ Payment could not be completed. Your registration has been saved.\n\nRegistration ID: " +
+                registrationId +
+                "\n\nError: " +
+                paymentError.message +
+                "\n\nPlease contact support for assistance."
             );
           }
 
@@ -1014,6 +1294,17 @@ export default function SeasonRegistration({ params }) {
           <Button text="Back to Events" type="primary" link="/events" />
         </div>
       </div>
+    );
+  }
+
+  // Show success page if registration is complete
+  if (showSuccessPage && successData) {
+    return (
+      <RegistrationSuccess
+        registrationData={successData}
+        onRedirect={() => (window.location.href = "/events")}
+        redirectDelay={5000}
+      />
     );
   }
 
@@ -1953,22 +2244,52 @@ export default function SeasonRegistration({ params }) {
               <div className="sticky top-24">
                 <div className="bg-white rounded-xl p-6 shadow-sm border">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                      <Icon
-                        icon="solar:calculator-bold"
-                        width={20}
-                        className="mr-2 text-brand-primary"
-                      />
-                      Registration Summary
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => setShowPricingModal(true)}
-                      className="flex items-center space-x-1 px-3 py-1.5 text-xs font-medium text-brand-primary bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
-                    >
-                      <Icon icon="mdi:help-circle" width={14} />
-                      <span>Pricing Rules</span>
-                    </button>
+                    <div className="flex items-center">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <Icon
+                          icon="solar:calculator-bold"
+                          width={20}
+                          className="mr-2 text-brand-primary"
+                        />
+                        Registration Summary
+                      </h3>
+                      {/* NEW badge for first-time visitors */}
+                      {!localStorage.getItem("hasSeenPricingRules") && (
+                        <span className="ml-2 px-2 py-1 text-xs font-medium bg-red-100 text-red-600 rounded-full animate-pulse">
+                          NEW
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowPricingModal(true);
+                          setHighlightPricingButton(false);
+                        }}
+                        className={`flex cursor-pointer items-center space-x-1 px-3 py-1.5 text-xs font-medium text-brand-primary bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-all duration-300 ${
+                          highlightPricingButton
+                            ? "animate-pulse ring-2 ring-brand-primary ring-opacity-75 shadow-lg scale-105"
+                            : ""
+                        }`}
+                      >
+                        <Icon icon="mdi:help-circle" width={14} />
+                        <span>Pricing Rules</span>
+                      </button>
+
+                      {/* Tooltip */}
+                      {highlightPricingButton && (
+                        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs py-2 px-3 rounded-lg shadow-lg z-10 whitespace-nowrap animate-bounce">
+                          👆 Click here to understand pricing!
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      )}
+
+                      {/* Glowing animation */}
+                      {highlightPricingButton && (
+                        <div className="absolute inset-0 rounded-lg bg-brand-primary opacity-20 animate-ping"></div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -2458,11 +2779,39 @@ export default function SeasonRegistration({ params }) {
         </div>
       )}
 
-      {/* Razorpay Script */}
+      {/* Razorpay Script - Enhanced for Next.js 15 */}
       <Script
         src="https://checkout.razorpay.com/v1/checkout.js"
-        onLoad={() => setRazorpayLoaded(true)}
-        onError={() => console.error("Failed to load Razorpay SDK")}
+        strategy="afterInteractive"
+        onLoad={() => {
+          console.log("Razorpay SDK loaded successfully");
+          setRazorpayLoaded(true);
+          // Run diagnostic checks after SDK loads
+          if (process.env.NODE_ENV === "development") {
+            setTimeout(() => razorpayDebugger.runAllChecks(), 1000);
+          }
+        }}
+        onError={(error) => {
+          console.error("Failed to load Razorpay SDK:", error);
+          setRazorpayLoaded(false);
+          // Try to detect ad blockers or network issues
+          if (typeof window !== "undefined") {
+            setTimeout(() => {
+              if (!window.Razorpay) {
+                console.warn(
+                  "Razorpay still not available - possible ad blocker interference"
+                );
+              }
+            }, 2000);
+          }
+        }}
+        onReady={() => {
+          // Additional check when script is ready
+          if (typeof window !== "undefined" && window.Razorpay) {
+            console.log("Razorpay SDK is ready");
+            setRazorpayLoaded(true);
+          }
+        }}
       />
     </div>
   );

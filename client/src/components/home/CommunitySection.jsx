@@ -86,37 +86,37 @@ const floatingVariants6 = {
 
 const images = [
   {
-    src: "/images/hero.png",
+    src: "/images/community/1.png",
     className: "-left-16 top-16 w-46 h-56 rounded-2xl",
     delay: 0.2,
     floatingVariant: floatingVariants1,
   },
   {
-    src: "/images/hero.png",
+    src: "/images/community/12.jpg",
     className: "left-24 -top-16 w-20 h-28 rounded-xl",
     delay: 0.4,
     floatingVariant: floatingVariants2,
   },
   {
-    src: "/images/hero.png",
+    src: "/images/community/1.png",
     className: "left-10 bottom-12 w-48 h-60 rounded-3xl",
     delay: 0.6,
     floatingVariant: floatingVariants3,
   },
   {
-    src: "/images/hero.png",
+    src: "/images/community/5.jpg",
     className: "-right-16 top-16 w-46 h-56 rounded-2xl",
     delay: 0.3,
     floatingVariant: floatingVariants4,
   },
   {
-    src: "/images/hero.png",
+    src: "/images/community/11.jpg",
     className: "right-24 -top-16 w-20 h-28 rounded-xl",
     delay: 0.5,
     floatingVariant: floatingVariants5,
   },
   {
-    src: "/images/hero.png",
+    src: "/images/community/7.jpg",
     className: "right-10 bottom-12 w-48 h-60 rounded-3xl",
     delay: 0.7,
     floatingVariant: floatingVariants6,

@@ -57,8 +57,11 @@ export default function HomeHero() {
           <div className="relative flex w-full md:w-[26%] min-h-[220px]">
             {/* Business Advisory and Consulting card (upper left) */}
             <div
-              className="absolute left-0 -top-10 bg-gradient-to-b from-[#BDBDBD]/90 to-[#E3E3E3]/80 rounded-2xl shadow-md w-[180px] h-[220px] flex flex-col justify-between items-center p-4 border border-white/40"
+              className="absolute left-0 cursor-pointer -top-10 bg-gradient-to-b from-[#BDBDBD]/90 to-[#E3E3E3]/80 rounded-2xl shadow-md w-[180px] h-[220px] flex flex-col justify-between items-center p-4 border border-white/40"
               style={{ zIndex: 10 }}
+              onClick={() => {
+                window.location.href = "/services";
+              }}
             >
               <div className="flex flex-col items-center justify-center flex-1">
                 <div
@@ -84,8 +87,11 @@ export default function HomeHero() {
             </div>
             {/* Financial Analysis and Reporting card (lower right, slightly to the right and down) */}
             <div
-              className="absolute right-0 bottom-0 bg-gradient-to-b from-[#E3E3E3]/90 to-[#BDBDBD]/80 rounded-2xl shadow-md w-[180px] h-[220px] flex flex-col justify-between items-center p-4 border border-white/40"
+              className="absolute right-0 bottom-0 cursor-pointer bg-gradient-to-b from-[#E3E3E3]/90 to-[#BDBDBD]/80 rounded-2xl shadow-md w-[180px] h-[220px] flex flex-col justify-between items-center p-4 border border-white/40"
               style={{ zIndex: 20 }}
+              onClick={() => {
+                window.location.href = "/services";
+              }}
             >
               <div className="flex flex-col items-center justify-center flex-1">
                 <div
@@ -115,8 +121,11 @@ export default function HomeHero() {
           <div className="relative flex w-full md:w-[26%] min-h-[220px]">
             {/* Contract Manufacturing card (lower left) */}
             <div
-              className="absolute left-0 bottom-0 bg-gradient-to-b from-[#E3E3E3]/80 to-[#BDBDBD]/80 rounded-2xl shadow-md w-[180px] h-[220px] flex flex-col justify-between items-center p-4 border border-white/40"
+              className="absolute left-0 bottom-0 cursor-pointer bg-gradient-to-b from-[#E3E3E3]/80 to-[#BDBDBD]/80 rounded-2xl shadow-md w-[180px] h-[220px] flex flex-col justify-between items-center p-4 border border-white/40"
               style={{ zIndex: 10 }}
+              onClick={() => {
+                window.location.href = "/services";
+              }}
             >
               <div className="flex flex-col items-center justify-center flex-1">
                 <div
@@ -140,8 +149,11 @@ export default function HomeHero() {
             </div>
             {/* Management Consulting card (upper right) */}
             <div
-              className="absolute right-0 -top-10 bg-gradient-to-b from-[#A6A6A6]/80 to-[#E3E3E3]/80 rounded-2xl shadow-md w-[180px] h-[220px] flex flex-col justify-between items-center p-4 border border-white/40"
+              className="absolute right-0 -top-10 cursor-pointer bg-gradient-to-b from-[#A6A6A6]/80 to-[#E3E3E3]/80 rounded-2xl shadow-md w-[180px] h-[220px] flex flex-col justify-between items-center p-4 border border-white/40"
               style={{ zIndex: 20 }}
+              onClick={() => {
+                window.location.href = "/services";
+              }}
             >
               <div className="flex flex-col items-center justify-center flex-1">
                 <div

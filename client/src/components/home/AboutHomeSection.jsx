@@ -167,7 +167,7 @@ export default function AboutHomeSection() {
                 animate="float"
               >
                 <Image
-                  src="/images/hero.png"
+                  src="/images/about/5.jpg"
                   alt="Team group 1"
                   fill
                   className="object-cover rounded-md shadow-lg"
@@ -186,7 +186,7 @@ export default function AboutHomeSection() {
                 animate="float"
               >
                 <Image
-                  src="/images/hero.png"
+                  src="/images/about/2.png"
                   alt="Team group 2"
                   fill
                   className="object-cover rounded-md shadow-lg"
@@ -205,7 +205,7 @@ export default function AboutHomeSection() {
                 animate="float"
               >
                 <Image
-                  src="/images/hero.png"
+                  src="/images/about/3.jpg"
                   alt="Panel discussion"
                   fill
                   className="object-cover rounded-md shadow-lg"
