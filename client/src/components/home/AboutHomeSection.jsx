@@ -167,7 +167,7 @@ export default function AboutHomeSection() {
                 animate="float"
               >
                 <Image
-                  src="/images/about/5.jpg"
+                  src="/images/about/5.JPG"
                   alt="Team group 1"
                   fill
                   className="object-cover rounded-md shadow-lg"
