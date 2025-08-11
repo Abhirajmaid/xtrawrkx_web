@@ -760,10 +760,63 @@ export class EventRegistrationService extends BaseDatabaseService {
     // Update season registration (MISSING METHOD - CRITICAL FIX)
     async updateSeasonRegistration(id, updateData) {
         try {
-            return await this.update(id, updateData);
+            // Add validation for required fields
+            if (!id) {
+                throw new Error('Registration ID is required');
+            }
+
+            console.log('Updating season registration:', id, updateData);
+            const result = await this.update(id, updateData);
+            console.log('Season registration updated successfully:', result);
+            return result;
         } catch (error) {
             console.error('Error updating season registration:', error);
+            console.error('Registration ID:', id);
+            console.error('Update data:', updateData);
             throw new Error(`Failed to update season registration: ${error.message}`);
+        }
+    }
+
+    // Update regular registration with better error handling
+    async updateRegistration(id, updateData) {
+        try {
+            // Add validation for required fields
+            if (!id) {
+                throw new Error('Registration ID is required');
+            }
+
+            console.log('Updating registration:', id, updateData);
+            const result = await this.update(id, updateData);
+            console.log('Registration updated successfully:', result);
+            return result;
+        } catch (error) {
+            console.error('Error updating registration:', error);
+            console.error('Registration ID:', id);
+            console.error('Update data:', updateData);
+            throw new Error(`Failed to update registration: ${error.message}`);
+        }
+    }
+
+    // Create a failed payment log for manual resolution
+    async createFailedPaymentLog(paymentData) {
+        try {
+            const failedPaymentData = {
+                ...paymentData,
+                status: 'payment_completed_update_failed',
+                needsManualReview: true,
+                loggedAt: new Date().toISOString(),
+                resolved: false
+            };
+
+            // Store in a separate collection for admin review
+            const failedPaymentService = new BaseDatabaseService('failed_payment_logs');
+            const result = await failedPaymentService.create(failedPaymentData);
+            console.log('Failed payment logged for manual review:', result.id);
+            return result;
+        } catch (error) {
+            console.error('Error logging failed payment:', error);
+            // Don't throw here as this is a fallback mechanism
+            return null;
         }
     }
 }

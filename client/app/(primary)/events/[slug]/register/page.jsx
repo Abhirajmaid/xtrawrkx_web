@@ -26,13 +26,13 @@ const ticketTypes = [
   {
     id: "gnp",
     name: "General Networking Pass (GNP)",
-    price: 8000,
+    price: 10,
     description: "Access to networking sessions and general event activities",
   },
   {
     id: "asp",
     name: "Active Support Pass (ASP)",
-    price: 60000,
+    price: 10,
     description:
       "Full access to all sessions, workshops, and premium networking opportunities",
   },
@@ -222,7 +222,7 @@ export default function CompanyEventRegistration({ params }) {
     const selectedTicket = ticketTypes.find(
       (t) => t.id === formData.ticketType
     );
-    const basePrice = selectedTicket ? selectedTicket.price : 8000; // Default to GNP price
+    const basePrice = selectedTicket ? selectedTicket.price : 10; // Default to GNP price
     let totalCost = basePrice;
     let discountAmount = 0;
     let isFree = false;
@@ -383,19 +383,74 @@ export default function CompanyEventRegistration({ params }) {
               paidAt: new Date().toISOString(),
             };
 
-            // Update the registration in database
-            await eventRegistrationService.updateRegistration(
-              registrationId,
-              updatedRegistrationData
-            );
+            // Retry logic for updating registration
+            let retryCount = 0;
+            const maxRetries = 3;
+            let updateSuccess = false;
+
+            while (retryCount < maxRetries && !updateSuccess) {
+              try {
+                await eventRegistrationService.updateRegistration(
+                  registrationId,
+                  updatedRegistrationData
+                );
+                updateSuccess = true;
+                console.log(
+                  "Registration updated successfully after",
+                  retryCount + 1,
+                  "attempt(s)"
+                );
+              } catch (updateError) {
+                retryCount++;
+                console.error(
+                  `Registration update attempt ${retryCount} failed:`,
+                  updateError
+                );
+
+                if (retryCount < maxRetries) {
+                  // Wait for 1 second before retrying
+                  await new Promise((resolve) => setTimeout(resolve, 1000));
+                }
+              }
+            }
+
+            if (!updateSuccess) {
+              // Log detailed error for debugging
+              console.error(
+                "Failed to update registration after",
+                maxRetries,
+                "attempts"
+              );
+              console.error("Registration ID:", registrationId);
+              console.error("Payment ID:", response.razorpay_payment_id);
+
+              // Log this for manual admin review
+              try {
+                await eventRegistrationService.createFailedPaymentLog({
+                  registrationId,
+                  paymentId: response.razorpay_payment_id,
+                  paymentSignature: response.razorpay_signature,
+                  orderId: response.razorpay_order_id,
+                  eventId: event.id,
+                  eventSlug: event.slug,
+                  registrationData: updatedRegistrationData,
+                  errorType: "database_update_failed",
+                  maxRetries,
+                  timestamp: new Date().toISOString(),
+                });
+              } catch (logError) {
+                console.error("Failed to log failed payment:", logError);
+              }
+
+              throw new Error("Database update failed after multiple attempts");
+            }
 
             resolve(response);
           } catch (error) {
             console.error("Error updating payment status:", error);
             reject(
               new Error(
-                "Payment completed but failed to update registration. Please contact support with payment ID: " +
-                  response.razorpay_payment_id
+                `Payment completed but failed to update registration. Please contact support with payment ID: ${response.razorpay_payment_id}. Error: ${error.message}`
               )
             );
           }

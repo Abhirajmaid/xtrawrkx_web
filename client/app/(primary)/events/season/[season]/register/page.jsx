@@ -58,15 +58,15 @@ const ticketTypes = [
   {
     id: "gnp",
     name: "General Networking Pass (GNP)",
-    price: 8000,
+    price: 10,
     description: "Access to networking sessions and general event activities",
   },
   {
     id: "asp",
     name: "Active Support Pass (ASP)",
-    price: 60000,
+    price: 10,
     description:
-      "Full access to all sessions, workshops, and premium networking opportunities. Fixed price of ₹60,000 for 1-2 members per company.",
+      "Full access to all sessions, workshops, and premium networking opportunities. Fixed price of ₹10 for 1-2 members per company.",
   },
 ];
 
@@ -385,6 +385,25 @@ export default function SeasonRegistration({ params }) {
     }));
   };
 
+  const copyPrimaryContactToPerson1 = () => {
+    if (formData.personnel.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        personnel: prev.personnel.map((person, i) =>
+          i === 0
+            ? {
+                ...person,
+                name: prev.primaryContactName,
+                email: prev.primaryContactEmail,
+                phone: prev.primaryContactPhone,
+                designation: prev.primaryContactDesignation,
+              }
+            : person
+        ),
+      }));
+    }
+  };
+
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
@@ -399,7 +418,7 @@ export default function SeasonRegistration({ params }) {
     const selectedTicket = ticketTypes.find(
       (t) => t.id === formData.ticketType
     );
-    const basePrice = selectedTicket ? selectedTicket.price : 8000;
+    const basePrice = selectedTicket ? selectedTicket.price : 10;
     let totalCost = 0;
     let discountAmount = 0;
     let isFree = false;
@@ -434,7 +453,7 @@ export default function SeasonRegistration({ params }) {
     if (clientStatus && clientStatus.specialOffer === "5_gnp_or_1_asp") {
       // Existing clients: 5 free GNPs OR 1 free ASP
       if (formData.ticketType === "gnp") {
-        // GNP: Up to 5 members free, additional members pay ₹8000
+        // GNP: Up to 5 members free, additional members pay ₹10
         if (attendingCount <= 5) {
           totalCost = 0;
           isFree = true;
@@ -504,7 +523,7 @@ export default function SeasonRegistration({ params }) {
       ) {
         // XEN X2-X5: 5 free GNPs OR 1 free ASP (same as existing client benefits)
         if (formData.ticketType === "gnp") {
-          // GNP: Up to 5 members free, additional members pay ₹8000
+          // GNP: Up to 5 members free, additional members pay ₹10
           if (attendingCount <= 5) {
             totalCost = 0;
             isFree = true;
@@ -803,6 +822,7 @@ export default function SeasonRegistration({ params }) {
           description: `Season ${season} - ${pricing.ticketType}`,
           order_id: orderData.id, // Real Razorpay order ID from backend
           handler: async function (response) {
+            console.log("Payment successful:", response);
             try {
               // Update registration with payment details
               const updatedRegistrationData = {
@@ -815,18 +835,75 @@ export default function SeasonRegistration({ params }) {
                 paidAt: new Date().toISOString(),
               };
 
-              // Update the registration in database
-              await eventRegistrationService.updateSeasonRegistration(
-                registrationId,
-                updatedRegistrationData
-              );
+              // Retry logic for updating registration
+              let retryCount = 0;
+              const maxRetries = 3;
+              let updateSuccess = false;
+
+              while (retryCount < maxRetries && !updateSuccess) {
+                try {
+                  await eventRegistrationService.updateSeasonRegistration(
+                    registrationId,
+                    updatedRegistrationData
+                  );
+                  updateSuccess = true;
+                  console.log(
+                    "Registration updated successfully after",
+                    retryCount + 1,
+                    "attempt(s)"
+                  );
+                } catch (updateError) {
+                  retryCount++;
+                  console.error(
+                    `Registration update attempt ${retryCount} failed:`,
+                    updateError
+                  );
+
+                  if (retryCount < maxRetries) {
+                    // Wait for 1 second before retrying
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                  }
+                }
+              }
+
+              if (!updateSuccess) {
+                // Log detailed error for debugging
+                console.error(
+                  "Failed to update registration after",
+                  maxRetries,
+                  "attempts"
+                );
+                console.error("Registration ID:", registrationId);
+                console.error("Payment ID:", response.razorpay_payment_id);
+
+                // Log this for manual admin review
+                try {
+                  await eventRegistrationService.createFailedPaymentLog({
+                    registrationId,
+                    paymentId: response.razorpay_payment_id,
+                    paymentSignature: response.razorpay_signature,
+                    orderId: response.razorpay_order_id,
+                    season: season,
+                    registrationData: updatedRegistrationData,
+                    errorType: "database_update_failed",
+                    maxRetries,
+                    timestamp: new Date().toISOString(),
+                  });
+                } catch (logError) {
+                  console.error("Failed to log failed payment:", logError);
+                }
+
+                throw new Error(
+                  "Database update failed after multiple attempts"
+                );
+              }
 
               resolve(response);
             } catch (error) {
+              console.error("Error in payment handler:", error);
               reject(
                 new Error(
-                  "Payment completed but failed to update registration. Please contact support with payment ID: " +
-                    response.razorpay_payment_id
+                  `Payment completed but failed to update registration. Please contact support with payment ID: ${response.razorpay_payment_id}. Error: ${error.message}`
                 )
               );
             }
@@ -1175,7 +1252,7 @@ export default function SeasonRegistration({ params }) {
         {/* Background Image */}
         <div className="absolute inset-0 w-full h-full">
           <Image
-            src="/images/hero.png"
+            src="/images/registration banner.png"
             alt="Registration Header Background"
             fill
             className="object-cover object-center"
@@ -1186,7 +1263,7 @@ export default function SeasonRegistration({ params }) {
         </div>
 
         <Container className="relative z-10">
-          <div className="py-6 pt-[100px]">
+          <div className="py-6 pt-[170px]">
             <div className="flex items-center space-x-3 mb-4">
               <Button
                 text="← Back to Events"
@@ -1829,8 +1906,22 @@ export default function SeasonRegistration({ params }) {
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="font-medium text-gray-900">
                           Person {index + 1}
+                          {index === 0 && (
+                            <span className="text-sm text-gray-500 ml-2">
+                              (Team Lead)
+                            </span>
+                          )}
                         </h3>
                         <div className="flex items-center space-x-2">
+                          {index === 0 && (
+                            <Button
+                              text="Copy Primary Contact"
+                              type="secondary"
+                              onClick={copyPrimaryContactToPerson1}
+                              className="text-xs"
+                              icon="mdi:content-copy"
+                            />
+                          )}
                           <label className="flex items-center space-x-2">
                             <input
                               type="checkbox"
@@ -1849,12 +1940,16 @@ export default function SeasonRegistration({ params }) {
                             </span>
                           </label>
                           {formData.personnel.length > 1 && (
-                            <Button
-                              text="Remove"
-                              type="danger"
+                            <button
                               onClick={() => removePersonnel(index)}
-                              className="text-xs"
-                            />
+                              className="text-xs text-dark cursor-pointer hover:bg-red-500 hover:text-white rounded-full flex  p-2"
+                            >
+                              <Icon
+                                icon="mdi:delete"
+                                width={16}
+                                className="text-danger"
+                              />
+                            </button>
                           )}
                         </div>
                       </div>
@@ -2138,7 +2233,7 @@ export default function SeasonRegistration({ params }) {
                       {/* Tooltip */}
                       {highlightPricingButton && (
                         <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs py-2 px-3 rounded-lg shadow-lg z-10 whitespace-nowrap animate-bounce">
-                          👆 Click here to understand pricing!
+                          Click here to understand pricing!
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                         </div>
                       )}
@@ -2372,7 +2467,7 @@ export default function SeasonRegistration({ params }) {
                       <p>* Existing clients: 5 free GNPs OR 1 free ASP</p>
                       <p>* Sponsors/Partners: 50% off (up to 5 GNPs or ASP)</p>
                       <p>
-                        * <strong>ASP: Fixed ₹60,000 for 1-2 members</strong>
+                        * <strong>ASP: Fixed ₹10 for 1-2 members</strong>
                       </p>
                       <p>* Former clients: 25% discount</p>
                     </div>
@@ -2419,9 +2514,7 @@ export default function SeasonRegistration({ params }) {
                     <h4 className="font-semibold text-gray-900 mb-2">
                       General Networking Pass (GNP)
                     </h4>
-                    <p className="text-sm text-gray-600 mb-2">
-                      ₹8,000 per member
-                    </p>
+                    <p className="text-sm text-gray-600 mb-2">₹10 per member</p>
                     <p className="text-xs text-gray-500">
                       Access to networking sessions and general event activities
                     </p>
@@ -2431,7 +2524,7 @@ export default function SeasonRegistration({ params }) {
                       Active Support Pass (ASP)
                     </h4>
                     <p className="text-sm text-gray-600 mb-2">
-                      ₹60,000 fixed price
+                      ₹10 fixed price
                     </p>
                     <p className="text-xs text-gray-500">
                       Full access to all sessions. Fixed price for 1-2 members
@@ -2455,7 +2548,7 @@ export default function SeasonRegistration({ params }) {
                     <div className="text-sm space-y-1">
                       <p>
                         • <strong>GNP:</strong> 5 free passes (additional
-                        members pay ₹8,000 each)
+                        members pay ₹10 each)
                       </p>
                       <p>
                         • <strong>ASP:</strong> 1 completely free ASP (₹0 total
@@ -2517,7 +2610,7 @@ export default function SeasonRegistration({ params }) {
                     <div className="text-sm space-y-1">
                       <p>
                         • <strong>GNP:</strong> 50% off up to 5 members (₹4,000
-                        each), then ₹8,000 for additional
+                        each), then ₹10 for additional
                       </p>
                       <p>
                         • <strong>ASP:</strong> 50% off fixed price (₹30,000)
@@ -2566,8 +2659,8 @@ export default function SeasonRegistration({ params }) {
                     existing client + XEN X2+ benefits
                   </p>
                   <p>
-                    • <strong>ASP Pricing:</strong> Fixed ₹60,000 covers 1-2
-                    members (not per member)
+                    • <strong>ASP Pricing:</strong> Fixed ₹10 covers 1-2 members
+                    (not per member)
                   </p>
                   <p>
                     • <strong>Free ASP Access:</strong> Only Existing Clients &
@@ -2609,7 +2702,7 @@ export default function SeasonRegistration({ params }) {
                       Example 3: Sponsor + ASP
                     </h4>
                     <p>2 members, ASP ticket</p>
-                    <p className="text-orange-600">• 50% discount on ₹60,000</p>
+                    <p className="text-orange-600">• 50% discount on ₹10</p>
                     <p className="font-medium">Total: ₹30,000</p>
                   </div>
 
