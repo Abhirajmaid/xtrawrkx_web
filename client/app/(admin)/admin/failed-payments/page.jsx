@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { eventRegistrationService } from "@/services/databaseService";
+import { eventRegistrationService } from "@/src/services/databaseService";
 import {
   collection,
   getDocs,
@@ -10,7 +10,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "@/config/firebase";
+import { db } from "@/src/config/firebase";
 
 export default function FailedPaymentsPage() {
   const [failedPayments, setFailedPayments] = useState([]);
