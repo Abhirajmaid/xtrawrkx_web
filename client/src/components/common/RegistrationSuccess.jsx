@@ -45,7 +45,7 @@ const RegistrationSuccess = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen mt-[150px] bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4">
       <div className="max-w-2xl w-full">
         {/* Success Animation Container */}
         <div className="text-center mb-8">
@@ -180,7 +180,7 @@ const RegistrationSuccess = ({
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={handleManualRedirect}
-              className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="flex items-center justify-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
             >
               <Icon icon="mdi:arrow-right" className="mr-2" width={20} />
               Continue to Events

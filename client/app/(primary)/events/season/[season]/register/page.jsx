@@ -234,10 +234,7 @@ export default function SeasonRegistration({ params }) {
     const fetchSeasonEvents = async () => {
       try {
         setLoading(true);
-        console.log("Fetching events for season:", season);
-
         const events = await eventService.getUpcomingEventsBySeason(season);
-        console.log("Fetched season events:", events);
 
         if (events.length === 0) {
           setError(`No upcoming events found for season ${season}`);
@@ -625,21 +622,6 @@ export default function SeasonRegistration({ params }) {
       }
     }
 
-    // Debug logging
-    console.log("Pricing Debug:", {
-      companyCommunity: formData.companyCommunity,
-      clientStatus: formData.clientStatus,
-      ticketType: formData.ticketType,
-      attendingCount,
-      totalCost,
-      freeMembers,
-      paidMembers,
-      basePrice,
-      discountAmount,
-      violatesRules,
-      ruleViolationMessage,
-    });
-
     // Calculate savings based on ticket type
     let savings = 0;
     if (formData.ticketType === "asp") {
@@ -953,12 +935,6 @@ export default function SeasonRegistration({ params }) {
       if (formData.pitchDeck) {
         setIsUploadingFile(true);
         try {
-          console.log("Starting file upload...", {
-            fileName: formData.pitchDeck.name,
-            fileSize: formData.pitchDeck.size,
-            fileType: formData.pitchDeck.type,
-          });
-
           const uploadOptions = {
             folder: "pitch_decks",
             public_id: `pitch_deck_${formData.companyName.replace(
@@ -971,8 +947,6 @@ export default function SeasonRegistration({ params }) {
             formData.pitchDeck,
             uploadOptions
           );
-
-          console.log("Upload completed successfully:", uploadResult);
 
           pitchDeckUrl = uploadResult.url;
           pitchDeckName = formData.pitchDeck.name;
@@ -1063,12 +1037,11 @@ export default function SeasonRegistration({ params }) {
       };
 
       // Save season registration to database
-      const registrationId =
+      const registrationResult =
         await eventRegistrationService.createSeasonRegistration(
           registrationData
         );
-
-      console.log("Season registration saved with ID:", registrationId);
+      const registrationId = registrationResult.id;
 
       // If it's a free registration, complete immediately
       if (pricing.isFree) {
