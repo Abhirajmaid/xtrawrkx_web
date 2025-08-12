@@ -138,6 +138,37 @@ export const missionVision = {
     }
 };
 
+export const companies = {
+    heading: "Our Companies",
+    subtext: "Xtrawrkx operates through three specialized companies, each focusing on distinct areas of expertise to provide comprehensive solutions across diverse business needs.",
+    companiesList: [
+        {
+            id: "XMC",
+            name: "Xtrawrkx Management Consulting Pvt Ltd",
+            shortName: "XMC",
+            icon: "mdi:chart-line",
+            description: "Comprehensive management consulting services to accelerate your business growth and operational excellence. We provide strategic guidance, process optimization, and business transformation solutions to help organizations achieve sustainable competitive advantages.",
+            specialties: ["Strategic Planning", "Operations Excellence", "Business Transformation", "Market Analysis"]
+        },
+        {
+            id: "XGV",
+            name: "Xtrawrkx Global Venture Private Limited",
+            shortName: "XGV",
+            icon: "mdi:rocket-launch",
+            description: "Global venture capital and investment solutions for emerging businesses and innovative startups. We identify, evaluate, and invest in promising ventures while providing strategic support and mentorship to drive exponential growth.",
+            specialties: ["Venture Capital", "Startup Investment", "Growth Strategy", "Market Expansion"]
+        },
+        {
+            id: "XMB",
+            name: "Xtrawrkx Manufacturing Business Pvt Ltd",
+            shortName: "XMB",
+            icon: "mdi:factory",
+            description: "End-to-end manufacturing solutions from design to production, leveraging cutting-edge technology. We specialize in advanced manufacturing processes, automation, and smart factory implementations for automotive, electronics, and industrial sectors.",
+            specialties: ["Smart Manufacturing", "Production Automation", "Quality Systems", "Supply Chain Optimization"]
+        }
+    ]
+};
+
 export const faq = [
     { q: "What engineering services does Xtrawrkx offer?", a: "We offer product development, technology consulting, hardware design, software development, IoT solutions, and manufacturing support across automotive, drone, and industrial automation sectors." },
     { q: "How does Xtrawrkx approach product development?", a: "We follow a systematic engineering process from concept to production, combining innovative design with rigorous testing and validation to ensure reliable, market-ready solutions." },

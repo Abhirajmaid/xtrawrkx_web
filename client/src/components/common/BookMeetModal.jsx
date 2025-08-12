@@ -232,10 +232,10 @@ const BookMeetModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-2xl w-full max-w-4xl h-[98vh] sm:h-[95vh] md:h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Modal Header */}
-        <div className="bg-brand-primary text-white p-4 md:p-6">
+        <div className="bg-brand-primary text-white p-3 sm:p-4 md:p-6 flex-shrink-0">
           <div className="flex items-start md:items-center justify-between mb-4 md:mb-0">
             <div className="flex-1 pr-4">
               <h2 className="text-lg md:text-2xl font-bold mb-1 md:mb-2">
@@ -248,7 +248,8 @@ const BookMeetModal = ({ isOpen, onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors flex-shrink-0"
+              className="p-2 hover:bg-white/20 rounded-full transition-colors flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Close modal"
             >
               <Icon
                 icon="solar:close-circle-bold"
@@ -297,10 +298,10 @@ const BookMeetModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Modal Content */}
-        <div className="p-4 md:p-6 max-h-[calc(95vh-200px)] md:max-h-[calc(90vh-200px)] overflow-y-auto">
+        <div className="flex-1 p-3 sm:p-4 md:p-6 overflow-y-auto min-h-0 scroll-py-4">
           {/* Step 1: Consultation Type Selection */}
           {currentStep === 1 && (
-            <div className="space-y-4 md:space-y-6">
+            <div className="space-y-3 sm:space-y-4 md:space-y-6">
               <div>
                 <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                   What type of consultation call would you like to schedule?
@@ -365,7 +366,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
 
           {/* Step 2: Contact Information */}
           {currentStep === 2 && (
-            <div className="space-y-4 md:space-y-6">
+            <div className="space-y-3 sm:space-y-4 md:space-y-6">
               <div>
                 <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                   Contact Information
@@ -380,7 +381,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full border-2 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px] ${
                         errors.firstName ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="Enter your first name"
@@ -401,7 +402,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full border-2 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px] ${
                         errors.lastName ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="Enter your last name"
@@ -422,7 +423,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full border-2 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px] ${
                         errors.email ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="your.email@example.com"
@@ -443,7 +444,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full border-2 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px] ${
                         errors.phone ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="+1 (555) 123-4567"
@@ -464,7 +465,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="company"
                       value={formData.company}
                       onChange={handleChange}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
+                      className="w-full border-2 border-gray-300 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px]"
                       placeholder="Your company name"
                     />
                   </div>
@@ -478,7 +479,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="jobTitle"
                       value={formData.jobTitle}
                       onChange={handleChange}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
+                      className="w-full border-2 border-gray-300 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px]"
                       placeholder="Your job title"
                     />
                   </div>
@@ -489,7 +490,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
 
           {/* Step 3: Call Details */}
           {currentStep === 3 && (
-            <div className="space-y-4 md:space-y-6">
+            <div className="space-y-3 sm:space-y-4 md:space-y-6">
               <div>
                 <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                   Consultation Call Details
@@ -527,7 +528,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="purpose"
                       value={formData.purpose}
                       onChange={handleChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full border-2 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px] ${
                         errors.purpose ? "border-red-500" : "border-gray-300"
                       }`}
                     >
@@ -553,7 +554,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="meetingMode"
                       value={formData.meetingMode}
                       onChange={handleChange}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
+                      className="w-full border-2 border-gray-300 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px]"
                     >
                       <option value="video">Video Call (Zoom/Teams)</option>
                       <option value="phone">Phone Call</option>
@@ -570,7 +571,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       value={formData.preferredDate}
                       onChange={handleChange}
                       min={today}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full border-2 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px] ${
                         errors.preferredDate
                           ? "border-red-500"
                           : "border-gray-300"
@@ -591,7 +592,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="preferredTime"
                       value={formData.preferredTime}
                       onChange={handleChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full border-2 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px] ${
                         errors.preferredTime
                           ? "border-red-500"
                           : "border-gray-300"
@@ -621,7 +622,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       value={formData.alternativeDate}
                       onChange={handleChange}
                       min={today}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
+                      className="w-full border-2 border-gray-300 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px]"
                     />
                   </div>
 
@@ -633,7 +634,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="alternativeTime"
                       value={formData.alternativeTime}
                       onChange={handleChange}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
+                      className="w-full border-2 border-gray-300 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px]"
                     >
                       <option value="">Select time</option>
                       {timeSlots.map((time) => (
@@ -650,7 +651,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
 
           {/* Step 4: Additional Information */}
           {currentStep === 4 && (
-            <div className="space-y-4 md:space-y-6">
+            <div className="space-y-3 sm:space-y-4 md:space-y-6">
               <div>
                 <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                   Additional Information
@@ -665,8 +666,8 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="agenda"
                       value={formData.agenda}
                       onChange={handleChange}
-                      rows={4}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors resize-none"
+                      rows={3}
+                      className="w-full border-2 border-gray-300 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors resize-none"
                       placeholder="Please share the topics you'd like to cover, questions you have, or goals for the consultation call..."
                     />
                   </div>
@@ -680,7 +681,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                         name="participants"
                         value={formData.participants}
                         onChange={handleChange}
-                        className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
+                        className="w-full border-2 border-gray-300 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px]"
                       >
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                           <option key={num} value={num}>
@@ -698,7 +699,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                         name="timezone"
                         value={formData.timezone}
                         onChange={handleChange}
-                        className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
+                        className="w-full border-2 border-gray-300 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors min-h-[44px]"
                       >
                         <option value="EST">Eastern (EST)</option>
                         <option value="CST">Central (CST)</option>
@@ -717,8 +718,8 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                       name="specialRequests"
                       value={formData.specialRequests}
                       onChange={handleChange}
-                      rows={3}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors resize-none"
+                      rows={2}
+                      className="w-full border-2 border-gray-300 rounded-lg py-2 sm:py-3 px-3 sm:px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors resize-none"
                       placeholder="Any accessibility needs, technical requirements, or other special requests..."
                     />
                   </div>
@@ -745,12 +746,12 @@ const BookMeetModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-gray-50 px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
+        <div className="bg-gray-50 px-3 sm:px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 flex-shrink-0 border-t border-gray-200">
           <div className="order-2 sm:order-1">
             {currentStep > 1 && (
               <button
                 onClick={prevStep}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors text-sm md:text-base"
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors text-sm md:text-base py-2 px-3 rounded-lg hover:bg-gray-100 min-h-[44px]"
               >
                 <Icon
                   icon="solar:arrow-left-bold"
@@ -762,13 +763,13 @@ const BookMeetModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          <div className="flex items-center space-x-3 order-1 sm:order-2">
+          <div className="flex items-center space-x-3 order-1 sm:order-2 w-full sm:w-auto">
             {currentStep < 4 ? (
               <Button
                 text="Next Step"
                 type="primary"
                 onClick={nextStep}
-                className="flex items-center space-x-2 w-full sm:w-auto justify-center"
+                className="flex items-center space-x-2 w-full sm:w-auto justify-center min-h-[44px] px-6"
               />
             ) : (
               <Button
@@ -776,7 +777,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                 type="primary"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="flex items-center space-x-2 w-full sm:w-auto justify-center text-sm md:text-base"
+                className="flex items-center space-x-2 w-full sm:w-auto justify-center text-sm md:text-base min-h-[44px] px-6"
               />
             )}
           </div>

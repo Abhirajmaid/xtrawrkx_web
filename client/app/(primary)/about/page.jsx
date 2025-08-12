@@ -7,6 +7,7 @@ import Purpose from "@/src/components/about/Purpose";
 import MissionVision from "@/src/components/about/MissionVision";
 import CodeOfConduct from "@/src/components/about/CodeOfConduct";
 import Values from "@/src/components/about/Values";
+import Companies from "@/src/components/about/Companies";
 import Team from "@/src/components/about/Team";
 import Slider from "@/src/components/about/Slider";
 import FAQ from "@/src/components/about/FAQ";
@@ -25,6 +26,7 @@ export default function AboutPage() {
       <MissionVision />
       <CodeOfConduct />
       <Values />
+      <Companies />
       <Team />
       {/* <Slider /> */}
       <HowWeHelp />

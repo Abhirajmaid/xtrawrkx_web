@@ -103,7 +103,7 @@ export default function ServicePage({ params }) {
         {/* Background image */}
         <div className="absolute inset-0 w-full h-full">
           <Image
-            src={service.image || "/images/hero_services.png"}
+            src="/images/hero_services.png"
             alt={service.name}
             fill
             className="object-cover object-center"

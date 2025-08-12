@@ -23,7 +23,13 @@ export default function HowWeHelp() {
               ))}
             </h2>
             <p className="text-lg text-white/70 mb-8">{howWeHelp.subtext}</p>
-            <Button text={howWeHelp.button} type="primary" />
+            <Button
+              text={howWeHelp.button}
+              type="primary"
+              onClick={() => {
+                window.location.href = "/contact-us";
+              }}
+            />
           </div>
           {/* Right column: Steps/Accordion */}
           <div className="flex-1 w-full max-w-xl">

@@ -110,9 +110,12 @@ export default function Team() {
               </div>
             ))}
           </div>
-          <div className="max-w-6xl">
-            <Button text="Meet Our Full Team" type="primary" link="/teams" />
-          </div>
+          <Button
+            text="Meet Our Full Team"
+            type="primary"
+            link="/teams"
+            className="w-[20%]"
+          />
         </Container>
       </Section>
     );
@@ -166,9 +169,12 @@ export default function Team() {
             </div>
           ))}
         </div>
-        <div className="max-w-6xl">
-          <Button text="Meet Our Full Team" type="primary" link="/teams" />
-        </div>
+        <Button
+          text="Meet Our Full Team"
+          type="primary"
+          link="/teams"
+          className="w-[20%]"
+        />
       </Container>
     </Section>
   );

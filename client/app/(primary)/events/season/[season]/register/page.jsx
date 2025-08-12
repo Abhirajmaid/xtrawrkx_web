@@ -1286,10 +1286,10 @@ export default function SeasonRegistration({ params }) {
         {/* Background Image */}
         <div className="absolute inset-0 w-full h-full">
           <Image
-            src="/images/registration banner.png"
+            src="/images/reg_hero.svg"
             alt="Registration Header Background"
+            className="object-cover object-right"
             fill
-            className="object-cover object-center"
             priority
           />
           {/* Overlay for text readability */}
