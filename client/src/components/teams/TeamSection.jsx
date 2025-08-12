@@ -44,9 +44,21 @@ const getHierarchyRank = (member) => {
   return 9;
 };
 
-// Function to sort team members hierarchically
+// Function to sort team members hierarchically with Hiten Saklani first
 const sortTeamHierarchically = (members) => {
   return [...members].sort((a, b) => {
+    const nameA = a.name?.toLowerCase() || "";
+    const nameB = b.name?.toLowerCase() || "";
+
+    // Check if either member is Hiten Saklani (with variations in spelling)
+    const isHitenA = nameA.includes("hiten") && nameA.includes("saklani");
+    const isHitenB = nameB.includes("hiten") && nameB.includes("saklani");
+
+    // Hiten Saklani always comes first
+    if (isHitenA && !isHitenB) return -1;
+    if (!isHitenA && isHitenB) return 1;
+
+    // For non-Hiten members, sort by hierarchy
     const rankA = getHierarchyRank(a);
     const rankB = getHierarchyRank(b);
 

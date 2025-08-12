@@ -594,11 +594,11 @@ export default function EventPage({ params }) {
                           event.season || "current"
                         }/register?from=${event.slug}`}
                       />
-                      <Button
+                      {/* <Button
                         text="Share Event"
                         type="secondary"
                         className="w-full"
-                      />
+                      /> */}
                     </>
                   ) : (
                     <>

@@ -18,11 +18,9 @@ export default function Values() {
             Our Values
           </h2>
           <p className="text-lg text-brand-foreground font-normal text-left mb-8">
-            Lorem ipsum dolor sit amet consectetur. Elementum nisl duis tortor
-            nibh diam. Egestas ac malesuada quis et sollicitudin. Laoreet varius
-            morbi dictum odio fames. Neque dui volutpat amet faucibus elementum
-            orci gravida. Aliquet erat nulla congue convallis massa. Penatibus
-            hendrerit a posuere integer ultrices.
+            These core values define how we approach every engineering challenge
+            and guide our commitment to delivering exceptional solutions that
+            make a real difference in the world.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-12 max-w-6xl mx-auto">

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { commonToasts, toastUtils } from "@/src/utils/toast";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -23,25 +24,36 @@ export default function AdminLogin() {
     e.preventDefault();
 
     if (!isFirebaseAvailable) {
-      setError(
-        "Firebase is not available. Please check your configuration and try again."
-      );
+      const errorMessage =
+        "Firebase is not available. Please check your configuration and try again.";
+      setError(errorMessage);
+      toastUtils.error(errorMessage);
       return;
     }
 
     if (!email || !password) {
-      setError("Please enter both email and password");
+      const errorMessage = "Please enter both email and password";
+      setError(errorMessage);
+      toastUtils.validationError(errorMessage);
       return;
     }
 
     setIsLoading(true);
     setError("");
+    const loadingToast = toastUtils.loading("Signing in...");
 
     try {
       await signIn(email, password);
+      toastUtils.update(
+        loadingToast,
+        "success",
+        "Successfully logged in! Welcome back."
+      );
       router.push("/admin/dashboard");
     } catch (error) {
-      setError(error.message || "Login failed. Please try again.");
+      const errorMessage = error.message || "Login failed. Please try again.";
+      setError(errorMessage);
+      toastUtils.update(loadingToast, "error", errorMessage);
     } finally {
       setIsLoading(false);
     }

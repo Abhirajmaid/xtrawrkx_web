@@ -5,6 +5,7 @@ import { Icon } from "@iconify/react";
 import { useAuth } from "../../contexts/AuthContext";
 import Button from "../common/Button";
 import Image from "next/image";
+import { commonToasts, toastUtils } from "@/src/utils/toast";
 
 const AdminLayout = ({ children, title = "Dashboard" }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -12,11 +13,23 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
   const router = useRouter();
 
   const handleSignOut = async () => {
+    const loadingToast = toastUtils.loading("Signing out...");
+
     try {
       await signOut();
+      toastUtils.update(
+        loadingToast,
+        "success",
+        "Successfully logged out. See you next time!"
+      );
       router.push("/admin/login");
     } catch (error) {
       console.error("Sign out error:", error);
+      toastUtils.update(
+        loadingToast,
+        "error",
+        "Error signing out. Please try again."
+      );
     }
   };
 

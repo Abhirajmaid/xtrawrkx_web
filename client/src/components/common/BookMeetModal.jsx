@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Icon } from "@iconify/react";
 import Button from "./Button";
+import { commonToasts, toastUtils } from "@/src/utils/toast";
 
 const consultationTypes = [
   {
@@ -167,16 +168,22 @@ const BookMeetModal = ({ isOpen, onClose }) => {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(4)) return;
+    if (!validateStep(4)) {
+      toastUtils.validationError("Please fill in all required fields.");
+      return;
+    }
 
     setIsSubmitting(true);
+    const loadingToast = toastUtils.loading("Booking your consultation...");
 
     try {
-      // Simulate API call
+      // Simulate API call - replace with actual booking logic
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Show success and close modal
-      alert(
+      toastUtils.update(
+        loadingToast,
+        "success",
         "Consultation call booked successfully! You'll receive a confirmation email shortly."
       );
       onClose();
@@ -205,7 +212,9 @@ const BookMeetModal = ({ isOpen, onClose }) => {
       setCurrentStep(1);
     } catch (error) {
       console.error("Error booking consultation:", error);
-      alert(
+      toastUtils.update(
+        loadingToast,
+        "error",
         "There was an error booking your consultation call. Please try again."
       );
     } finally {

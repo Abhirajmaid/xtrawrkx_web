@@ -26,8 +26,24 @@ export default function Team() {
     );
   };
 
+  // Function to sort team members with Hiten Saklani first
+  const sortTeamMembers = (members) => {
+    return members.sort((a, b) => {
+      const nameA = a.name?.toLowerCase() || "";
+      const nameB = b.name?.toLowerCase() || "";
+
+      // Check if either member is Hiten Saklani (with variations in spelling)
+      const isHitenA = nameA.includes("hiten") && nameA.includes("saklani");
+      const isHitenB = nameB.includes("hiten") && nameB.includes("saklani");
+
+      if (isHitenA && !isHitenB) return -1; // Hiten comes first
+      if (!isHitenA && isHitenB) return 1; // Hiten comes first
+      return 0; // Keep original order for others
+    });
+  };
+
   const [teamMembers, setTeamMembers] = useState(() =>
-    coreTeam.filter(isLeadershipRole)
+    sortTeamMembers(coreTeam.filter(isLeadershipRole))
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,11 +64,11 @@ export default function Team() {
           const leadershipMembers = coreMembers.filter(
             (m) => m.isActive && isLeadershipRole(m)
           );
-          setTeamMembers(leadershipMembers);
+          setTeamMembers(sortTeamMembers(leadershipMembers));
         } else {
           // Filter static fallback data for leadership roles as well
           const leadershipMembers = coreTeam.filter(isLeadershipRole);
-          setTeamMembers(leadershipMembers);
+          setTeamMembers(sortTeamMembers(leadershipMembers));
         }
       } catch (error) {
         console.error("Error loading team members:", error);
@@ -60,7 +76,7 @@ export default function Team() {
 
         // Keep using static data as fallback, but filter for leadership roles
         const leadershipMembers = coreTeam.filter(isLeadershipRole);
-        setTeamMembers(leadershipMembers);
+        setTeamMembers(sortTeamMembers(leadershipMembers));
         console.warn("Using static team data as fallback");
       } finally {
         setLoading(false);

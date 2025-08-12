@@ -12,6 +12,7 @@ import { getPDFViewingUrl } from "@/src/services/cloudinaryService";
 import { uploadImage } from "@/src/services/cloudinaryService";
 import { formatDate } from "@/src/utils/dateUtils";
 import Button from "@/src/components/common/Button";
+import { commonToasts, toastUtils } from "@/src/utils/toast";
 
 // Excel export utility
 const exportToExcel = (data, filename) => {
@@ -299,17 +300,35 @@ export default function EventManagement() {
     if (
       confirm(`Are you sure you want to delete ${bulkSelection.length} events?`)
     ) {
+      const loadingToast = toastUtils.loading(
+        `Deleting ${bulkSelection.length} events...`
+      );
+
       try {
         await Promise.all(bulkSelection.map((id) => eventService.delete(id)));
         setBulkSelection([]);
         loadEvents();
+        toastUtils.update(
+          loadingToast,
+          "success",
+          `Successfully deleted ${bulkSelection.length} events!`
+        );
       } catch (error) {
         console.error("Error deleting events:", error);
+        toastUtils.update(
+          loadingToast,
+          "error",
+          `Failed to delete events: ${error.message}`
+        );
       }
     }
   };
 
   const handleBulkStatusUpdate = async (newStatus) => {
+    const loadingToast = toastUtils.loading(
+      `Updating ${bulkSelection.length} events to ${newStatus}...`
+    );
+
     try {
       await Promise.all(
         bulkSelection.map((id) => {
@@ -318,19 +337,41 @@ export default function EventManagement() {
       );
       setBulkSelection([]);
       loadEvents();
+      toastUtils.update(
+        loadingToast,
+        "success",
+        `Successfully updated ${bulkSelection.length} events to ${newStatus}!`
+      );
     } catch (error) {
       console.error("Error updating event status:", error);
+      toastUtils.update(
+        loadingToast,
+        "error",
+        `Failed to update events: ${error.message}`
+      );
     }
   };
 
   // Handle individual event actions
   const handleDelete = async (eventId) => {
     if (confirm("Are you sure you want to delete this event?")) {
+      const loadingToast = toastUtils.loading("Deleting event...");
+
       try {
         await eventService.delete(eventId);
         await loadEvents();
+        toastUtils.update(
+          loadingToast,
+          "success",
+          "Event deleted successfully!"
+        );
       } catch (error) {
         console.error("Error deleting event:", error);
+        toastUtils.update(
+          loadingToast,
+          "error",
+          `Failed to delete event: ${error.message}`
+        );
       }
     }
   };
@@ -341,6 +382,8 @@ export default function EventManagement() {
   };
 
   const handleDuplicate = async (event) => {
+    const loadingToast = toastUtils.loading("Duplicating event...");
+
     try {
       const duplicatedEvent = {
         ...event,
@@ -352,8 +395,18 @@ export default function EventManagement() {
       };
       await eventService.createEvent(duplicatedEvent);
       loadEvents();
+      toastUtils.update(
+        loadingToast,
+        "success",
+        "Event duplicated successfully!"
+      );
     } catch (error) {
       console.error("Error duplicating event:", error);
+      toastUtils.update(
+        loadingToast,
+        "error",
+        `Failed to duplicate event: ${error.message}`
+      );
     }
   };
 
@@ -1884,7 +1937,7 @@ ${registration.companyName || "N/A"},${
       {/* Registration Details Modal */}
       {showRegistrationDetails && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowRegistrationDetails(null);
@@ -3106,6 +3159,9 @@ function EventModal({ isOpen, onClose, event, onSave }) {
 
     if (!validateForm()) {
       setActiveTab("basic"); // Go to basic tab if there are validation errors
+      toastUtils.validationError(
+        "Please fill in all required fields correctly."
+      );
       return;
     }
 
@@ -3113,14 +3169,18 @@ function EventModal({ isOpen, onClose, event, onSave }) {
       setSaving(true);
       if (event) {
         await eventService.update(event.id, formData);
+        toastUtils.success("Event updated successfully!");
       } else {
         await eventService.createEvent(formData);
+        toastUtils.success("Event created successfully!");
       }
       onSave();
       onClose();
     } catch (error) {
       console.error("Error saving event:", error);
-      setErrors({ submit: `Failed to save event: ${error.message}` });
+      const errorMessage = `Failed to save event: ${error.message}`;
+      setErrors({ submit: errorMessage });
+      toastUtils.error(errorMessage);
     } finally {
       setSaving(false);
     }

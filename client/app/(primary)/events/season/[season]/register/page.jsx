@@ -14,6 +14,11 @@ import {
 import { CloudinaryService } from "@/src/services/cloudinaryService";
 import { formatEventDate } from "@/src/utils/dateUtils";
 import RegistrationSuccess from "@/src/components/common/RegistrationSuccess";
+import { commonToasts, toastUtils } from "@/src/utils/toast";
+import {
+  sendSeasonRegistrationEmail,
+  sendSeasonPaymentConfirmationEmail,
+} from "@/src/utils/emailUtils";
 
 const communityOptions = [
   { id: "none", name: "Not a member" },
@@ -24,6 +29,7 @@ const communityOptions = [
 ];
 
 const xenLevelOptions = [
+  { id: "x0", name: "X0", freeSlots: 1, totalFree: false, gnpOnly: true },
   { id: "x1", name: "X1", freeSlots: 1, totalFree: false, gnpOnly: true },
   { id: "x2", name: "X2", freeSlots: 5, totalFree: false, gnpOnly: false },
   { id: "x3", name: "X3", freeSlots: 5, totalFree: false, gnpOnly: false },
@@ -58,15 +64,15 @@ const ticketTypes = [
   {
     id: "gnp",
     name: "General Networking Pass (GNP)",
-    price: 10,
+    price: 8000,
     description: "Access to networking sessions and general event activities",
   },
   {
     id: "asp",
     name: "Active Support Pass (ASP)",
-    price: 10,
+    price: 60000,
     description:
-      "Full access to all sessions, workshops, and premium networking opportunities. Fixed price of ₹10 for 1-2 members per company.",
+      "Full access to all sessions, workshops, and premium networking opportunities. Fixed price of ₹60,000 for 1-2 members per company.",
   },
 ];
 
@@ -418,7 +424,7 @@ export default function SeasonRegistration({ params }) {
     const selectedTicket = ticketTypes.find(
       (t) => t.id === formData.ticketType
     );
-    const basePrice = selectedTicket ? selectedTicket.price : 10;
+    const basePrice = selectedTicket ? selectedTicket.price : 8000;
     let totalCost = 0;
     let discountAmount = 0;
     let isFree = false;
@@ -453,7 +459,7 @@ export default function SeasonRegistration({ params }) {
     if (clientStatus && clientStatus.specialOffer === "5_gnp_or_1_asp") {
       // Existing clients: 5 free GNPs OR 1 free ASP
       if (formData.ticketType === "gnp") {
-        // GNP: Up to 5 members free, additional members pay ₹10
+        // GNP: Up to 5 members free, additional members pay ₹8,000
         if (attendingCount <= 5) {
           totalCost = 0;
           isFree = true;
@@ -523,7 +529,7 @@ export default function SeasonRegistration({ params }) {
       ) {
         // XEN X2-X5: 5 free GNPs OR 1 free ASP (same as existing client benefits)
         if (formData.ticketType === "gnp") {
-          // GNP: Up to 5 members free, additional members pay ₹10
+          // GNP: Up to 5 members free, additional members pay ₹8,000
           if (attendingCount <= 5) {
             totalCost = 0;
             isFree = true;
@@ -818,7 +824,7 @@ export default function SeasonRegistration({ params }) {
           key: razorpayKeyId,
           amount: orderData.amount, // Amount from backend (already in paise)
           currency: orderData.currency,
-          name: "XtraWrkx Events",
+          name: "xtrawrkx Events",
           description: `Season ${season} - ${pricing.ticketType}`,
           order_id: orderData.id, // Real Razorpay order ID from backend
           handler: async function (response) {
@@ -896,6 +902,22 @@ export default function SeasonRegistration({ params }) {
                 throw new Error(
                   "Database update failed after multiple attempts"
                 );
+              }
+
+              // Send season payment confirmation email
+              try {
+                await sendSeasonPaymentConfirmationEmail(
+                  updatedRegistrationData,
+                  registrationId,
+                  response.razorpay_payment_id,
+                  season
+                );
+              } catch (emailError) {
+                console.error(
+                  "Failed to send season payment confirmation email:",
+                  emailError
+                );
+                // Don't fail the payment process due to email issues
               }
 
               resolve(response);
@@ -995,7 +1017,9 @@ export default function SeasonRegistration({ params }) {
     e.preventDefault();
 
     if (!validateForm()) {
-      alert("Please correct the errors in the form before submitting.");
+      toastUtils.validationError(
+        "Please correct the errors in the form before submitting."
+      );
       return;
     }
 
@@ -1030,8 +1054,9 @@ export default function SeasonRegistration({ params }) {
           pitchDeckSize = formData.pitchDeck.size;
         } catch (uploadError) {
           console.error("Error uploading pitch deck:", uploadError);
-          alert(
-            `Error uploading file: ${uploadError.message}\n\nPlease check the console for more details.`
+          toastUtils.error(
+            `Error uploading file: ${uploadError.message}. Please check the console for more details.`,
+            { autoClose: 8000 }
           );
           return;
         } finally {
@@ -1122,7 +1147,23 @@ export default function SeasonRegistration({ params }) {
 
       // If it's a free registration, complete immediately
       if (pricing.isFree) {
-        // Show success page for free registrations
+        // Send season registration confirmation email for free registrations
+        const emailSent = await sendSeasonRegistrationEmail(
+          registrationData,
+          registrationId,
+          season
+        );
+
+        // Show success toast and page for free registrations
+        toastUtils.success(
+          `🎉 Season registration completed successfully! Your registration ID is: ${registrationId}. Welcome to Season ${season} Events!${
+            emailSent
+              ? " Confirmation email sent."
+              : " Note: Email notification may be delayed."
+          }`,
+          { autoClose: 10000 }
+        );
+
         setSuccessData({
           registrationId,
           companyName: formData.companyName,
@@ -1137,7 +1178,12 @@ export default function SeasonRegistration({ params }) {
         try {
           await processPayment(registrationData, registrationId, pricing);
 
-          // Show success page for paid registrations
+          // Show success toast and page for paid registrations
+          toastUtils.success(
+            `🎉 Payment successful! Season ${season} registration completed. Registration ID: ${registrationId}. You'll receive a confirmation email shortly.`,
+            { autoClose: 12000 }
+          );
+
           setSuccessData({
             registrationId,
             companyName: formData.companyName,
@@ -1149,46 +1195,35 @@ export default function SeasonRegistration({ params }) {
           setShowSuccessPage(true);
         } catch (paymentError) {
           if (paymentError.message === "Payment cancelled by user") {
-            alert(
-              "💳 Payment was cancelled. Your registration has been saved and you can complete the payment later.\n\nRegistration ID: " +
-                registrationId +
-                "\n\nYou can contact support to complete payment if needed."
+            toastUtils.warning(
+              `💳 Payment was cancelled. Your registration has been saved and you can complete the payment later. Registration ID: ${registrationId}. You can contact support to complete payment if needed.`,
+              { autoClose: 10000 }
             );
           } else if (paymentError.message.includes("Payment gateway")) {
-            alert(
-              "🔄 " +
-                paymentError.message +
-                "\n\nRegistration ID: " +
-                registrationId +
-                "\n\nPlease try again in a moment."
+            toastUtils.error(
+              `🔄 ${paymentError.message}. Registration ID: ${registrationId}. Please try again in a moment.`,
+              { autoClose: 8000 }
             );
           } else if (paymentError.message.includes("Payment failed:")) {
-            alert(
-              "❌ " +
-                paymentError.message +
-                "\n\nRegistration ID: " +
-                registrationId +
-                "\n\nPlease try a different payment method or contact support."
+            toastUtils.error(
+              `❌ ${paymentError.message}. Registration ID: ${registrationId}. Please try a different payment method or contact support.`,
+              { autoClose: 10000 }
             );
           } else {
-            alert(
-              "⚠️ Payment could not be completed. Your registration has been saved.\n\nRegistration ID: " +
-                registrationId +
-                "\n\nError: " +
-                paymentError.message +
-                "\n\nPlease contact support for assistance."
+            toastUtils.error(
+              `⚠️ Payment could not be completed. Your registration has been saved. Registration ID: ${registrationId}. Error: ${paymentError.message}. Please contact support for assistance.`,
+              { autoClose: 12000 }
             );
           }
 
-          // Still redirect after payment failure (user can access registration and retry payment)
-          setTimeout(() => {
-            window.location.href = "/events";
-          }, 3000);
+          // Registration saved - user can manually navigate or retry payment if needed
         }
       }
     } catch (error) {
       console.error("Error submitting season registration:", error);
-      alert("Registration failed. Please try again.");
+      toastUtils.error("Registration failed. Please try again.", {
+        autoClose: 8000,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -1238,7 +1273,6 @@ export default function SeasonRegistration({ params }) {
       <RegistrationSuccess
         registrationData={successData}
         onRedirect={() => (window.location.href = "/events")}
-        redirectDelay={5000}
       />
     );
   }
@@ -2467,7 +2501,7 @@ export default function SeasonRegistration({ params }) {
                       <p>* Existing clients: 5 free GNPs OR 1 free ASP</p>
                       <p>* Sponsors/Partners: 50% off (up to 5 GNPs or ASP)</p>
                       <p>
-                        * <strong>ASP: Fixed ₹10 for 1-2 members</strong>
+                        * <strong>ASP: Fixed ₹60,000 for 1-2 members</strong>
                       </p>
                       <p>* Former clients: 25% discount</p>
                     </div>
@@ -2514,7 +2548,9 @@ export default function SeasonRegistration({ params }) {
                     <h4 className="font-semibold text-gray-900 mb-2">
                       General Networking Pass (GNP)
                     </h4>
-                    <p className="text-sm text-gray-600 mb-2">₹10 per member</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      ₹8,000 per member
+                    </p>
                     <p className="text-xs text-gray-500">
                       Access to networking sessions and general event activities
                     </p>
@@ -2524,7 +2560,7 @@ export default function SeasonRegistration({ params }) {
                       Active Support Pass (ASP)
                     </h4>
                     <p className="text-sm text-gray-600 mb-2">
-                      ₹10 fixed price
+                      ₹60,000 fixed price
                     </p>
                     <p className="text-xs text-gray-500">
                       Full access to all sessions. Fixed price for 1-2 members
@@ -2548,7 +2584,7 @@ export default function SeasonRegistration({ params }) {
                     <div className="text-sm space-y-1">
                       <p>
                         • <strong>GNP:</strong> 5 free passes (additional
-                        members pay ₹10 each)
+                        members pay ₹8,000 each)
                       </p>
                       <p>
                         • <strong>ASP:</strong> 1 completely free ASP (₹0 total
@@ -2610,7 +2646,7 @@ export default function SeasonRegistration({ params }) {
                     <div className="text-sm space-y-1">
                       <p>
                         • <strong>GNP:</strong> 50% off up to 5 members (₹4,000
-                        each), then ₹10 for additional
+                        each), then ₹8,000 for additional
                       </p>
                       <p>
                         • <strong>ASP:</strong> 50% off fixed price (₹30,000)
@@ -2659,8 +2695,8 @@ export default function SeasonRegistration({ params }) {
                     existing client + XEN X2+ benefits
                   </p>
                   <p>
-                    • <strong>ASP Pricing:</strong> Fixed ₹10 covers 1-2 members
-                    (not per member)
+                    • <strong>ASP Pricing:</strong> Fixed ₹60,000 covers 1-2
+                    members (not per member)
                   </p>
                   <p>
                     • <strong>Free ASP Access:</strong> Only Existing Clients &
@@ -2702,7 +2738,7 @@ export default function SeasonRegistration({ params }) {
                       Example 3: Sponsor + ASP
                     </h4>
                     <p>2 members, ASP ticket</p>
-                    <p className="text-orange-600">• 50% discount on ₹10</p>
+                    <p className="text-orange-600">• 50% discount on ₹60,000</p>
                     <p className="font-medium">Total: ₹30,000</p>
                   </div>
 

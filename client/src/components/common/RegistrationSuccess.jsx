@@ -1,40 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Icon } from "@iconify/react";
 
-const RegistrationSuccess = ({
-  registrationData,
-  onRedirect,
-  redirectDelay = 5000,
-}) => {
-  const [countdown, setCountdown] = useState(Math.ceil(redirectDelay / 1000));
-
-  useEffect(() => {
-    // Start countdown timer
-    const countdownInterval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(countdownInterval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    // Auto-redirect after specified delay
-    const redirectTimer = setTimeout(() => {
-      if (onRedirect) {
-        onRedirect();
-      } else {
-        window.location.href = "/events";
-      }
-    }, redirectDelay);
-
-    // Cleanup timers on unmount
-    return () => {
-      clearInterval(countdownInterval);
-      clearTimeout(redirectTimer);
-    };
-  }, [redirectDelay, onRedirect]);
+const RegistrationSuccess = ({ registrationData, onRedirect }) => {
+  // Removed auto-redirect functionality
 
   const handleManualRedirect = () => {
     if (onRedirect) {
@@ -93,8 +61,8 @@ const RegistrationSuccess = ({
           </h1>
 
           <p className="text-lg text-gray-600 mb-6">
-            Thank you for registering with XtraWrkx Events. Your registration
-            has been confirmed!
+            Thank you for registering with xtrawrkx. Your registration has been
+            confirmed!
           </p>
 
           {/* Registration Details */}
@@ -163,16 +131,15 @@ const RegistrationSuccess = ({
             </div>
           </div>
 
-          {/* Auto Redirect Notice */}
-          <div className="flex items-center justify-center mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          {/* Success Message */}
+          <div className="flex items-center justify-center mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <Icon
-              icon="mdi:timer"
-              className="text-yellow-600 mr-2"
+              icon="mdi:check-circle"
+              className="text-green-600 mr-2"
               width={20}
             />
-            <span className="text-yellow-800 font-medium">
-              Redirecting to events page in {countdown} second
-              {countdown !== 1 ? "s" : ""}...
+            <span className="text-green-800 font-medium">
+              Registration completed successfully! Choose your next step below.
             </span>
           </div>
 

@@ -11,6 +11,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/src/config/firebase";
+import { commonToasts, toastUtils } from "@/src/utils/toast";
 
 export default function FailedPaymentsPage() {
   const [failedPayments, setFailedPayments] = useState([]);
@@ -78,10 +79,10 @@ export default function FailedPaymentsPage() {
       // Refresh the list
       fetchFailedPayments();
 
-      alert("Payment resolved successfully!");
+      toastUtils.success("Payment resolved successfully!");
     } catch (error) {
       console.error("Error resolving payment:", error);
-      alert("Failed to resolve payment: " + error.message);
+      toastUtils.error("Failed to resolve payment: " + error.message);
     }
   };
 

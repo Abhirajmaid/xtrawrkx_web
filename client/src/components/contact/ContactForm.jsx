@@ -5,6 +5,7 @@ import Section from "@/src/components/layout/Section";
 import Container from "@/src/components/layout/Container";
 import SectionHeader from "@/src/components/common/SectionHeader";
 import Button from "../common/Button";
+import { commonToasts, toastUtils } from "@/src/utils/toast";
 
 const inquiryTypes = [
   { value: "", label: "Select Inquiry Type" },
@@ -116,11 +117,54 @@ export default function ContactForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Handle form submission here
-      alert("Thank you for your inquiry! We'll get back to you soon.");
+      const loadingToast = toastUtils.loading("Sending your message...");
+
+      try {
+        // Simulate API call - replace with actual submission logic
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // Success
+        toastUtils.update(
+          loadingToast,
+          "success",
+          "Thank you for your inquiry! We'll get back to you soon."
+        );
+
+        // Reset form after successful submission
+        setForm({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          company: "",
+          jobTitle: "",
+          website: "",
+          inquiryType: "",
+          purpose: "",
+          priority: "medium",
+          preferredContact: "email",
+          bestTimeToCall: "",
+          hearAboutUs: "",
+          message: "",
+          newsletter: false,
+          privacy: false,
+        });
+      } catch (error) {
+        // Error
+        toastUtils.update(
+          loadingToast,
+          "error",
+          "Failed to send your message. Please try again."
+        );
+        console.error("Contact form submission error:", error);
+      }
+    } else {
+      toastUtils.validationError(
+        "Please fill in all required fields correctly."
+      );
     }
   };
 

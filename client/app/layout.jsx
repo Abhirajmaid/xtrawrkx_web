@@ -1,5 +1,6 @@
 import { Poppins, Newsreader } from "next/font/google"; // add imports
 import "./globals.css";
+import ToastProvider from "@/src/components/common/ToastProvider";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -115,7 +116,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${poppins.variable} ${newsreader.variable} antialiased`}
       >
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import ProtectedRoute from "@/src/components/admin/ProtectedRoute";
 import { galleryService, eventService } from "@/src/services/databaseService";
 import { uploadImage } from "@/src/services/cloudinaryService";
 import Button from "@/src/components/common/Button";
+import { commonToasts, toastUtils } from "@/src/utils/toast";
 
 export default function GalleryManagement() {
   const [galleryItems, setGalleryItems] = useState([]);
@@ -174,11 +175,23 @@ export default function GalleryManagement() {
   // Handle individual item actions
   const handleDelete = async (itemId) => {
     if (confirm("Are you sure you want to delete this gallery item?")) {
+      const loadingToast = toastUtils.loading("Deleting gallery item...");
+
       try {
         await galleryService.deleteGalleryItem(itemId);
         loadGalleryItems();
+        toastUtils.update(
+          loadingToast,
+          "success",
+          "Gallery item deleted successfully!"
+        );
       } catch (error) {
         console.error("Error deleting gallery item:", error);
+        toastUtils.update(
+          loadingToast,
+          "error",
+          `Failed to delete gallery item: ${error.message}`
+        );
       }
     }
   };
@@ -189,6 +202,8 @@ export default function GalleryManagement() {
   };
 
   const handleDuplicate = async (item) => {
+    const loadingToast = toastUtils.loading("Duplicating gallery item...");
+
     try {
       const duplicatedItem = {
         ...item,
@@ -199,20 +214,46 @@ export default function GalleryManagement() {
       };
       await galleryService.createGalleryItem(duplicatedItem);
       loadGalleryItems();
+      toastUtils.update(
+        loadingToast,
+        "success",
+        "Gallery item duplicated successfully!"
+      );
     } catch (error) {
       console.error("Error duplicating gallery item:", error);
+      toastUtils.update(
+        loadingToast,
+        "error",
+        `Failed to duplicate gallery item: ${error.message}`
+      );
     }
   };
 
   const handleToggleFeatured = async (item) => {
+    const loadingToast = toastUtils.loading(
+      `${item.featured ? "Removing from" : "Adding to"} featured...`
+    );
+
     try {
       await galleryService.updateGalleryItem(item.id, {
         ...item,
         featured: !item.featured,
       });
       loadGalleryItems();
+      toastUtils.update(
+        loadingToast,
+        "success",
+        `Item ${
+          item.featured ? "removed from" : "added to"
+        } featured successfully!`
+      );
     } catch (error) {
       console.error("Error toggling featured status:", error);
+      toastUtils.update(
+        loadingToast,
+        "error",
+        `Failed to update featured status: ${error.message}`
+      );
     }
   };
 
@@ -1053,13 +1094,16 @@ function GalleryModal({ isOpen, onClose, item, onSave, events = [] }) {
 
       if (item) {
         await galleryService.updateGalleryItem(item.id, itemData);
+        toastUtils.success("Gallery item updated successfully!");
       } else {
         await galleryService.createGalleryItem(itemData);
+        toastUtils.success("Gallery item created successfully!");
       }
       onSave();
       onClose();
     } catch (error) {
       console.error("Error saving gallery item:", error);
+      toastUtils.error(`Failed to save gallery item: ${error.message}`);
     } finally {
       setSaving(false);
     }

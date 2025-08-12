@@ -8,51 +8,43 @@ const CompaniesMarquee = () => {
   const companies = [
     {
       name: "Microsoft",
-      logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/microsoft/microsoft-original.svg",
+      logo: "/images/client_logos/1.png",
     },
     {
       name: "Google",
-      logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg",
+      logo: "/images/client_logos/2.png",
     },
     {
       name: "Amazon",
-      logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg",
+      logo: "/images/client_logos/3.png",
     },
     {
       name: "Apple",
-      logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg",
+      logo: "/images/client_logos/4.png",
     },
     {
       name: "Tesla",
-      logo: "https://www.svgrepo.com/show/303659/tesla-logo.svg",
+      logo: "/images/client_logos/5.png",
     },
     {
       name: "Intel",
-      logo: "https://www.svgrepo.com/show/331370/intel.svg",
+      logo: "/images/client_logos/6.png",
     },
     {
       name: "Adobe",
-      logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/adobe/adobe-original.svg",
+      logo: "/images/client_logos/7.png",
     },
     {
       name: "BMW",
-      logo: "https://www.svgrepo.com/show/303229/bmw-logo.svg",
+      logo: "/images/client_logos/8.png",
     },
     {
       name: "Samsung",
-      logo: "https://www.svgrepo.com/show/303273/samsung-logo.svg",
+      logo: "/images/client_logos/9.png",
     },
     {
       name: "Oracle",
-      logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/oracle/oracle-original.svg",
-    },
-    {
-      name: "IBM",
-      logo: "https://www.svgrepo.com/show/303232/ibm-logo.svg",
-    },
-    {
-      name: "Siemens",
-      logo: "https://www.svgrepo.com/show/443207/brand-siemens.svg",
+      logo: "/images/client_logos/10.png",
     },
   ];
 
@@ -77,12 +69,12 @@ const CompaniesMarquee = () => {
               key={`${setIndex}-${i}`}
               className="flex items-center justify-center mx-8 md:mx-12 lg:mx-16 flex-shrink-0"
             >
-              <div className="w-16 h-16 md:w-20 md:h-20 lg:w-20 lg:h-20 flex items-center justify-center bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 p-3">
+              <div className="w-16 h-16 md:w-20 md:h-20 lg:w-28 lg:h-28 flex items-center justify-center bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 p-3">
                 <Image
                   src={company.logo}
                   alt={`${company.name} logo`}
-                  width={60}
-                  height={60}
+                  width={80}
+                  height={80}
                   className="w-full h-full object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
                 />
               </div>

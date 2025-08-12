@@ -1,58 +1,58 @@
 export const stats = [
-    { value: "₹250M+", label: "Business Value Created" },
-    { value: "95%", label: "Client Success Rate" },
-    { value: "500+", label: "Projects Completed" },
-    { value: "150+", label: "Active Clients" },
+    { value: "50+", label: "Projects Delivered" },
+    { value: "98%", label: "Client Satisfaction" },
+    { value: "15+", label: "Industry Sectors" },
+    { value: "25+", label: "Technology Partners" },
 ];
 
 export const purpose = {
     heading: "Our Purpose",
-    left: "At Xtrawrkx, we believe in transforming complex business challenges into strategic opportunities. Our mission is to drive sustainable growth for businesses through innovative consulting, cutting-edge technology, and sustainable solutions.",
+    left: "At Xtrawrkx, we solve next-level challenges through smart engineering solutions. We transform complex technical problems into innovative opportunities that drive business growth and technological advancement.",
     right: [
-        "We specialize in providing comprehensive business advisory services, financial analysis, and strategic consulting to help organizations navigate today's competitive landscape. Our expertise spans across multiple industries, with a particular focus on emerging technologies and sustainable business practices.",
-        "From traditional consulting to pioneering electric vehicle solutions, we bring the spark of innovation to every project. Our team of experts works closely with clients to understand their unique challenges and develop tailored solutions that deliver measurable results and long-term value."
+        "We specialize in product development, technology consulting, and engineering solutions across automotive, manufacturing, and emerging technology sectors. Our expertise spans hardware design, software development, IoT systems, and advanced manufacturing processes with a focus on electric vehicles, drones, and industrial automation.",
+        "From concept to production, we bring engineering excellence to every project. Our multidisciplinary team combines deep technical knowledge with practical implementation experience to deliver solutions that solve real-world problems and create competitive advantages for our clients."
     ]
 };
 
 export const codeOfConduct = {
-    heading: "Our Code of Conduct",
-    left: "Excellence, integrity, and innovation guide every aspect of our work. We are committed to maintaining the highest standards of professional conduct and ethical practices.",
+    heading: "Our Engineering Philosophy",
+    left: "Technical excellence, innovation, and ethical engineering practices guide every aspect of our work. We are committed to delivering solutions that are not only cutting-edge but also responsible and sustainable.",
     right: [
-        "We believe in transparent communication, collaborative partnerships, and delivering exceptional value to our clients. Our approach is rooted in trust, accountability, and a deep understanding of our clients' business objectives.",
-        "Every team member at Xtrawrkx upholds our core values of integrity, innovation, and impact. We foster a culture of continuous learning, ethical decision-making, and sustainable business practices that benefit our clients, partners, and communities."
+        "We believe in evidence-based design, rigorous testing, and transparent documentation. Our engineering approach is rooted in scientific principles, safety standards, and a deep understanding of real-world application requirements and constraints.",
+        "Every team member at Xtrawrkx upholds our commitment to technical integrity, continuous learning, and knowledge sharing. We foster a culture of innovation while maintaining strict adherence to industry standards and best practices that ensure safe, reliable, and effective solutions."
     ]
 };
 
 export const values = [
     {
         icon: "mdi:lightbulb-outline",
-        title: "Strategic Innovation",
-        text: "We develop cutting-edge solutions that transform business challenges into competitive advantages, focusing on sustainable growth and long-term value creation.",
-    },
-    {
-        icon: "mdi:chart-line",
-        title: "Financial Excellence",
-        text: "Our comprehensive financial analysis and reporting services provide deep insights that enable data-driven decision making and optimal resource allocation.",
-    },
-    {
-        icon: "mdi:handshake-outline",
-        title: "Trusted Partnership",
-        text: "We build lasting relationships with our clients through transparent communication, reliable delivery, and a genuine commitment to their success.",
-    },
-    {
-        icon: "mdi:lock-outline",
-        title: "Sustainable Solutions",
-        text: "From electric vehicle consulting to green business strategies, we help organizations embrace sustainability while achieving their business objectives.",
+        title: "Innovation Excellence",
+        text: "We push the boundaries of technology to create breakthrough solutions that solve complex engineering challenges and drive industry advancement.",
     },
     {
         icon: "mdi:cog-outline",
-        title: "Operational Excellence",
-        text: "Our management consulting and contract manufacturing services optimize operations, reduce costs, and enhance efficiency across all business functions.",
+        title: "Engineering Precision",
+        text: "Our commitment to technical excellence ensures every solution is built with precision, reliability, and performance at its core.",
+    },
+    {
+        icon: "mdi:handshake-outline",
+        title: "Collaborative Approach",
+        text: "We work as an extension of your team, fostering open communication and knowledge sharing to achieve exceptional results together.",
+    },
+    {
+        icon: "mdi:rocket-launch-outline",
+        title: "Agile Development",
+        text: "Our rapid prototyping and iterative development approach enables faster time-to-market while maintaining quality and reducing risks.",
+    },
+    {
+        icon: "mdi:shield-check-outline",
+        title: "Quality Assurance",
+        text: "We implement rigorous testing and validation processes to ensure our solutions meet the highest standards of quality and reliability.",
     },
     {
         icon: "mdi:trending-up",
-        title: "Growth Acceleration",
-        text: "We provide the strategic guidance and practical solutions needed to accelerate growth, enter new markets, and scale operations effectively.",
+        title: "Future-Ready Solutions",
+        text: "We design scalable and adaptable solutions that prepare our clients for emerging technologies and evolving market demands.",
     },
 ];
 
@@ -116,25 +116,36 @@ export const awards = [
 ];
 
 export const howWeHelp = {
-    heading: "How We Transform Your Business",
-    subtext: "Partner with us to unlock your business potential and achieve sustainable growth.",
-    button: "Start Your Journey!",
+    heading: "Our Engineering Process",
+    subtext: "Partner with us to bring your innovative ideas to life through systematic engineering excellence.",
+    button: "Start Your Project!",
     steps: [
-        { title: "Business Assessment", content: "We conduct a comprehensive analysis of your current business operations, challenges, and opportunities." },
-        { title: "Strategy Development", content: "Our experts develop customized strategies aligned with your business objectives and market conditions." },
-        { title: "Implementation Support", content: "We provide hands-on support during implementation, ensuring smooth execution and minimal disruption." },
-        { title: "Growth Acceleration", content: "Monitor progress, optimize performance, and scale your operations for sustained growth and success." },
+        { title: "Discovery & Analysis", content: "We analyze your technical requirements, constraints, and objectives to define a clear engineering roadmap." },
+        { title: "Design & Prototyping", content: "Our engineers develop detailed designs and build functional prototypes to validate concepts and performance." },
+        { title: "Development & Testing", content: "We implement robust solutions with comprehensive testing to ensure reliability, safety, and performance standards." },
+        { title: "Deployment & Support", content: "We assist with production implementation and provide ongoing technical support for optimal system performance." },
     ]
 };
 
+export const missionVision = {
+    mission: {
+        title: "Our Mission",
+        content: "To solve next-level engineering challenges through innovative technology solutions that drive business growth and technological advancement. We transform complex technical problems into competitive advantages for our clients across automotive, manufacturing, and emerging technology sectors."
+    },
+    vision: {
+        title: "Our Vision",
+        content: "To be the leading technology consulting partner that enables businesses to harness the power of cutting-edge engineering solutions. We envision a future where innovative engineering drives sustainable growth and creates lasting impact in the automotive, drone, IoT, and advanced manufacturing industries."
+    }
+};
+
 export const faq = [
-    { q: "What services does Xtrawrkx offer?", a: "We offer comprehensive business advisory, financial analysis, management consulting, contract manufacturing, and electric vehicle consulting services." },
-    { q: "How does Xtrawrkx approach business consulting?", a: "We take a holistic approach, combining deep industry expertise with innovative solutions to address complex business challenges and drive sustainable growth." },
-    { q: "What industries does Xtrawrkx serve?", a: "We serve clients across various industries including manufacturing, technology, automotive, finance, and emerging sectors like electric vehicles and renewable energy." },
-    { q: "How can Xtrawrkx help with electric vehicle strategies?", a: "Our EV consulting services cover market analysis, technology assessment, business model development, and strategic planning for the electric vehicle ecosystem." },
-    { q: "What makes Xtrawrkx different from other consulting firms?", a: "Our unique combination of traditional consulting expertise with cutting-edge technology solutions, particularly in sustainable business practices and electric vehicle consulting." },
-    { q: "How does the engagement process work?", a: "We start with a comprehensive assessment, develop customized strategies, provide implementation support, and ensure continuous optimization for sustained growth." },
-    { q: "What is the typical timeline for a consulting project?", a: "Project timelines vary based on scope and complexity, ranging from 3-6 months for strategic assessments to 12-18 months for comprehensive transformation initiatives." },
-    { q: "Does Xtrawrkx provide ongoing support after project completion?", a: "Yes, we offer continued support through maintenance contracts, periodic reviews, and advisory services to ensure long-term success." },
-    { q: "How does Xtrawrkx ensure client confidentiality?", a: "We maintain strict confidentiality protocols, including comprehensive NDAs and secure data handling procedures to protect all client information." },
+    { q: "What engineering services does Xtrawrkx offer?", a: "We offer product development, technology consulting, hardware design, software development, IoT solutions, and manufacturing support across automotive, drone, and industrial automation sectors." },
+    { q: "How does Xtrawrkx approach product development?", a: "We follow a systematic engineering process from concept to production, combining innovative design with rigorous testing and validation to ensure reliable, market-ready solutions." },
+    { q: "What industries does Xtrawrkx specialize in?", a: "We specialize in automotive (especially electric vehicles), aerospace (drones and UAVs), manufacturing, IoT systems, and emerging technology sectors requiring advanced engineering solutions." },
+    { q: "Can Xtrawrkx help with electric vehicle development?", a: "Yes, we provide comprehensive EV development services including battery management systems, motor control, charging solutions, vehicle electronics, and system integration." },
+    { q: "What makes Xtrawrkx different from other engineering firms?", a: "Our unique combination of deep technical expertise, rapid prototyping capabilities, and end-to-end development approach enables us to solve complex engineering challenges efficiently." },
+    { q: "How does the engineering engagement process work?", a: "We start with technical discovery and requirements analysis, followed by design and prototyping, comprehensive testing, and finally deployment support with ongoing technical assistance." },
+    { q: "What is the typical timeline for an engineering project?", a: "Project timelines vary based on complexity, ranging from 2-4 months for prototype development to 8-18 months for complete product development and manufacturing setup." },
+    { q: "Does Xtrawrkx provide post-development support?", a: "Yes, we offer ongoing technical support, maintenance services, updates, and scaling assistance to ensure long-term product success and optimization." },
+    { q: "How does Xtrawrkx ensure intellectual property protection?", a: "We maintain strict IP protection protocols with comprehensive NDAs, secure development environments, and clear IP ownership agreements to protect all client innovations." },
 ]; 

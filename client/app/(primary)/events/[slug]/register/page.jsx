@@ -13,6 +13,11 @@ import {
 } from "@/src/services/databaseService";
 import { formatEventDate } from "@/src/utils/dateUtils";
 import Script from "next/script";
+import { commonToasts, toastUtils } from "@/src/utils/toast";
+import {
+  sendRegistrationEmail,
+  sendPaymentConfirmationEmail,
+} from "@/src/utils/emailUtils";
 
 const communityOptions = [
   { id: "none", name: "Not a member", discount: 0, freeSlots: 0 },
@@ -26,13 +31,13 @@ const ticketTypes = [
   {
     id: "gnp",
     name: "General Networking Pass (GNP)",
-    price: 10,
+    price: 8000,
     description: "Access to networking sessions and general event activities",
   },
   {
     id: "asp",
     name: "Active Support Pass (ASP)",
-    price: 10,
+    price: 60000,
     description:
       "Full access to all sessions, workshops, and premium networking opportunities",
   },
@@ -222,7 +227,7 @@ export default function CompanyEventRegistration({ params }) {
     const selectedTicket = ticketTypes.find(
       (t) => t.id === formData.ticketType
     );
-    const basePrice = selectedTicket ? selectedTicket.price : 10; // Default to GNP price
+    const basePrice = selectedTicket ? selectedTicket.price : 8000; // Default to GNP price
     let totalCost = basePrice;
     let discountAmount = 0;
     let isFree = false;
@@ -445,6 +450,21 @@ export default function CompanyEventRegistration({ params }) {
               throw new Error("Database update failed after multiple attempts");
             }
 
+            // Send payment confirmation email
+            try {
+              await sendPaymentConfirmationEmail(
+                updatedRegistrationData,
+                registrationId,
+                response.razorpay_payment_id
+              );
+            } catch (emailError) {
+              console.error(
+                "Failed to send payment confirmation email:",
+                emailError
+              );
+              // Don't fail the payment process due to email issues
+            }
+
             resolve(response);
           } catch (error) {
             console.error("Error updating payment status:", error);
@@ -580,7 +600,9 @@ export default function CompanyEventRegistration({ params }) {
     e.preventDefault();
 
     if (!validateForm()) {
-      alert("Please correct the errors in the form before submitting.");
+      toastUtils.validationError(
+        "Please correct the errors in the form before submitting."
+      );
       return;
     }
 
@@ -649,7 +671,24 @@ export default function CompanyEventRegistration({ params }) {
 
       // If it's a free registration, complete immediately
       if (pricing.isFree) {
-        // Show success page for free registrations
+        // Send registration confirmation email for free registrations
+        const emailSent = await sendRegistrationEmail(
+          registrationData,
+          registrationId
+        );
+
+        // Show success toast and page for free registrations
+        toastUtils.success(
+          `🎉 Registration completed successfully! Your registration ID is: ${registrationId}. Welcome to ${
+            event.title
+          }!${
+            emailSent
+              ? " Confirmation email sent."
+              : " Note: Email notification may be delayed."
+          }`,
+          { autoClose: 10000 }
+        );
+
         setSuccessData({
           registrationId,
           companyName: formData.companyName,
@@ -695,7 +734,12 @@ export default function CompanyEventRegistration({ params }) {
         try {
           await processPayment(registrationData, registrationId, pricing);
 
-          // Show success page for paid registrations
+          // Show success toast and page for paid registrations
+          toastUtils.success(
+            `🎉 Payment successful! Registration completed for ${event.title}. Registration ID: ${registrationId}. You'll receive a confirmation email shortly.`,
+            { autoClose: 12000 }
+          );
+
           setSuccessData({
             registrationId,
             companyName: formData.companyName,
@@ -740,42 +784,33 @@ export default function CompanyEventRegistration({ params }) {
           console.error("Payment error:", paymentError);
 
           if (paymentError.message === "Payment cancelled by user") {
-            alert(
-              "💳 Payment was cancelled. Your registration has been saved and you can complete the payment later.\n\nRegistration ID: " +
-                registrationId +
-                "\n\nYou can contact support to complete payment if needed."
+            toastUtils.warning(
+              `💳 Payment was cancelled. Your registration has been saved and you can complete the payment later. Registration ID: ${registrationId}. You can contact support to complete payment if needed.`,
+              { autoClose: 10000 }
             );
           } else if (paymentError.message.includes("Payment gateway")) {
-            alert(
-              "🔄 " +
-                paymentError.message +
-                "\n\nRegistration ID: " +
-                registrationId +
-                "\n\nPlease try again in a moment."
+            toastUtils.error(
+              `🔄 ${paymentError.message}. Registration ID: ${registrationId}. Please try again in a moment.`,
+              { autoClose: 8000 }
             );
           } else if (paymentError.message.includes("Payment failed:")) {
-            alert(
-              "❌ " +
-                paymentError.message +
-                "\n\nRegistration ID: " +
-                registrationId +
-                "\n\nPlease try a different payment method or contact support."
+            toastUtils.error(
+              `❌ ${paymentError.message}. Registration ID: ${registrationId}. Please try a different payment method or contact support.`,
+              { autoClose: 10000 }
             );
           } else {
-            alert(
-              "⚠️ Payment could not be completed. Your registration has been saved.\n\nRegistration ID: " +
-                registrationId +
-                "\n\nError: " +
-                paymentError.message +
-                "\n\nPlease contact support for assistance."
+            toastUtils.error(
+              `⚠️ Payment could not be completed. Your registration has been saved. Registration ID: ${registrationId}. Error: ${paymentError.message}. Please contact support for assistance.`,
+              { autoClose: 12000 }
             );
           }
         }
       }
     } catch (error) {
       console.error("Registration error:", error);
-      alert(
-        "There was an error processing your registration. Please try again. If the problem persists, please contact support."
+      toastUtils.error(
+        "There was an error processing your registration. Please try again. If the problem persists, please contact support.",
+        { autoClose: 8000 }
       );
     } finally {
       setIsSubmitting(false);
@@ -827,7 +862,6 @@ export default function CompanyEventRegistration({ params }) {
       <RegistrationSuccess
         registrationData={successData}
         onRedirect={() => (window.location.href = "/events")}
-        redirectDelay={5000}
       />
     );
   }

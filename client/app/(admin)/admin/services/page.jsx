@@ -153,7 +153,7 @@ export default function ServiceManagement() {
       await Promise.all(
         bulkSelection.map((id) => {
           const service = services.find((s) => s.id === id);
-          return serviceService.update(serviceService.collectionName, id, {
+          return serviceService.update(id, {
             ...service,
             featured,
           });
@@ -202,7 +202,7 @@ export default function ServiceManagement() {
 
   const handleToggleFeatured = async (service) => {
     try {
-      await serviceService.update(serviceService.collectionName, service.id, {
+      await serviceService.update(service.id, {
         ...service,
         featured: !service.featured,
       });
@@ -1140,11 +1140,7 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
       };
 
       if (service) {
-        await serviceService.update(
-          serviceService.collectionName,
-          service.id,
-          serviceData
-        );
+        await serviceService.update(service.id, serviceData);
       } else {
         await serviceService.createService(serviceData);
       }

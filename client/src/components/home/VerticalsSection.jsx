@@ -94,7 +94,7 @@ const VerticalsSection = () => {
             <motion.div variants={cardVariants}>
               <SectionHeader
                 label="BUSINESS DIVISIONS"
-                title="Our Verticals"
+                title="Our Companies"
                 className="mb-4"
               />
             </motion.div>
@@ -168,7 +168,7 @@ const VerticalsSection = () => {
                 {/* Bottom Section */}
                 <div className="flex items-center justify-between">
                   <Button
-                    text="Visit Website"
+                    text="Know More"
                     type="secondary"
                     onClick={() => {
                       window.open(
