@@ -614,11 +614,11 @@ export default function EventPage({ params }) {
                           }}
                         />
                       )}
-                      <Button
+                      {/* <Button
                         text="Share Event"
                         type="secondary"
                         className="w-full"
-                      />
+                      /> */}
                     </>
                   )}
                 </div>

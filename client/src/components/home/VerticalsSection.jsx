@@ -171,11 +171,7 @@ const VerticalsSection = () => {
                     text="Know More"
                     type="secondary"
                     onClick={() => {
-                      window.open(
-                        vertical.website,
-                        "_blank",
-                        "noopener,noreferrer"
-                      );
+                      window.location.href = "/about";
                     }}
                   />
                 </div>

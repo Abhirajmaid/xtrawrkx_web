@@ -1,27 +1,23 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
-// Email configuration - you can use Gmail, Outlook, or any SMTP service
+// Email configuration - uses environment variables for security
 const createTransporter = () => {
-  // For Gmail (requires app password)
-  return nodemailer.createTransport({
-    service: 'gmail',
+  // Check if environment variables are set
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error('Email configuration missing. Please set EMAIL_USER and EMAIL_PASS in .env.local');
+  }
+
+  // For Google Workspace email (xsos@xtrawrkx.com)
+  return nodemailer.createTransporter({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // true for 465, false for other ports
     auth: {
-      user: "abhirajmaid050@gmail.com", // Your email
-      pass: "edoh vnef ipwu dcje", // Your app password (not regular password)
+      user: "hello@xtrawrkx.com",
+      pass: "yhws dmzi qtcc icgr",
     },
   });
-
-  // Alternative: For custom SMTP server
-  // return nodemailer.createTransport({
-  //   host: process.env.SMTP_HOST,
-  //   port: process.env.SMTP_PORT,
-  //   secure: process.env.SMTP_SECURE === 'true',
-  //   auth: {
-  //     user: process.env.SMTP_USER,
-  //     pass: process.env.SMTP_PASS,
-  //   },
-  // });
 };
 
 // Email templates
@@ -659,7 +655,8 @@ export async function POST(request) {
 
     // Email configuration for user/company
     const mailOptions = {
-      from: `"xtrawrkx Events" <${process.env.EMAIL_USER}>`,
+      from: `"xtrawrkx Events" <${process.env.EMAIL_USER || 'hiten@xtrawrkx.com'}>`,
+      replyTo: 'xsos@xtrawrkx.com', // Replies go to the group email
       to: recipients.join(', '),
       subject: emailTemplate.subject,
       html: emailTemplate.html,
@@ -669,11 +666,12 @@ export async function POST(request) {
     await transporter.sendMail(mailOptions);
 
     // Send notification to xtrawrkx admin
-    const adminEmails = "codersground404@gmail.com";
+    const adminEmails = "xsos@xtrawrkx.com, hiten@xtrawrkx.com";
     const adminEmailTemplate = getAdminNotificationTemplate(data, type);
 
     const adminMailOptions = {
-      from: `"xtrawrkx Events" <abhirajmaid050@gmail.com>`,
+      from: `"xtrawrkx Events" <hello@xtrawrkx.com>`,
+      replyTo: 'xsos@xtrawrkx.com', // Replies go to the group email
       to: adminEmails,
       subject: adminEmailTemplate.subject,
       html: adminEmailTemplate.html,
