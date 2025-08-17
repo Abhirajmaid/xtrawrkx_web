@@ -177,41 +177,52 @@ const BookMeetModal = ({ isOpen, onClose }) => {
     const loadingToast = toastUtils.loading("Booking your consultation...");
 
     try {
-      // Simulate API call - replace with actual booking logic
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Show success and close modal
-      toastUtils.update(
-        loadingToast,
-        "success",
-        "Consultation call booked successfully! You'll receive a confirmation email shortly."
-      );
-      onClose();
-
-      // Reset form
-      setFormData({
-        consultationType: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        company: "",
-        jobTitle: "",
-        purpose: "",
-        preferredDate: "",
-        preferredTime: "",
-        alternativeDate: "",
-        alternativeTime: "",
-        timezone: "EST",
-        meetingMode: "video",
-        agenda: "",
-        participants: 1,
-        specialRequests: "",
-        newsletter: false,
+      // Submit consultation booking to API
+      const response = await fetch("/api/book-consultation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
-      setCurrentStep(1);
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Show success and close modal
+        toastUtils.update(
+          loadingToast,
+          "success",
+          "Consultation request submitted successfully! You'll receive a confirmation email once we review and confirm your booking."
+        );
+        onClose();
+
+        // Reset form
+        setFormData({
+          consultationType: "",
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          company: "",
+          jobTitle: "",
+          purpose: "",
+          preferredDate: "",
+          preferredTime: "",
+          alternativeDate: "",
+          alternativeTime: "",
+          timezone: "EST",
+          meetingMode: "video",
+          agenda: "",
+          participants: 1,
+          specialRequests: "",
+          newsletter: false,
+        });
+        setCurrentStep(1);
+      } else {
+        throw new Error(result.error || "Failed to book consultation");
+      }
     } catch (error) {
-      console.error("Error booking consultation:", error);
       toastUtils.update(
         loadingToast,
         "error",
@@ -769,7 +780,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                 text="Next Step"
                 type="primary"
                 onClick={nextStep}
-                className="flex items-center space-x-2 w-full sm:w-auto justify-center min-h-[44px] px-6"
+                className="flex items-center space-x-2 w-full sm:w-auto justify-center min-h-[44px] pl-6"
               />
             ) : (
               <Button
@@ -777,7 +788,7 @@ const BookMeetModal = ({ isOpen, onClose }) => {
                 type="primary"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="flex items-center space-x-2 w-full sm:w-auto justify-center text-sm md:text-base min-h-[44px] px-6"
+                className="flex items-center space-x-2 w-full sm:w-auto justify-center text-sm md:text-base min-h-[44px] pl-6"
               />
             )}
           </div>

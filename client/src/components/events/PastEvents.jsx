@@ -65,7 +65,6 @@ export default function PastEvents({ initialCategoryFilter }) {
         setPastEvents(past);
         setError(null);
       } catch (err) {
-        console.error("Error fetching past events:", err);
         setError("Failed to load past events");
         setPastEvents([]);
       } finally {

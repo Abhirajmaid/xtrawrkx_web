@@ -31,7 +31,6 @@ const convertFirestoreTimestampToDate = (timestamp) => {
         try {
             return timestamp.toDate();
         } catch (error) {
-            console.warn('Error converting Firestore timestamp:', error);
             return null;
         }
     }
@@ -52,7 +51,6 @@ const convertFirestoreTimestampToDate = (timestamp) => {
         return new Date(timestamp.seconds * 1000);
     }
 
-    console.warn('Unknown timestamp format:', timestamp);
     return null;
 };
 
@@ -65,28 +63,50 @@ class BaseDatabaseService {
     // Create a new document
     async create(data) {
         try {
+            // Check if Firebase is available
+            if (!db) {
+                throw new Error('Firebase database is not initialized');
+            }
+
             const docData = {
                 ...data,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             };
+
+
             const docRef = await addDoc(collection(db, this.collectionName), docData);
-            return {
+
+            const result = {
                 id: docRef.id,
                 ...data,
                 createdAt: new Date(),
                 updatedAt: new Date()
             };
+
+
+            return result;
         } catch (error) {
-            console.error(`Error creating document in ${this.collectionName}:`, error);
-            throw new Error(`Failed to create ${this.collectionName.slice(0, -1)}: ${error.message}`);
+            // Provide more specific error messages
+            if (error.code === 'permission-denied') {
+                throw new Error(`Permission denied. Check Firebase security rules for ${this.collectionName}`);
+            } else if (error.code === 'unavailable') {
+                throw new Error(`Firebase service is temporarily unavailable. Please try again later.`);
+            } else if (error.message.includes('Firebase database is not initialized')) {
+                throw new Error(`Database connection error. Please check Firebase configuration.`);
+            } else {
+                throw new Error(`Failed to create ${this.collectionName.slice(0, -1)}: ${error.message}`);
+            }
         }
     }
 
     // Get all documents
     async getAll(orderField = 'createdAt', orderDirection = 'desc') {
         try {
-
+            // Check if Firebase is available
+            if (!db) {
+                return [];
+            }
 
             // First try to get all documents with ordering
             let querySnapshot;
@@ -98,7 +118,6 @@ class BaseDatabaseService {
                 );
                 querySnapshot = await getDocs(q);
             } catch (orderError) {
-                console.warn(`Ordering by ${orderField} failed, fetching without order:`, orderError);
                 // Fallback: get all documents without ordering
                 querySnapshot = await getDocs(collection(db, this.collectionName));
                 needsInMemorySort = true;
@@ -141,7 +160,6 @@ class BaseDatabaseService {
 
             return results;
         } catch (error) {
-            console.error(`Error getting documents from ${this.collectionName}:`, error);
             throw new Error(`Failed to fetch ${this.collectionName}: ${error.message}`);
         }
     }
@@ -165,7 +183,6 @@ class BaseDatabaseService {
                 return null;
             }
         } catch (error) {
-            console.error(`Error getting document from ${this.collectionName}:`, error);
             throw new Error(`Failed to fetch ${this.collectionName.slice(0, -1)}: ${error.message}`);
         }
     }
@@ -185,7 +202,6 @@ class BaseDatabaseService {
                 updatedAt: new Date()
             };
         } catch (error) {
-            console.error(`Error updating document in ${this.collectionName}:`, error);
             throw new Error(`Failed to update ${this.collectionName.slice(0, -1)}: ${error.message}`);
         }
     }
@@ -201,7 +217,6 @@ class BaseDatabaseService {
             await deleteDoc(docRef);
             return true;
         } catch (error) {
-            console.error(`Error deleting document from ${this.collectionName}:`, error);
             throw new Error(`Failed to delete document: ${error.message}`);
         }
     }
@@ -219,7 +234,6 @@ class BaseDatabaseService {
                 );
                 querySnapshot = await getDocs(q);
             } catch (orderError) {
-                console.warn(`Ordering by ${orderField} failed for ${field} query, fetching without order:`, orderError);
                 // Fallback: query without ordering
                 const q = query(
                     collection(db, this.collectionName),
@@ -264,7 +278,6 @@ class BaseDatabaseService {
 
             return results;
         } catch (error) {
-            console.error(`Error getting documents by ${field} from ${this.collectionName}:`, error);
             throw new Error(`Failed to fetch ${this.collectionName}: ${error.message}`);
         }
     }
@@ -272,12 +285,22 @@ class BaseDatabaseService {
     // Get count of documents
     async getCount() {
         try {
-            const q = query(collection(db, this.collectionName));
-            const snapshot = await getCountFromServer(q);
+            // Check if Firebase is available
+            if (!db) {
+                return 0;
+            }
+
+            const snapshot = await getCountFromServer(collection(db, this.collectionName));
             return snapshot.data().count;
         } catch (error) {
-            console.error(`Error getting count from ${this.collectionName}:`, error);
-            return 0;
+
+            // If count fails, try to get all documents and count them manually
+            try {
+                const allDocs = await this.getAll();
+                return allDocs.length;
+            } catch (fallbackError) {
+                return 0;
+            }
         }
     }
 
@@ -299,7 +322,6 @@ class BaseDatabaseService {
                 registrationDeadline: convertFirestoreTimestampToDate(doc.data().registrationDeadline)
             }));
         } catch (error) {
-            console.error(`Error getting limited documents from ${this.collectionName}:`, error);
             throw new Error(`Failed to fetch ${this.collectionName}: ${error.message}`);
         }
     }
@@ -346,7 +368,6 @@ export class EventService extends BaseDatabaseService {
 
             return null;
         } catch (error) {
-            console.error(`Error getting event by slug ${slug}:`, error);
             throw new Error(`Failed to fetch event: ${error.message}`);
         }
     }
@@ -371,7 +392,6 @@ export class EventService extends BaseDatabaseService {
                 return event.status && event.status.toLowerCase() === "upcoming";
             });
         } catch (error) {
-            console.error('Error getting upcoming events:', error);
             throw new Error(`Failed to fetch upcoming events: ${error.message}`);
         }
     }
@@ -405,7 +425,6 @@ export class EventService extends BaseDatabaseService {
 
             return pastEvents;
         } catch (error) {
-            console.error('Error getting past events:', error);
             throw new Error(`Failed to fetch past events: ${error.message}`);
         }
     }
@@ -456,7 +475,6 @@ export class EventService extends BaseDatabaseService {
 
             return events;
         } catch (error) {
-            console.error('Error getting events by season:', error);
             // Fallback: get all events and filter in JavaScript
             try {
 
@@ -465,7 +483,6 @@ export class EventService extends BaseDatabaseService {
 
                 return seasonEvents;
             } catch (fallbackError) {
-                console.error('Fallback also failed:', fallbackError);
                 throw new Error(`Failed to fetch events for season ${season}: ${error.message}`);
             }
         }
@@ -487,7 +504,6 @@ export class EventService extends BaseDatabaseService {
 
             return upcomingEvents;
         } catch (error) {
-            console.error('Error getting upcoming events by season:', error);
             throw new Error(`Failed to fetch upcoming events for season ${season}: ${error.message}`);
         }
     }
@@ -508,7 +524,7 @@ export class ResourceService extends BaseDatabaseService {
 
     // Get all resources
     async getResources() {
-        return this.getAll('createdAt', 'desc');
+        return this.getAll('publishedDate', 'desc');
     }
 
     // Get resource by slug
@@ -519,17 +535,17 @@ export class ResourceService extends BaseDatabaseService {
 
     // Get resources by type
     async getResourcesByType(type) {
-        return this.getByField('type', type, 'createdAt', 'desc');
+        return this.getByField('type', type, 'publishedDate', 'desc');
     }
 
     // Get resources by category
     async getResourcesByCategory(category) {
-        return this.getByField('category', category, 'createdAt', 'desc');
+        return this.getByField('category', category, 'publishedDate', 'desc');
     }
 
     // Get featured resources
     async getFeaturedResources() {
-        return this.getByField('featured', true, 'createdAt', 'desc');
+        return this.getByField('featured', true, 'publishedDate', 'desc');
     }
 }
 
@@ -570,7 +586,6 @@ export class ServiceService extends BaseDatabaseService {
             }
             return null;
         } catch (error) {
-            console.error(`Error getting service by slug ${slug}:`, error);
             throw new Error(`Failed to fetch service: ${error.message}`);
         }
     }
@@ -648,7 +663,6 @@ export class GalleryService extends BaseDatabaseService {
             }
             return this.getGalleryItemsByEvent(event.id);
         } catch (error) {
-            console.error('Error getting gallery items by event slug:', error);
             throw error;
         }
     }
@@ -663,8 +677,174 @@ export class GalleryService extends BaseDatabaseService {
                 item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
             );
         } catch (error) {
-            console.error('Error searching gallery items:', error);
             throw error;
+        }
+    }
+}
+
+// Contact Inquiry Service  
+export class ContactService extends BaseDatabaseService {
+    constructor() {
+        super('contact_inquiries');
+    }
+
+    // Create contact inquiry
+    async createInquiry(inquiryData) {
+        return this.create(inquiryData);
+    }
+
+    // Get all inquiries
+    async getInquiries() {
+        return this.getAll('createdAt', 'desc');
+    }
+
+    // Get inquiry by ID
+    async getInquiryById(id) {
+        return this.getById(id);
+    }
+
+    // Get inquiries by type
+    async getInquiriesByType(inquiryType) {
+        return this.getByField('inquiryType', inquiryType, 'createdAt', 'desc');
+    }
+
+    // Get inquiries by priority
+    async getInquiriesByPriority(priority) {
+        return this.getByField('priority', priority, 'createdAt', 'desc');
+    }
+
+    // Update inquiry status
+    async updateInquiryStatus(id, status) {
+        return this.update(id, { status, statusUpdatedAt: new Date() });
+    }
+
+    // Mark inquiry as resolved
+    async markInquiryResolved(id, resolvedBy = null) {
+        return this.update(id, {
+            status: 'resolved',
+            resolvedAt: new Date(),
+            resolvedBy
+        });
+    }
+
+    // Get limited number of inquiries
+    async getWithLimit(limitCount, orderField = 'createdAt', orderDirection = 'desc') {
+        try {
+            const q = query(
+                collection(db, this.collectionName),
+                orderBy(orderField, orderDirection),
+                limit(limitCount)
+            );
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt)
+            }));
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Get count of inquiries
+    async getCount() {
+        try {
+            const snapshot = await getCountFromServer(collection(db, this.collectionName));
+            return snapshot.data().count;
+        } catch (error) {
+            return 0;
+        }
+    }
+}
+
+// Booking/Consultation Service
+export class BookingService extends BaseDatabaseService {
+    constructor() {
+        super('consultation_bookings');
+    }
+
+    // Create booking
+    async createBooking(bookingData) {
+        return this.create(bookingData);
+    }
+
+    // Get all bookings
+    async getBookings() {
+        return this.getAll('preferredDate', 'asc');
+    }
+
+    // Get booking by ID
+    async getBookingById(id) {
+        return this.getById(id);
+    }
+
+    // Get bookings by consultation type
+    async getBookingsByType(consultationType) {
+        return this.getByField('consultationType', consultationType, 'preferredDate', 'asc');
+    }
+
+    // Get bookings by status
+    async getBookingsByStatus(status) {
+        return this.getByField('status', status, 'preferredDate', 'asc');
+    }
+
+    // Update booking status
+    async updateBookingStatus(id, status) {
+        return this.update(id, { status, statusUpdatedAt: new Date() });
+    }
+
+    // Confirm booking
+    async confirmBooking(id, confirmedBy = null, meetingDetails = {}) {
+        return this.update(id, {
+            status: 'confirmed',
+            confirmedAt: new Date(),
+            confirmedBy,
+            meetingDetails
+        });
+    }
+
+    // Get upcoming bookings
+    async getUpcomingBookings() {
+        try {
+            const allBookings = await this.getBookings();
+            const today = new Date();
+            return allBookings.filter(booking => {
+                const bookingDate = new Date(booking.preferredDate);
+                return bookingDate >= today && booking.status === 'confirmed';
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Get limited number of bookings
+    async getWithLimit(limitCount, orderField = 'createdAt', orderDirection = 'desc') {
+        try {
+            const q = query(
+                collection(db, this.collectionName),
+                orderBy(orderField, orderDirection),
+                limit(limitCount)
+            );
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: convertFirestoreTimestampToDate(doc.data().createdAt),
+                updatedAt: convertFirestoreTimestampToDate(doc.data().updatedAt)
+            }));
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Get count of bookings
+    async getCount() {
+        try {
+            const snapshot = await getCountFromServer(collection(db, this.collectionName));
+            return snapshot.data().count;
+        } catch (error) {
+            return 0;
         }
     }
 }
@@ -712,7 +892,6 @@ export class EventRegistrationService extends BaseDatabaseService {
             }
             return null;
         } catch (error) {
-            console.error('Error getting registration by email and event:', error);
             throw new Error(`Failed to fetch registration: ${error.message}`);
         }
     }
@@ -752,7 +931,6 @@ export class EventRegistrationService extends BaseDatabaseService {
             }
             return null;
         } catch (error) {
-            console.error('Error getting registration by company and season:', error);
             throw new Error(`Failed to fetch registration: ${error.message}`);
         }
     }
@@ -765,14 +943,9 @@ export class EventRegistrationService extends BaseDatabaseService {
                 throw new Error('Registration ID is required');
             }
 
-            console.log('Updating season registration:', id, updateData);
             const result = await this.update(id, updateData);
-            console.log('Season registration updated successfully:', result);
             return result;
         } catch (error) {
-            console.error('Error updating season registration:', error);
-            console.error('Registration ID:', id);
-            console.error('Update data:', updateData);
             throw new Error(`Failed to update season registration: ${error.message}`);
         }
     }
@@ -785,14 +958,9 @@ export class EventRegistrationService extends BaseDatabaseService {
                 throw new Error('Registration ID is required');
             }
 
-            console.log('Updating registration:', id, updateData);
             const result = await this.update(id, updateData);
-            console.log('Registration updated successfully:', result);
             return result;
         } catch (error) {
-            console.error('Error updating registration:', error);
-            console.error('Registration ID:', id);
-            console.error('Update data:', updateData);
             throw new Error(`Failed to update registration: ${error.message}`);
         }
     }
@@ -811,10 +979,8 @@ export class EventRegistrationService extends BaseDatabaseService {
             // Store in a separate collection for admin review
             const failedPaymentService = new BaseDatabaseService('failed_payment_logs');
             const result = await failedPaymentService.create(failedPaymentData);
-            console.log('Failed payment logged for manual review:', result.id);
             return result;
         } catch (error) {
-            console.error('Error logging failed payment:', error);
             // Don't throw here as this is a fallback mechanism
             return null;
         }
@@ -840,7 +1006,6 @@ export class TeamService extends BaseDatabaseService {
 
             return await this.create(docData);
         } catch (error) {
-            console.error('Error creating team member:', error);
             throw new Error(`Failed to create team member: ${error.message}`);
         }
     }
@@ -858,7 +1023,6 @@ export class TeamService extends BaseDatabaseService {
                 isActive: member.isActive ?? true
             }));
         } catch (error) {
-            console.error('Error fetching team members:', error);
             // Try without ordering as fallback
             try {
                 const members = await this.getAll();
@@ -886,7 +1050,6 @@ export class TeamService extends BaseDatabaseService {
                 isActive: member.isActive ?? true
             }));
         } catch (error) {
-            console.error(`Error fetching ${category} team members:`, error);
             // Try without ordering as fallback
             try {
                 const members = await this.getByField('category', category);
@@ -911,7 +1074,6 @@ export class TeamService extends BaseDatabaseService {
                 joinDate: member.joinDate || new Date().toISOString().split('T')[0]
             }));
         } catch (error) {
-            console.error('Error fetching active team members:', error);
             throw new Error(`Failed to fetch active team members: ${error.message}`);
         }
     }
@@ -931,7 +1093,6 @@ export class TeamService extends BaseDatabaseService {
                 throw new Error('Team member not found');
             }
         } catch (error) {
-            console.error('Error fetching team member by ID:', error);
             throw new Error(`Failed to fetch team member: ${error.message}`);
         }
     }
@@ -943,7 +1104,6 @@ export class TeamService extends BaseDatabaseService {
 
             return await this.update(id, memberData);
         } catch (error) {
-            console.error('Error updating team member:', error);
             throw new Error(`Failed to update team member: ${error.message}`);
         }
     }
@@ -956,7 +1116,6 @@ export class TeamService extends BaseDatabaseService {
             await this.delete(id);
             return { id, deleted: true };
         } catch (error) {
-            console.error('Error deleting team member:', error);
             throw new Error(`Failed to delete team member: ${error.message}`);
         }
     }
@@ -977,7 +1136,6 @@ export class TeamService extends BaseDatabaseService {
                 isActive: !isActive
             };
         } catch (error) {
-            console.error('Error toggling team member status:', error);
             throw new Error(`Failed to update team member status: ${error.message}`);
         }
     }
@@ -995,7 +1153,6 @@ export class TeamService extends BaseDatabaseService {
                 inactive: members.filter(m => !m.isActive).length
             };
         } catch (error) {
-            console.error('Error fetching team stats:', error);
             throw new Error(`Failed to fetch team statistics: ${error.message}`);
         }
     }
@@ -1013,7 +1170,6 @@ export class TeamService extends BaseDatabaseService {
                 member.bio?.toLowerCase().includes(searchLower)
             );
         } catch (error) {
-            console.error('Error searching team members:', error);
             throw new Error(`Failed to search team members: ${error.message}`);
         }
     }

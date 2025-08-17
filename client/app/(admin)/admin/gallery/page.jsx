@@ -41,7 +41,6 @@ export default function GalleryManagement() {
       setGalleryItems(items);
       setEvents(allEvents);
     } catch (error) {
-      console.error("Error loading data:", error);
     } finally {
       setLoading(false);
     }
@@ -53,7 +52,6 @@ export default function GalleryManagement() {
       const items = await galleryService.getGalleryItems();
       setGalleryItems(items);
     } catch (error) {
-      console.error("Error loading gallery items:", error);
     } finally {
       setLoading(false);
     }
@@ -152,7 +150,6 @@ export default function GalleryManagement() {
         setBulkSelection([]);
         loadGalleryItems();
       } catch (error) {
-        console.error("Error deleting gallery items:", error);
       }
     }
   };
@@ -168,7 +165,6 @@ export default function GalleryManagement() {
       setBulkSelection([]);
       loadGalleryItems();
     } catch (error) {
-      console.error("Error updating gallery items:", error);
     }
   };
 
@@ -186,7 +182,6 @@ export default function GalleryManagement() {
           "Gallery item deleted successfully!"
         );
       } catch (error) {
-        console.error("Error deleting gallery item:", error);
         toastUtils.update(
           loadingToast,
           "error",
@@ -220,7 +215,6 @@ export default function GalleryManagement() {
         "Gallery item duplicated successfully!"
       );
     } catch (error) {
-      console.error("Error duplicating gallery item:", error);
       toastUtils.update(
         loadingToast,
         "error",
@@ -248,7 +242,6 @@ export default function GalleryManagement() {
         } featured successfully!`
       );
     } catch (error) {
-      console.error("Error toggling featured status:", error);
       toastUtils.update(
         loadingToast,
         "error",
@@ -1059,7 +1052,6 @@ function GalleryModal({ isOpen, onClose, item, onSave, events = [] }) {
         image: result.url,
       }));
     } catch (error) {
-      console.error("Error uploading image:", error);
     } finally {
       setUploading(false);
     }
@@ -1102,7 +1094,6 @@ function GalleryModal({ isOpen, onClose, item, onSave, events = [] }) {
       onSave();
       onClose();
     } catch (error) {
-      console.error("Error saving gallery item:", error);
       toastUtils.error(`Failed to save gallery item: ${error.message}`);
     } finally {
       setSaving(false);
@@ -1419,7 +1410,6 @@ function BulkUploadModal({ isOpen, onClose, events, onSave }) {
             message: "Successfully uploaded",
           });
         } catch (error) {
-          console.error(`Error uploading ${file.name}:`, error);
           results.push({
             filename: file.name,
             success: false,
@@ -1435,7 +1425,6 @@ function BulkUploadModal({ isOpen, onClose, events, onSave }) {
       // Refresh gallery items
       onSave();
     } catch (error) {
-      console.error("Bulk upload error:", error);
       alert("An error occurred during bulk upload. Please try again.");
     } finally {
       setUploading(false);

@@ -39,7 +39,6 @@ export default function EventSection() {
           setCurrent(0);
         }
       } catch (err) {
-        console.error("Error fetching upcoming events:", err);
         setError("Failed to load events");
       } finally {
         setLoading(false);

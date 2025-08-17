@@ -42,7 +42,6 @@ export default function ServiceManagement() {
       const servicesData = await serviceService.getServices();
       setServices(servicesData);
     } catch (error) {
-      console.error("Error loading services:", error);
     } finally {
       setLoading(false);
     }
@@ -143,7 +142,6 @@ export default function ServiceManagement() {
         setBulkSelection([]);
         loadServices();
       } catch (error) {
-        console.error("Error deleting services:", error);
       }
     }
   };
@@ -162,7 +160,6 @@ export default function ServiceManagement() {
       setBulkSelection([]);
       loadServices();
     } catch (error) {
-      console.error("Error updating service featured status:", error);
     }
   };
 
@@ -173,7 +170,6 @@ export default function ServiceManagement() {
         await serviceService.delete(serviceId);
         await loadServices();
       } catch (error) {
-        console.error("Error deleting service:", error);
       }
     }
   };
@@ -196,7 +192,6 @@ export default function ServiceManagement() {
       await serviceService.createService(duplicatedService);
       loadServices();
     } catch (error) {
-      console.error("Error duplicating service:", error);
     }
   };
 
@@ -208,7 +203,6 @@ export default function ServiceManagement() {
       });
       loadServices();
     } catch (error) {
-      console.error("Error toggling featured status:", error);
     }
   };
 
@@ -1075,7 +1069,6 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
         image: undefined,
       }));
     } catch (error) {
-      console.error("Error uploading file:", error);
       setErrors((prev) => ({
         ...prev,
         image: `Upload failed: ${error.message}`,
@@ -1147,7 +1140,6 @@ function ServiceModal({ isOpen, onClose, service, onSave }) {
       onSave();
       onClose();
     } catch (error) {
-      console.error("Error saving service:", error);
       setErrors({ submit: `Failed to save service: ${error.message}` });
     } finally {
       setSaving(false);

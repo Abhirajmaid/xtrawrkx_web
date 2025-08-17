@@ -39,11 +39,9 @@ export const sendRegistrationEmail = async (registrationData, registrationId) =>
         }
 
         const result = await response.json();
-        console.log('Registration email sent successfully:', result);
         return true;
 
     } catch (error) {
-        console.error('Failed to send registration email:', error);
         // Don't throw error to prevent registration failure due to email issues
         return false;
     }
@@ -89,11 +87,9 @@ export const sendPaymentConfirmationEmail = async (registrationData, registratio
         }
 
         const result = await response.json();
-        console.log('Payment confirmation email sent successfully:', result);
         return true;
 
     } catch (error) {
-        console.error('Failed to send payment confirmation email:', error);
         // Don't throw error to prevent payment completion failure due to email issues
         return false;
     }
@@ -142,11 +138,9 @@ export const sendSeasonRegistrationEmail = async (registrationData, registration
         }
 
         const result = await response.json();
-        console.log('Season registration email sent successfully:', result);
         return true;
 
     } catch (error) {
-        console.error('Failed to send season registration email:', error);
         // Don't throw error to prevent registration failure due to email issues
         return false;
     }
@@ -195,11 +189,9 @@ export const sendSeasonPaymentConfirmationEmail = async (registrationData, regis
         }
 
         const result = await response.json();
-        console.log('Season payment confirmation email sent successfully:', result);
         return true;
 
     } catch (error) {
-        console.error('Failed to send season payment confirmation email:', error);
         // Don't throw error to prevent payment completion failure due to email issues
         return false;
     }

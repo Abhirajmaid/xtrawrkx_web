@@ -76,7 +76,6 @@ export default function NewTeamMember() {
       };
       reader.readAsDataURL(file);
 
-      console.log("Uploading image to Cloudinary...");
       const uploadOptions = {
         folder: "team_members",
         public_id: `team_${Date.now()}_${Math.random()
@@ -89,7 +88,6 @@ export default function NewTeamMember() {
         uploadOptions
       );
 
-      console.log("Upload successful:", uploadResult);
 
       // Update form data with Cloudinary URL
       setFormData((prev) => ({
@@ -100,7 +98,6 @@ export default function NewTeamMember() {
       // Update preview with final URL
       setImagePreview(uploadResult.url);
     } catch (error) {
-      console.error("Upload error:", error);
       setErrors((prev) => ({
         ...prev,
         img: `Failed to upload image: ${error.message}`,
@@ -148,7 +145,6 @@ export default function NewTeamMember() {
       await teamService.createTeamMember(formData);
       router.push("/admin/team");
     } catch (error) {
-      console.error("Error saving team member:", error);
       setErrors({ submit: `Failed to save team member: ${error.message}` });
     } finally {
       setSaving(false);

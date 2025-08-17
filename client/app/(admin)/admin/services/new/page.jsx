@@ -76,7 +76,6 @@ export default function NewServicePage() {
         [field]: undefined,
       }));
     } catch (error) {
-      console.error("Error uploading file:", error);
       setErrors((prev) => ({
         ...prev,
         [field]: `Upload failed: ${error?.message || "Unknown error"}`,
@@ -140,7 +139,6 @@ export default function NewServicePage() {
       await serviceService.createService(serviceData);
       router.push("/admin/services");
     } catch (error) {
-      console.error("Error creating service:", error);
       setErrors((prev) => ({
         ...prev,
         submit: `Failed to create service: ${

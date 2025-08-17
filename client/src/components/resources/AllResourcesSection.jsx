@@ -63,7 +63,6 @@ const AllResourcesSection = () => {
         );
         setResources(publishedResources);
       } catch (error) {
-        console.error("Error loading all resources:", error);
         setError("Failed to load resources");
       } finally {
         setLoading(false);
@@ -123,6 +122,19 @@ const AllResourcesSection = () => {
             resource.tags.some((tag) => tag.toLowerCase().includes(query)))
       );
     }
+
+    // Sort by publishedDate descending (newest first)
+    filtered = filtered.sort((a, b) => {
+      const dateA = new Date(a.publishedDate || 0);
+      const dateB = new Date(b.publishedDate || 0);
+
+      // Handle invalid dates
+      if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+      if (isNaN(dateA.getTime())) return 1;
+      if (isNaN(dateB.getTime())) return -1;
+
+      return dateB - dateA;
+    });
 
     return filtered;
   }, [resources, selectedType, selectedCategory, searchQuery]);

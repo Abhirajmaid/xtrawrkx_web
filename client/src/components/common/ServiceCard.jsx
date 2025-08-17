@@ -56,7 +56,7 @@ export default function ServiceCard({
 
       {/* Heart icon */}
       <button
-        className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center cursor-pointer bg-white rounded-full z-999"
+        className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center cursor-pointer bg-white rounded-full z-10"
         onClick={(e) => {
           e.stopPropagation();
           onFavorite && onFavorite();

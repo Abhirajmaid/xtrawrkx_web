@@ -95,7 +95,6 @@ export default function NewEvent() {
       setUploading(true);
       setUploadingField(field);
 
-      console.log(`Uploading ${field}:`, {
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
@@ -105,14 +104,12 @@ export default function NewEvent() {
         folder: "events",
       });
 
-      console.log(`Upload successful for ${field}:`, result.url);
 
       setFormData((prev) => ({
         ...prev,
         [field]: result.url,
       }));
     } catch (error) {
-      console.error(`Error uploading ${field}:`, error);
       setErrors((prev) => ({
         ...prev,
         [field]: `Upload failed: ${error.message}`,
@@ -134,7 +131,6 @@ export default function NewEvent() {
       });
       updateSpeaker(index, "image", result.url);
     } catch (error) {
-      console.error("Error uploading speaker image:", error);
       setErrors((prev) => ({
         ...prev,
         [`speaker-${index}`]: `Upload failed: ${error.message}`,
@@ -241,7 +237,6 @@ export default function NewEvent() {
       await eventService.createEvent(eventData);
       router.push("/admin/events");
     } catch (error) {
-      console.error("Error creating event:", error);
       setErrors((prev) => ({
         ...prev,
         submit: `Error creating event: ${error.message}`,

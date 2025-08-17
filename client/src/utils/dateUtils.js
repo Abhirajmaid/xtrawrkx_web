@@ -20,7 +20,6 @@ export const convertToDate = (timestamp) => {
         try {
             return timestamp.toDate();
         } catch (error) {
-            console.warn('Error converting Firestore timestamp:', error);
             return null;
         }
     }
@@ -30,7 +29,6 @@ export const convertToDate = (timestamp) => {
         try {
             return new Date(timestamp.seconds * 1000);
         } catch (error) {
-            console.warn('Error converting timestamp object:', error);
             return null;
         }
     }
@@ -46,7 +44,6 @@ export const convertToDate = (timestamp) => {
         return new Date(timestamp);
     }
 
-    console.warn('Unknown timestamp format:', timestamp);
     return null;
 };
 
@@ -70,7 +67,6 @@ export const formatDate = (timestamp, options = {}) => {
             ...options
         });
     } catch (error) {
-        console.warn('Error formatting date:', error);
         return '';
     }
 };
@@ -122,7 +118,6 @@ export const formatDateForInput = (timestamp) => {
     try {
         return date.toISOString().split('T')[0];
     } catch (error) {
-        console.warn('Error formatting date for input:', error);
         return '';
     }
 };
@@ -155,7 +150,6 @@ export const formatEventDate = (timestamp) => {
 
         return `${day}${getOrdinalSuffix(day)} ${month} ${year}`;
     } catch (error) {
-        console.warn('Error formatting event date:', error);
         return '';
     }
 };

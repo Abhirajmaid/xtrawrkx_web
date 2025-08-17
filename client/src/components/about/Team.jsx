@@ -71,13 +71,11 @@ export default function Team() {
           setTeamMembers(sortTeamMembers(leadershipMembers));
         }
       } catch (error) {
-        console.error("Error loading team members:", error);
         setError(error.message);
 
         // Keep using static data as fallback, but filter for leadership roles
         const leadershipMembers = coreTeam.filter(isLeadershipRole);
         setTeamMembers(sortTeamMembers(leadershipMembers));
-        console.warn("Using static team data as fallback");
       } finally {
         setLoading(false);
       }
@@ -146,7 +144,7 @@ export default function Team() {
                 alt={member.name}
                 className="w-28 h-32 object-cover rounded-lg m-4"
               />
-              <div className="flex flex-col justify-center flex-1 px-2 py-4">
+              <div className="flex flex-col justify-start flex-1 px-2 py-4">
                 <div className="text-2xl font-light underline mb-1 text-brand-foreground">
                   {member.name}
                 </div>

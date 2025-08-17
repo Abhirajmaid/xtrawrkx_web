@@ -97,7 +97,6 @@ export default function NewResource() {
         [field]: result.url,
       }));
     } catch (error) {
-      console.error("Error uploading file:", error);
       setErrors((prev) => ({
         ...prev,
         [field]: `Upload failed: ${error.message}`,
@@ -132,7 +131,6 @@ export default function NewResource() {
         downloadUrl: result.url,
       }));
     } catch (error) {
-      console.error("Error uploading PDF:", error);
       setErrors((prev) => ({
         ...prev,
         downloadUrl: `Upload failed: ${error.message}`,
@@ -233,7 +231,6 @@ export default function NewResource() {
       await resourceService.createResource(resourceData);
       router.push("/admin/resources");
     } catch (error) {
-      console.error("Error creating resource:", error);
       setErrors((prev) => ({
         ...prev,
         submit: `Error creating resource: ${error.message}`,

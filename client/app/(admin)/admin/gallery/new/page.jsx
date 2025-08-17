@@ -40,7 +40,6 @@ export default function NewGalleryItem() {
         const allEvents = await eventService.getEvents();
         setEvents(allEvents);
       } catch (error) {
-        console.error("Error loading events:", error);
       } finally {
         setLoadingEvents(false);
       }
@@ -71,7 +70,6 @@ export default function NewGalleryItem() {
       const result = await uploadImage(file, "gallery");
       setFormData((prev) => ({ ...prev, image: result.url }));
     } catch (error) {
-      console.error("Error uploading image:", error);
       setErrors((prev) => ({ ...prev, image: "Failed to upload image" }));
     } finally {
       setUploading(false);
@@ -138,7 +136,6 @@ export default function NewGalleryItem() {
       await galleryService.createGalleryItem(galleryData);
       router.push("/admin/gallery");
     } catch (error) {
-      console.error("Error creating gallery item:", error);
       setErrors({
         submit: `Error creating gallery item: ${error.message}`,
       });

@@ -37,16 +37,18 @@ try {
 
         // Initialize Analytics only if measurement ID is provided and in browser
         if (firebaseConfig.measurementId && typeof window !== 'undefined') {
-            analytics = getAnalytics(app);
+            try {
+                analytics = getAnalytics(app);
+            } catch (analyticsError) {
+                // Analytics initialization failed silently
+            }
         }
 
 
     } else {
-        console.warn('Firebase configuration is incomplete. Check your environment variables.');
         throw new Error('Firebase configuration is incomplete');
     }
 } catch (error) {
-    console.error('Firebase initialization error:', error);
     throw new Error(`Failed to initialize Firebase: ${error.message}`);
 }
 

@@ -62,7 +62,6 @@ const GalleryStatsSection = () => {
         const galleryData = await galleryService.getGalleryItems();
         setGalleryItems(galleryData);
       } catch (error) {
-        console.error("Error loading gallery for stats:", error);
         setError("Failed to load statistics");
       } finally {
         setLoading(false);

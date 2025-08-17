@@ -11,17 +11,8 @@ export class CloudinaryService {
     // Check if Cloudinary is properly configured
     static isConfigured() {
         const isValid = this.config.cloudName && this.config.uploadPreset;
-        console.log('Cloudinary Configuration Check:', {
-            cloudName: this.config.cloudName,
-            uploadPreset: this.config.uploadPreset,
-            isValid: isValid
-        });
         if (!isValid) {
-            console.error('Cloudinary Configuration Error:', {
-                cloudName: this.config.cloudName,
-                uploadPreset: this.config.uploadPreset,
-                message: 'Cloudinary credentials are missing'
-            });
+            // Cloudinary credentials are missing
         }
         return isValid;
     }
@@ -76,7 +67,6 @@ export class CloudinaryService {
             // Upload to Cloudinary
             const uploadUrl = this.getUploadUrl('image');
 
-
             const response = await fetch(uploadUrl, {
                 method: 'POST',
                 body: formData
@@ -118,8 +108,6 @@ export class CloudinaryService {
                 type: result.type
             };
         } catch (error) {
-            console.error('Cloudinary upload error:', error);
-
             // Provide more helpful error messages for common network issues
             if (error.message === 'Failed to fetch') {
                 throw new Error('Network error: Unable to connect to Cloudinary. Please check your internet connection and Cloudinary configuration.');
@@ -146,13 +134,6 @@ export class CloudinaryService {
             // PDFs should be uploaded as 'raw' to maintain file integrity
             const resourceType = 'raw';
 
-            console.log('Uploading file:', {
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                resourceType
-            });
-
             // Create form data
             const formData = new FormData();
             formData.append('file', file);
@@ -176,9 +157,6 @@ export class CloudinaryService {
 
             // Upload to Cloudinary
             const uploadUrl = this.getUploadUrl(resourceType);
-
-            console.log('Upload URL:', uploadUrl);
-
 
             const response = await fetch(uploadUrl, {
                 method: 'POST',
@@ -209,14 +187,6 @@ export class CloudinaryService {
 
             const result = await response.json();
 
-            console.log('Upload successful:', {
-                url: result.secure_url,
-                public_id: result.public_id,
-                format: result.format,
-                bytes: result.bytes,
-                resource_type: result.resource_type
-            });
-
             return {
                 url: result.secure_url,
                 public_id: result.public_id,
@@ -228,8 +198,6 @@ export class CloudinaryService {
                 original_filename: result.original_filename
             };
         } catch (error) {
-            console.error('Cloudinary file upload error:', error);
-
             // Provide more helpful error messages for common network issues
             if (error.message === 'Failed to fetch') {
                 throw new Error('Network error: Unable to connect to Cloudinary. Please check your internet connection and Cloudinary configuration.');
@@ -311,7 +279,6 @@ export class CloudinaryService {
 
             // Note: Deletion requires server-side implementation with API secret
             // This is a placeholder - you'll need to implement this on your backend
-            console.warn('Image deletion should be implemented on the server-side for security reasons.');
 
             // For now, we'll just return success
             return { success: true, message: 'Deletion request logged' };

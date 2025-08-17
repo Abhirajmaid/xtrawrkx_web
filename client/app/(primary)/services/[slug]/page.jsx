@@ -132,14 +132,14 @@ export default function ServicePage({ params }) {
               className="bg-gradient-to-r from-brand-primary to-brand-secondary"
               onClick={openModal}
             />
-            <Button
+            {/* <Button
               text="Download Brochure"
               type="secondary"
               className="bg-white/20 backdrop-blur-sm hover:bg-white/30"
               link={service.brochureUrl || "/brochures/sample.pdf"}
               target="_blank"
               rel="noopener noreferrer"
-            />
+            /> */}
           </div>
         </Container>
       </Section>

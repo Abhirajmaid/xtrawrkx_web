@@ -24,6 +24,7 @@ const BookConsultationButton = () => {
 export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isFooterExpanded, setIsFooterExpanded] = useState(false);
   const dropdownRef = useRef(null);
 
   // State for dynamic dropdown data
@@ -51,7 +52,6 @@ export default function Navbar() {
       setServicesDropdownData(data);
       setDropdownErrors((prev) => ({ ...prev, services: null }));
     } catch (error) {
-      console.error("Error loading services dropdown:", error);
       setDropdownErrors((prev) => ({ ...prev, services: error.message }));
     } finally {
       setDropdownLoading((prev) => ({ ...prev, services: false }));
@@ -67,7 +67,6 @@ export default function Navbar() {
       setEventsDropdownData(data);
       setDropdownErrors((prev) => ({ ...prev, events: null }));
     } catch (error) {
-      console.error("Error loading events dropdown:", error);
       setDropdownErrors((prev) => ({ ...prev, events: error.message }));
     } finally {
       setDropdownLoading((prev) => ({ ...prev, events: false }));
@@ -124,6 +123,7 @@ export default function Navbar() {
       if (window.innerWidth >= 1024) {
         setIsMobileMenuOpen(false);
         setOpenDropdown(null);
+        setIsFooterExpanded(false);
       }
     };
 
@@ -137,6 +137,7 @@ export default function Navbar() {
       if (!e.target.closest("nav")) {
         setIsMobileMenuOpen(false);
         setOpenDropdown(null);
+        setIsFooterExpanded(false);
       }
     };
 
@@ -147,9 +148,9 @@ export default function Navbar() {
   }, [isMobileMenuOpen]);
 
   const servicesDropdownContent = (
-    <div className="bg-white rounded-2xl shadow-2xl p-8 mt-3 flex gap-8 border border-gray-100 w-full">
+    <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 mt-3 flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 border border-gray-100 w-full max-h-[80vh] overflow-y-auto">
       {/* Left column */}
-      <div className="w-1/3 flex flex-col justify-between">
+      <div className="w-full lg:w-1/3 flex flex-col justify-between">
         <div>
           <div className="text-xl font-normal mb-2 font-primary">
             {servicesDropdownData?.leftTitle}
@@ -167,7 +168,7 @@ export default function Navbar() {
         </div>
       </div>
       {/* Middle column */}
-      <div className="w-1/3">
+      <div className="w-full lg:w-1/3">
         <div className="text-xl font-normal mb-2 font-primary">
           {servicesDropdownData?.middleTitle || "What we do"}
         </div>
@@ -211,7 +212,7 @@ export default function Navbar() {
         )}
       </div>
       {/* Right column */}
-      <div className="w-1/3">
+      <div className="w-full lg:w-1/3">
         <div className="text-xl font-normal mb-2 font-primary">
           {servicesDropdownData?.rightTitle}
         </div>
@@ -261,9 +262,9 @@ export default function Navbar() {
   );
 
   const communitiesDropdownContent = (
-    <div className="bg-white rounded-2xl shadow-2xl mt-3 p-8 flex gap-8 border border-gray-100 w-full">
+    <div className="bg-white rounded-2xl shadow-2xl mt-3 p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 border border-gray-100 w-full max-h-[80vh] overflow-y-auto">
       {/* Left column */}
-      <div className="w-1/4 flex flex-col">
+      <div className="w-full lg:w-1/4 flex flex-col">
         <div>
           <div className="text-xl font-normal mb-2 font-primary">
             {communitiesDropdownData.leftTitle}
@@ -281,7 +282,7 @@ export default function Navbar() {
         />
       </div>
       {/* Middle column - Enhanced community display */}
-      <div className="w-1/2">
+      <div className="w-full lg:w-1/2">
         <div className="text-xl font-normal mb-4 font-primary">
           {communitiesDropdownData.middleTitle}
         </div>
@@ -416,7 +417,7 @@ export default function Navbar() {
       </div>
 
       {/* Right column - Community Stats */}
-      <div className="w-1/4">
+      <div className="w-full lg:w-1/4">
         <div className="text-xl font-normal mb-4 font-primary">
           {communitiesDropdownData.rightTitle}
         </div>
@@ -448,9 +449,9 @@ export default function Navbar() {
   );
 
   const eventsDropdownContent = (
-    <div className="bg-white rounded-2xl shadow-2xl mt-3 p-8 flex gap-8 border border-gray-100 w-full">
+    <div className="bg-white rounded-2xl shadow-2xl mt-3 p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 border border-gray-100 w-full max-h-[80vh] overflow-y-auto">
       {/* Left column */}
-      <div className="w-1/3 flex flex-col justify-between">
+      <div className="w-full lg:w-1/3 flex flex-col justify-between">
         <div>
           <div className="text-xl font-normal mb-2 font-primary">
             {eventsDropdownData?.leftTitle}
@@ -468,7 +469,7 @@ export default function Navbar() {
         </div>
       </div>
       {/* Middle column */}
-      <div className="w-1/3">
+      <div className="w-full lg:w-1/3">
         <div className="text-xl font-normal mb-2 font-primary">
           {eventsDropdownData?.middleTitle || "Event Categories"}
         </div>
@@ -508,7 +509,7 @@ export default function Navbar() {
         )}
       </div>
       {/* Right column */}
-      <div className="w-1/3">
+      <div className="w-full lg:w-1/3">
         <div className="text-xl font-normal mb-2 font-primary">
           {eventsDropdownData?.rightTitle || "Upcoming Events"}
         </div>
@@ -690,8 +691,16 @@ export default function Navbar() {
             whileTap={{ scale: 0.95 }}
           >
             <motion.div
-              animate={{ rotate: isMobileMenuOpen ? 90 : 0 }}
-              transition={{ duration: 0.2 }}
+              animate={{
+                rotate: isMobileMenuOpen ? 180 : 0,
+                scale: isMobileMenuOpen ? 1.1 : 1,
+              }}
+              transition={{
+                duration: 0.3,
+                type: "spring",
+                stiffness: 200,
+                damping: 15,
+              }}
             >
               <Icon
                 icon={
@@ -710,11 +719,16 @@ export default function Navbar() {
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-white z-50 lg:hidden"
+              initial={{ opacity: 0, x: "100%" }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: "100%" }}
+              transition={{
+                duration: 0.4,
+                ease: [0.4, 0.0, 0.2, 1],
+                x: { type: "spring", stiffness: 300, damping: 30 },
+              }}
+              className="fixed inset-0 bg-white z-50 lg:hidden flex flex-col"
+              style={{ height: "100vh", height: "100dvh" }}
             >
               {/* Mobile Menu Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
@@ -756,12 +770,12 @@ export default function Navbar() {
               </div>
 
               {/* Mobile Menu Content */}
-              <div className="flex-1 overflow-y-auto bg-white">
+              <div className="flex-1 overflow-y-auto bg-white min-h-0">
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.4, delay: 0.1 }}
-                  className="px-4 py-6 space-y-8"
+                  className="px-4 py-6 space-y-8 pb-24"
                 >
                   {/* Navigation Links */}
                   <div className="space-y-2">
@@ -775,20 +789,39 @@ export default function Navbar() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
                       >
-                        <Link
-                          href={link.href}
-                          className="flex items-center justify-between py-4 px-4 rounded-xl text-gray-900 hover:bg-gray-50 hover:text-brand-primary transition-all duration-200 group"
-                          onClick={() => setIsMobileMenuOpen(false)}
+                        <motion.div
+                          whileHover={{ scale: 1.02, x: 8 }}
+                          whileTap={{ scale: 0.98 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 17,
+                          }}
                         >
-                          <span className="text-lg font-medium">
-                            {link.label}
-                          </span>
-                          <Icon
-                            icon="solar:arrow-right-linear"
-                            width="20"
-                            className="text-gray-400 group-hover:text-brand-primary transition-colors"
-                          />
-                        </Link>
+                          <Link
+                            href={link.href}
+                            className="flex items-center justify-between py-4 px-4 rounded-xl text-gray-900 hover:bg-gray-50 hover:text-brand-primary transition-all duration-200 group"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <span className="text-lg font-medium">
+                              {link.label}
+                            </span>
+                            <motion.div
+                              whileHover={{ x: 4 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 17,
+                              }}
+                            >
+                              <Icon
+                                icon="solar:arrow-right-linear"
+                                width="20"
+                                className="text-gray-400 group-hover:text-brand-primary transition-colors"
+                              />
+                            </motion.div>
+                          </Link>
+                        </motion.div>
                       </motion.div>
                     ))}
                   </div>
@@ -804,77 +837,117 @@ export default function Navbar() {
                       Quick Access
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
-                      <Link
-                        href="/communities"
-                        className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:shadow-md transition-all duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
+                      <motion.div
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 17,
+                        }}
                       >
-                        <Icon
-                          icon="solar:users-group-two-rounded-bold"
-                          width="24"
-                          className="text-blue-600 mb-2"
-                        />
-                        <div className="text-sm font-medium text-blue-900">
-                          Communities
-                        </div>
-                        <div className="text-xs text-blue-600">
-                          Join our network
-                        </div>
-                      </Link>
+                        <Link
+                          href="/communities"
+                          className="block p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:shadow-md transition-all duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <Icon
+                            icon="solar:users-group-two-rounded-bold"
+                            width="24"
+                            className="text-blue-600 mb-2"
+                          />
+                          <div className="text-sm font-medium text-blue-900">
+                            Communities
+                          </div>
+                          <div className="text-xs text-blue-600">
+                            Join our network
+                          </div>
+                        </Link>
+                      </motion.div>
 
-                      <Link
-                        href="/events"
-                        className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:shadow-md transition-all duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
+                      <motion.div
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 17,
+                        }}
                       >
-                        <Icon
-                          icon="solar:calendar-mark-bold"
-                          width="24"
-                          className="text-purple-600 mb-2"
-                        />
-                        <div className="text-sm font-medium text-purple-900">
-                          Events
-                        </div>
-                        <div className="text-xs text-purple-600">
-                          Upcoming events
-                        </div>
-                      </Link>
+                        <Link
+                          href="/events"
+                          className="block p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:shadow-md transition-all duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <Icon
+                            icon="solar:calendar-mark-bold"
+                            width="24"
+                            className="text-purple-600 mb-2"
+                          />
+                          <div className="text-sm font-medium text-purple-900">
+                            Events
+                          </div>
+                          <div className="text-xs text-purple-600">
+                            Upcoming events
+                          </div>
+                        </Link>
+                      </motion.div>
 
-                      <Link
-                        href="/services"
-                        className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 hover:shadow-md transition-all duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
+                      <motion.div
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 17,
+                        }}
                       >
-                        <Icon
-                          icon="solar:case-minimalistic-bold"
-                          width="24"
-                          className="text-green-600 mb-2"
-                        />
-                        <div className="text-sm font-medium text-green-900">
-                          Services
-                        </div>
-                        <div className="text-xs text-green-600">
-                          Our solutions
-                        </div>
-                      </Link>
+                        <Link
+                          href="/services"
+                          className="block p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 hover:shadow-md transition-all duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <Icon
+                            icon="solar:case-minimalistic-bold"
+                            width="24"
+                            className="text-green-600 mb-2"
+                          />
+                          <div className="text-sm font-medium text-green-900">
+                            Services
+                          </div>
+                          <div className="text-xs text-green-600">
+                            Our solutions
+                          </div>
+                        </Link>
+                      </motion.div>
 
-                      <Link
-                        href="/resources"
-                        className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200 hover:shadow-md transition-all duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
+                      <motion.div
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 17,
+                        }}
                       >
-                        <Icon
-                          icon="solar:document-text-bold"
-                          width="24"
-                          className="text-orange-600 mb-2"
-                        />
-                        <div className="text-sm font-medium text-orange-900">
-                          Resources
-                        </div>
-                        <div className="text-xs text-orange-600">
-                          Downloads & more
-                        </div>
-                      </Link>
+                        <Link
+                          href="/resources"
+                          className="block p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200 hover:shadow-md transition-all duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <Icon
+                            icon="solar:document-text-bold"
+                            width="24"
+                            className="text-orange-600 mb-2"
+                          />
+                          <div className="text-sm font-medium text-orange-900">
+                            Resources
+                          </div>
+                          <div className="text-xs text-orange-600">
+                            Downloads & more
+                          </div>
+                        </Link>
+                      </motion.div>
                     </div>
                   </motion.div>
 
@@ -890,14 +963,34 @@ export default function Navbar() {
                         Get Started
                       </h3>
                       <div className="space-y-3">
-                        <BookConsultationButton />
-                        <Link
-                          href="/contact-us"
-                          className="block w-full py-3 px-4 text-center border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                          onClick={() => setIsMobileMenuOpen(false)}
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 17,
+                          }}
                         >
-                          Contact Us
-                        </Link>
+                          <BookConsultationButton />
+                        </motion.div>
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 17,
+                          }}
+                        >
+                          <Link
+                            href="/contact-us"
+                            className="block w-full py-3 px-4 text-center border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            Contact Us
+                          </Link>
+                        </motion.div>
                       </div>
                     </div>
                   </motion.div>
@@ -909,22 +1002,221 @@ export default function Navbar() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 0.8 }}
-                className="border-t border-gray-200 p-4 bg-gray-50"
+                className="border-t border-gray-200 bg-gray-50"
               >
-                <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
-                  <Link
-                    href="/privacy-policy"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                {/* Footer Toggle Button */}
+                <motion.button
+                  onClick={() => setIsFooterExpanded(!isFooterExpanded)}
+                  className="w-full px-4 py-3 flex items-center justify-between text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                  whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <span className="font-medium">Quick Links</span>
+                  <motion.div
+                    animate={{ rotate: isFooterExpanded ? 180 : 0 }}
+                    transition={{
+                      duration: 0.2,
+                      type: "spring",
+                      stiffness: 200,
+                    }}
                   >
-                    Privacy Policy
-                  </Link>
-                  <span>•</span>
-                  <Link
-                    href="/sitemap"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Sitemap
-                  </Link>
+                    <Icon
+                      icon="solar:alt-arrow-down-linear"
+                      width="16"
+                      className="text-gray-500"
+                    />
+                  </motion.div>
+                </motion.button>
+
+                {/* Collapsible Footer Content */}
+                <AnimatePresence>
+                  {isFooterExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-4 space-y-4">
+                        {/* Main Footer Links */}
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                          >
+                            <Link
+                              href="/privacy-policy"
+                              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/80 transition-colors text-gray-600 hover:text-gray-800"
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                setIsFooterExpanded(false);
+                              }}
+                            >
+                              <Icon
+                                icon="solar:shield-check-linear"
+                                width="16"
+                              />
+                              <span>Privacy Policy</span>
+                            </Link>
+                          </motion.div>
+
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
+                          >
+                            <Link
+                              href="/terms-of-service"
+                              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/80 transition-colors text-gray-600 hover:text-gray-800"
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                setIsFooterExpanded(false);
+                              }}
+                            >
+                              <Icon
+                                icon="solar:document-text-linear"
+                                width="16"
+                              />
+                              <span>Terms of Service</span>
+                            </Link>
+                          </motion.div>
+
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            <Link
+                              href="/sitemap"
+                              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/80 transition-colors text-gray-600 hover:text-gray-800"
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                setIsFooterExpanded(false);
+                              }}
+                            >
+                              <Icon icon="solar:map-linear" width="16" />
+                              <span>Sitemap</span>
+                            </Link>
+                          </motion.div>
+
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.25 }}
+                          >
+                            <Link
+                              href="/support"
+                              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/80 transition-colors text-gray-600 hover:text-gray-800"
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                setIsFooterExpanded(false);
+                              }}
+                            >
+                              <Icon
+                                icon="solar:question-circle-linear"
+                                width="16"
+                              />
+                              <span>Support</span>
+                            </Link>
+                          </motion.div>
+                        </div>
+
+                        {/* Social Links */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                          className="pt-3 border-t border-gray-200"
+                        >
+                          <div className="text-xs text-gray-500 mb-2 font-medium">
+                            Follow Us
+                          </div>
+                          <div className="flex space-x-3">
+                            <motion.a
+                              href="https://twitter.com/xtrawrkx"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Icon
+                                icon="solar:twitter-linear"
+                                width="16"
+                                className="text-blue-600"
+                              />
+                            </motion.a>
+                            <motion.a
+                              href="https://linkedin.com/company/xtrawrkx"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Icon
+                                icon="solar:linkedin-linear"
+                                width="16"
+                                className="text-blue-600"
+                              />
+                            </motion.a>
+                            <motion.a
+                              href="https://github.com/xtrawrkx"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Icon
+                                icon="solar:github-linear"
+                                width="16"
+                                className="text-gray-600"
+                              />
+                            </motion.a>
+                          </div>
+                        </motion.div>
+
+                        {/* Copyright */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.35 }}
+                          className="pt-2 text-center"
+                        >
+                          <div className="text-xs text-gray-500">
+                            © {new Date().getFullYear()} xtrawrkx. All rights
+                            reserved.
+                          </div>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Always Visible Essential Links */}
+                <div className="px-4 py-2 border-t border-gray-200/50">
+                  <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
+                    <Link
+                      href="/privacy-policy"
+                      className="hover:text-gray-700 transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Privacy
+                    </Link>
+                    <span>•</span>
+                    <Link
+                      href="/terms-of-service"
+                      className="hover:text-gray-700 transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Terms
+                    </Link>
+                    <span>•</span>
+                    <span>© {new Date().getFullYear()} xtrawrkx</span>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>

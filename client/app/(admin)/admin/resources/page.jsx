@@ -15,7 +15,7 @@ export default function ResourceManagement() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [bulkSelection, setBulkSelection] = useState([]);
-  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortBy, setSortBy] = useState("publishedDate");
   const [sortOrder, setSortOrder] = useState("desc");
   const [viewMode, setViewMode] = useState("grid");
 
@@ -52,7 +52,6 @@ export default function ResourceManagement() {
       const resourcesData = await resourceService.getResources();
       setResources(resourcesData);
     } catch (error) {
-      console.error("Error loading resources:", error);
     } finally {
       setLoading(false);
     }
@@ -98,12 +97,23 @@ export default function ResourceManagement() {
           bValue = b.author.toLowerCase();
           break;
         case "publishedDate":
-          aValue = new Date(a.publishedDate || a.createdAt);
-          bValue = new Date(b.publishedDate || b.createdAt);
+          aValue = new Date(a.publishedDate || 0);
+          bValue = new Date(b.publishedDate || 0);
+          break;
+        case "createdAt":
+          aValue = new Date(a.createdAt || 0);
+          bValue = new Date(b.createdAt || 0);
           break;
         default:
           aValue = a[sortBy];
           bValue = b[sortBy];
+      }
+
+      // Handle Date objects with invalid date checking
+      if (aValue instanceof Date && bValue instanceof Date) {
+        if (isNaN(aValue.getTime()) && isNaN(bValue.getTime())) return 0;
+        if (isNaN(aValue.getTime())) return sortOrder === "asc" ? 1 : -1;
+        if (isNaN(bValue.getTime())) return sortOrder === "asc" ? -1 : 1;
       }
 
       if (sortOrder === "asc") {
@@ -174,7 +184,6 @@ export default function ResourceManagement() {
         setBulkSelection([]);
         loadResources();
       } catch (error) {
-        console.error("Error deleting resources:", error);
       }
     }
   };
@@ -189,7 +198,6 @@ export default function ResourceManagement() {
       setBulkSelection([]);
       loadResources();
     } catch (error) {
-      console.error("Error updating resource status:", error);
     }
   };
 
@@ -203,7 +211,6 @@ export default function ResourceManagement() {
       setBulkSelection([]);
       loadResources();
     } catch (error) {
-      console.error("Error updating featured status:", error);
     }
   };
 
@@ -214,7 +221,6 @@ export default function ResourceManagement() {
         await resourceService.delete(resourceId);
         loadResources();
       } catch (error) {
-        console.error("Error deleting resource:", error);
       }
     }
   };
@@ -226,7 +232,6 @@ export default function ResourceManagement() {
       });
       loadResources();
     } catch (error) {
-      console.error("Error updating featured status:", error);
     }
   };
 
@@ -243,7 +248,6 @@ export default function ResourceManagement() {
       await resourceService.createResource(duplicatedResource);
       loadResources();
     } catch (error) {
-      console.error("Error duplicating resource:", error);
     }
   };
 

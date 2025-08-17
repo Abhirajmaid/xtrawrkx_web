@@ -101,13 +101,11 @@ export default function TeamSection() {
           setEmployeeMembers(employeeMembers.filter((m) => m.isActive));
         }
       } catch (error) {
-        console.error("Error loading team members:", error);
         setError(error.message);
 
         // Keep using static data as fallback (sorted)
         setCoreTeamMembers(sortTeamHierarchically(coreTeam));
         setEmployeeMembers(employees);
-        console.warn("Using static team data as fallback");
       } finally {
         setLoading(false);
       }
@@ -130,9 +128,9 @@ export default function TeamSection() {
             <img
               src={member.img}
               alt={member.name}
-              className="w-28 h-32 object-cover rounded-lg m-4"
+              className="w-28 h-32 object-cover object-center rounded-lg m-4"
             />
-            <div className="flex flex-col justify-center flex-1 px-2 py-4">
+            <div className="flex flex-col justify-start flex-1 px-2 py-4">
               <div className="text-xl font-light underline mb-1 text-brand-foreground">
                 {member.name}
               </div>

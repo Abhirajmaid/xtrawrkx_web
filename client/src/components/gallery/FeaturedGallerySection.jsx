@@ -21,7 +21,6 @@ const FeaturedGallerySection = () => {
         // Limit to 6 featured items for the section
         setFeaturedGallery(featuredItems.slice(0, 6));
       } catch (error) {
-        console.error("Error loading featured gallery:", error);
         setError("Failed to load featured gallery");
       } finally {
         setLoading(false);

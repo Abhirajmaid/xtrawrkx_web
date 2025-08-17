@@ -65,7 +65,6 @@ const ResourcesStatsSection = () => {
         );
         setResources(publishedResources);
       } catch (error) {
-        console.error("Error loading resources for stats:", error);
         setError("Failed to load statistics");
       } finally {
         setLoading(false);

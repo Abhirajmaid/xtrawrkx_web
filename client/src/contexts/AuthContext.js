@@ -20,7 +20,6 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         // Check if Firebase is available
         if (!authService.isFirebaseAvailable()) {
-            console.warn('Firebase is not available. Authentication features will be limited.');
             setLoading(false);
             return;
         }

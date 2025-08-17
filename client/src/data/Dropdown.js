@@ -32,7 +32,6 @@ export const getServicesDropdownData = async () => {
             }
         };
     } catch (error) {
-        console.error("Error fetching services for dropdown:", error);
         // Return empty structure on error
         return {
             description: "Comprehensive business solutions from funding and manufacturing to consulting and product development.",
@@ -131,7 +130,6 @@ export const getEventsDropdownData = async () => {
             eventsByCategory: eventsByCategory,
         };
     } catch (error) {
-        console.error("Error fetching events for dropdown:", error);
         // Return empty structure on error
         return {
             leftTitle: "Events",

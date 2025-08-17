@@ -57,7 +57,6 @@ const GalleryGrid = ({
 
       setGalleryItems(items);
     } catch (error) {
-      console.error("Error loading gallery items:", error);
       setError("Failed to load gallery items. Please try again later.");
     } finally {
       setLoading(false);

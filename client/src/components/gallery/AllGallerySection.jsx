@@ -63,7 +63,6 @@ const AllGallerySection = () => {
         setGalleryItems(galleryData);
         setEvents(eventsData);
       } catch (error) {
-        console.error("Error loading gallery data:", error);
         setError("Failed to load gallery");
       } finally {
         setLoading(false);

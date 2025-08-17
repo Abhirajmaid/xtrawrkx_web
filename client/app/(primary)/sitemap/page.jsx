@@ -37,7 +37,6 @@ export default function SitemapPage() {
         setEvents(eventsData);
         setResources(resourcesData);
       } catch (error) {
-        console.error("Error loading sitemap data:", error);
         setError(error.message);
 
         // Keep empty arrays if Firebase fails

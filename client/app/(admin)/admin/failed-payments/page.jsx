@@ -38,7 +38,6 @@ export default function FailedPaymentsPage() {
 
       setFailedPayments(payments);
     } catch (error) {
-      console.error("Error fetching failed payments:", error);
       setError("Failed to load failed payments");
     } finally {
       setLoading(false);
@@ -81,7 +80,6 @@ export default function FailedPaymentsPage() {
 
       toastUtils.success("Payment resolved successfully!");
     } catch (error) {
-      console.error("Error resolving payment:", error);
       toastUtils.error("Failed to resolve payment: " + error.message);
     }
   };

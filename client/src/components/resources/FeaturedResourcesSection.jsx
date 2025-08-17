@@ -36,7 +36,6 @@ const FeaturedResourcesSection = () => {
         );
         setFeaturedResources(featured);
       } catch (error) {
-        console.error("Error loading featured resources:", error);
         setError("Failed to load featured resources");
       } finally {
         setLoading(false);

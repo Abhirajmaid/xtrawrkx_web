@@ -39,9 +39,7 @@ export default function TeamManagement() {
       const membersData = await teamService.getAllTeamMembers();
       setTeamMembers(membersData);
     } catch (error) {
-      console.error("Error loading team members:", error);
       // Fallback to static data if Firebase fails
-      console.warn("Falling back to static team data");
       setTeamMembers(team);
     } finally {
       setLoading(false);
@@ -103,7 +101,6 @@ export default function TeamManagement() {
       await teamService.deleteTeamMember(memberId);
       loadTeamMembers();
     } catch (error) {
-      console.error("Error deleting team member:", error);
     }
   };
 
@@ -124,7 +121,6 @@ export default function TeamManagement() {
       await teamService.createTeamMember(duplicatedMember);
       loadTeamMembers();
     } catch (error) {
-      console.error("Error duplicating team member:", error);
     }
   };
 
@@ -157,7 +153,6 @@ export default function TeamManagement() {
             setBulkSelection([]);
             loadTeamMembers();
           } catch (error) {
-            console.error("Error bulk deleting:", error);
           }
         }
         break;
@@ -174,7 +169,6 @@ export default function TeamManagement() {
           setBulkSelection([]);
           loadTeamMembers();
         } catch (error) {
-          console.error("Error bulk activating:", error);
         }
         break;
       case "deactivate":
@@ -190,7 +184,6 @@ export default function TeamManagement() {
           setBulkSelection([]);
           loadTeamMembers();
         } catch (error) {
-          console.error("Error bulk deactivating:", error);
         }
         break;
     }
@@ -895,7 +888,6 @@ function TeamMemberModal({ isOpen, onClose, member, onSave }) {
       };
       reader.readAsDataURL(file);
 
-      console.log("Uploading image to Cloudinary...");
       const uploadOptions = {
         folder: "team_members",
         public_id: `team_${Date.now()}_${Math.random()
@@ -908,7 +900,6 @@ function TeamMemberModal({ isOpen, onClose, member, onSave }) {
         uploadOptions
       );
 
-      console.log("Upload successful:", uploadResult);
 
       // Update form data with Cloudinary URL
       setFormData((prev) => ({
@@ -919,7 +910,6 @@ function TeamMemberModal({ isOpen, onClose, member, onSave }) {
       // Update preview with final URL
       setImagePreview(uploadResult.url);
     } catch (error) {
-      console.error("Upload error:", error);
       setErrors((prev) => ({
         ...prev,
         img: `Failed to upload image: ${error.message}`,
@@ -970,7 +960,6 @@ function TeamMemberModal({ isOpen, onClose, member, onSave }) {
       onSave(); // Refresh the team list
       onClose(); // Close the modal
     } catch (error) {
-      console.error("Error updating team member:", error);
       setErrors({ submit: `Failed to update team member: ${error.message}` });
     } finally {
       setSaving(false);

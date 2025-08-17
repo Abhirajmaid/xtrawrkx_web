@@ -110,14 +110,14 @@ export const communitiesData = [
     {
         id: 4,
         name: "xD&D",
-        fullName: "xtrawrkx Design & Development",
+        fullName: "xtrawrkx Drones and Designs",
         slug: "xd-d",
         description: "A creative community focused on design thinking, product development, and innovation in the EV and sustainable technology space.",
         icon: "mdi:palette",
         logo: "/images/xd&d.png",
         color: "from-[#f5f37f] to-[#e6e06b]",
         members: "400+",
-        category: "Design & Development",
+        category: "Drones and Designs",
         features: [
             "Design thinking workshops",
             "Product development collaboration",

@@ -1,16 +1,37 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { useAuth } from "../../contexts/AuthContext";
 import Button from "../common/Button";
 import Image from "next/image";
 import { commonToasts, toastUtils } from "@/src/utils/toast";
+import NotificationCenter from "./NotificationCenter";
+import { notificationService } from "../../services/notificationService";
 
 const AdminLayout = ({ children, title = "Dashboard" }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const { user, signOut } = useAuth();
   const router = useRouter();
+
+  // Load notifications on component mount
+  useEffect(() => {
+    const loadNotifications = () => {
+      setNotifications(notificationService.getNotifications());
+    };
+
+    loadNotifications();
+
+    // Subscribe to notification updates
+    const unsubscribe = notificationService.subscribe(
+      (updatedNotifications) => {
+        setNotifications(updatedNotifications);
+      }
+    );
+
+    return unsubscribe;
+  }, []);
 
   const handleSignOut = async () => {
     const loadingToast = toastUtils.loading("Signing out...");
@@ -24,13 +45,25 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
       );
       router.push("/admin/login");
     } catch (error) {
-      console.error("Sign out error:", error);
       toastUtils.update(
         loadingToast,
         "error",
         "Error signing out. Please try again."
       );
     }
+  };
+
+  // Notification handlers
+  const handleMarkAsRead = (notificationId) => {
+    notificationService.markAsRead(notificationId);
+  };
+
+  const handleMarkAllAsRead = () => {
+    notificationService.markAllAsRead();
+  };
+
+  const handleClearAll = () => {
+    notificationService.clearAll();
   };
 
   const navigation = [
@@ -47,6 +80,16 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
       name: "Team",
       href: "/admin/team",
       icon: "solar:users-group-two-rounded-bold",
+    },
+    {
+      name: "Contact Inquiries",
+      href: "/admin/contact-inquiries",
+      icon: "solar:letter-bold",
+    },
+    {
+      name: "Consultation Bookings",
+      href: "/admin/consultation-bookings",
+      icon: "solar:calendar-mark-bold",
     },
     {
       name: "Users",
@@ -115,12 +158,12 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
 
             <div className="ml-4 flex items-center md:ml-6">
               {/* Notifications */}
-              <button
-                type="button"
-                className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary"
-              >
-                <Icon icon="solar:bell-bold" width={20} />
-              </button>
+              <NotificationCenter
+                notifications={notifications}
+                onMarkAsRead={handleMarkAsRead}
+                onMarkAllAsRead={handleMarkAllAsRead}
+                onClearAll={handleClearAll}
+              />
 
               {/* Profile dropdown */}
               <div className="ml-3 relative">

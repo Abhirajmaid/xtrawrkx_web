@@ -56,7 +56,6 @@ export const authService = {
         try {
             await signOut(auth);
         } catch (error) {
-            console.error('Sign out error:', error);
             throw new Error('Sign out failed');
         }
     },

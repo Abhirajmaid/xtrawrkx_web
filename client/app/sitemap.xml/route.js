@@ -68,7 +68,7 @@ ${allPages.map(page => `  <url>
         });
 
     } catch (error) {
-        console.error('Error generating sitemap:', error);
+
 
         // Fallback to static pages only if Firebase fails
         const fallbackPages = [...staticPages];
