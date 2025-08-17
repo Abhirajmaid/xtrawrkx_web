@@ -185,6 +185,7 @@ export default function EventManagement() {
       const eventsData = await eventService.getEvents();
       setEvents(eventsData);
     } catch (error) {
+      console.error("Error loading events:", error);
     } finally {
       setLoading(false);
     }
@@ -200,8 +201,10 @@ export default function EventManagement() {
       // The getRegistrations method should fetch all from the collection
       // but we can add additional processing here if needed
 
+      console.log("Loaded registrations:", registrationsData.length);
       setRegistrations(registrationsData);
     } catch (error) {
+      console.error("Error loading registrations:", error);
     }
   };
 
@@ -311,6 +314,7 @@ export default function EventManagement() {
           `Successfully deleted ${bulkSelection.length} events!`
         );
       } catch (error) {
+        console.error("Error deleting events:", error);
         toastUtils.update(
           loadingToast,
           "error",
@@ -339,6 +343,7 @@ export default function EventManagement() {
         `Successfully updated ${bulkSelection.length} events to ${newStatus}!`
       );
     } catch (error) {
+      console.error("Error updating event status:", error);
       toastUtils.update(
         loadingToast,
         "error",
@@ -361,6 +366,7 @@ export default function EventManagement() {
           "Event deleted successfully!"
         );
       } catch (error) {
+        console.error("Error deleting event:", error);
         toastUtils.update(
           loadingToast,
           "error",
@@ -395,6 +401,7 @@ export default function EventManagement() {
         "Event duplicated successfully!"
       );
     } catch (error) {
+      console.error("Error duplicating event:", error);
       toastUtils.update(
         loadingToast,
         "error",
@@ -1021,6 +1028,7 @@ function RegistrationManagement({
       );
       onLoadRegistrations();
     } catch (error) {
+      console.error("Error updating registration status:", error);
       alert("Error updating registration status");
     }
   };
@@ -1034,6 +1042,7 @@ function RegistrationManagement({
         );
         onLoadRegistrations();
       } catch (error) {
+        console.error("Error deleting registration:", error);
         alert("Error deleting registration");
       }
     }
@@ -1065,6 +1074,7 @@ function RegistrationManagement({
       setBulkSelection([]);
       onLoadRegistrations();
     } catch (error) {
+      console.error("Error updating registration statuses:", error);
       alert("Error updating registration statuses");
     }
   };
@@ -1082,6 +1092,7 @@ function RegistrationManagement({
         setBulkSelection([]);
         onLoadRegistrations();
       } catch (error) {
+        console.error("Error deleting registrations:", error);
         alert("Error deleting registrations");
       }
     }
@@ -1837,6 +1848,7 @@ function RegistrationManagement({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => {
+                          console.log(
                             "Opening modal for registration:",
                             registration
                           );
@@ -2066,6 +2078,7 @@ ${registration.companyName || "N/A"},${
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 underline"
                             onClick={() => {
+                              console.log("Opening PDF directly:", {
                                 url: showRegistrationDetails.pitchDeckUrl,
                               });
                             }}
@@ -2984,6 +2997,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
         [field]: result.url,
       }));
     } catch (error) {
+      console.error("Error uploading file:", error);
       setErrors((prev) => ({
         ...prev,
         [field]: `Upload failed: ${error.message}`,
@@ -3059,6 +3073,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
       });
       updateSpeaker(index, "image", result.url);
     } catch (error) {
+      console.error("Error uploading speaker image:", error);
       setErrors((prev) => ({
         ...prev,
         [`speaker-${index}`]: `Upload failed: ${error.message}`,
@@ -3125,6 +3140,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
       setUploadResults(results);
       setUploadProgress(100);
     } catch (error) {
+      console.error("Error during bulk upload:", error);
       setErrors({ gallery: `Bulk upload failed: ${error.message}` });
     } finally {
       setGalleryUploading(false);
@@ -3161,6 +3177,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
       onSave();
       onClose();
     } catch (error) {
+      console.error("Error saving event:", error);
       const errorMessage = `Failed to save event: ${error.message}`;
       setErrors({ submit: errorMessage });
       toastUtils.error(errorMessage);
