@@ -497,7 +497,7 @@ export default function EventPage({ params }) {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -517,7 +517,7 @@ export default function EventPage({ params }) {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
@@ -537,7 +537,7 @@ export default function EventPage({ params }) {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
@@ -557,7 +557,7 @@ export default function EventPage({ params }) {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -577,7 +577,7 @@ export default function EventPage({ params }) {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
