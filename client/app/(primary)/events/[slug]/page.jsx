@@ -361,19 +361,304 @@ export default function EventPage({ params }) {
             <div className="lg:col-span-2">
               {/* About Event */}
               <div className="mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                  About This Event
-                </h2>
-                <div className="prose prose-lg max-w-none text-gray-700">
-                  <p>{event.description}</p>
+                <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50/30 rounded-2xl p-8 border border-gray-100">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-lg flex items-center justify-center">
+                      <Icon
+                        icon="mdi:information-outline"
+                        width={24}
+                        className="text-white"
+                      />
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      About This Event
+                    </h2>
+                  </div>
+
+                  {/* Main Description */}
+                  <div className="mb-8">
+                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 bg-brand-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                          <Icon
+                            icon="mdi:text"
+                            width={16}
+                            className="text-brand-primary"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                            Event Overview
+                          </h3>
+                          <p className="text-gray-700 leading-relaxed">
+                            {event.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Long Description with structured content */}
                   {event.longDescription && (
-                    <div
-                      className="not-prose"
-                      dangerouslySetInnerHTML={{
-                        __html: event.longDescription,
-                      }}
-                    />
+                    <div className="space-y-6">
+                      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 bg-brand-secondary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                            <Icon
+                              icon="mdi:format-list-bulleted"
+                              width={16}
+                              className="text-brand-secondary"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                              Event Details
+                            </h3>
+                            <div className="prose prose-gray max-w-none">
+                              <div
+                                dangerouslySetInnerHTML={{
+                                  __html: event.longDescription,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
+
+                  {/* Key Highlights Section */}
+                  <div className="mt-8">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <Icon
+                        icon="mdi:star-outline"
+                        width={24}
+                        className="text-brand-primary"
+                      />
+                      Event Highlights
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <Icon
+                              icon="mdi:handshake"
+                              width={20}
+                              className="text-green-600"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              Startup-Investor Connections
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Connect EV startups with potential investors
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Icon
+                              icon="mdi:car-electric"
+                              width={20}
+                              className="text-blue-600"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              EV Industry Insights
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Latest trends in electric vehicle ecosystem
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <Icon
+                              icon="mdi:currency-usd"
+                              width={20}
+                              className="text-orange-600"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              Funding Opportunities
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Access to investment opportunities and funding
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <Icon
+                              icon="mdi:presentation"
+                              width={20}
+                              className="text-purple-600"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              Pitch Sessions
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Present your startup to potential investors
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                            <Icon
+                              icon="mdi:account-tie"
+                              width={20}
+                              className="text-teal-600"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              Mentorship
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Guidance from experienced entrepreneurs
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                            <Icon
+                              icon="mdi:chart-line"
+                              width={20}
+                              className="text-red-600"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              Market Analysis
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              In-depth EV market research and forecasts
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <Icon
+                              icon="mdi:rocket-launch"
+                              width={20}
+                              className="text-indigo-600"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              Demo Showcase
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Live demonstrations of EV innovations
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
+                            <Icon
+                              icon="mdi:forum"
+                              width={20}
+                              className="text-pink-600"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              Panel Discussions
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Expert insights on EV industry challenges
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* What You'll Learn/Gain Section */}
+                  <div className="mt-8">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <Icon
+                        icon="mdi:trophy-outline"
+                        width={24}
+                        className="text-brand-primary"
+                      />
+                      What You'll Gain
+                    </h3>
+                    <div className="bg-white rounded-xl p-6 border border-gray-100">
+                      <ul className="space-y-3">
+                        <li className="flex items-start gap-3">
+                          <Icon
+                            icon="mdi:check-circle"
+                            width={20}
+                            className="text-green-500 flex-shrink-0 mt-0.5"
+                          />
+                          <span className="text-gray-700">
+                            Deep understanding of EV market trends and
+                            investment opportunities
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <Icon
+                            icon="mdi:check-circle"
+                            width={20}
+                            className="text-green-500 flex-shrink-0 mt-0.5"
+                          />
+                          <span className="text-gray-700">
+                            Direct access to potential investors and funding
+                            partners
+                          </span>
+                        </li>
+
+                        <li className="flex items-start gap-3">
+                          <Icon
+                            icon="mdi:check-circle"
+                            width={20}
+                            className="text-green-500 flex-shrink-0 mt-0.5"
+                          />
+                          <span className="text-gray-700">
+                            Strategic partnerships with established EV companies
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <Icon
+                            icon="mdi:check-circle"
+                            width={20}
+                            className="text-green-500 flex-shrink-0 mt-0.5"
+                          />
+                          <span className="text-gray-700">
+                            Actionable insights to accelerate your startup
+                            growth
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -433,7 +718,7 @@ export default function EventPage({ params }) {
                   <h2 className="text-3xl font-bold text-gray-900 mb-6">
                     Event Agenda
                   </h2>
-                  <div className="space-y-4">
+                  <div className="max-h-[600px] overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                     {event.agenda.map((item, index) => (
                       <div
                         key={index}
@@ -472,9 +757,20 @@ export default function EventPage({ params }) {
                         className="bg-white rounded-lg p-6 shadow-lg border"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full flex items-center justify-center text-white font-bold text-xl">
-                            {speaker.name.charAt(0)}
-                          </div>
+                          {speaker.image ? (
+                            <div className="w-16 h-16 relative rounded-full overflow-hidden">
+                              <Image
+                                src={speaker.image}
+                                alt={speaker.name}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-16 h-16 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full flex items-center justify-center text-white font-bold text-xl">
+                              {speaker.name.charAt(0)}
+                            </div>
+                          )}
                           <div>
                             <h3 className="font-semibold text-gray-900">
                               {speaker.name}
