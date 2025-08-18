@@ -5,7 +5,7 @@ export const modalsData = [
         slug: "complementary-support",
         name: "Complementary Support",
         subtitle: "Best for starting up",
-        price: "$0",
+        price: "₹0",
         period: "startup",
         category: "Startup Support",
         heroImage: "/images/modals/complementary-support.jpg",

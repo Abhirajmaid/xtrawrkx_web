@@ -22,7 +22,7 @@ export const getServicesDropdownData = async () => {
             middleList: servicesDropdownList,
             rightTitle: "How we work",
             rightList: [
-                { label: "Complementary Support", slug: "/modals/complementary-support", price: "$0", subtitle: "Best for starting up" },
+                { label: "Complementary Support", slug: "/modals/complementary-support", price: "₹0", subtitle: "Best for starting up" },
                 { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
                 { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
             ],
@@ -40,7 +40,7 @@ export const getServicesDropdownData = async () => {
             middleList: [],
             rightTitle: "How we work",
             rightList: [
-                { label: "Complementary Support", slug: "/modals/complementary-support", price: "$0", subtitle: "Best for starting up" },
+                { label: "Complementary Support", slug: "/modals/complementary-support", price: "₹0", subtitle: "Best for starting up" },
                 { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
                 { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
             ],

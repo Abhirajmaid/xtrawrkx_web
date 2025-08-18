@@ -550,13 +550,15 @@ export default function EventPage({ params }) {
                   {event.price && (
                     <div className="flex items-center gap-3">
                       <Icon
-                        icon="mdi:currency-usd"
+                        icon="mdi:currency-inr"
                         className="text-brand-primary"
                         width={24}
                       />
                       <div>
                         <p className="font-medium text-gray-900">Price</p>
-                        <p className="text-gray-600">{event.price}</p>
+                        <p className="text-gray-600">
+                          {event.price} for all events
+                        </p>
                       </div>
                     </div>
                   )}

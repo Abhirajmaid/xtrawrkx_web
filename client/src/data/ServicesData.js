@@ -260,7 +260,7 @@ export const engagementModels = [
     {
         name: "Complementary Support",
         subtitle: "Best for starting up",
-        price: "$0",
+        price: "₹0",
         period: "startup",
         features: [
             "Task Management",
