@@ -17,7 +17,7 @@ export default function RegistrationsPage() {
   const [sortOrder, setSortOrder] = useState("desc");
   const [lastUpdated, setLastUpdated] = useState(null);
   const [expandedRows, setExpandedRows] = useState(new Set());
-  const [viewMode, setViewMode] = useState("expanded"); // "expanded" or "compact"
+  const [viewMode, setViewMode] = useState("compact"); // "expanded" or "compact"
 
   // Load registrations on component mount
   useEffect(() => {
@@ -583,7 +583,7 @@ export default function RegistrationsPage() {
           </p>
           <div className="flex items-center gap-3">
             {/* View Mode Toggle */}
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">View:</span>
               <button
                 onClick={() =>
@@ -598,18 +598,7 @@ export default function RegistrationsPage() {
                 />
                 {viewMode === "expanded" ? "Compact" : "Expanded"}
               </button>
-              {/* <div>
-                {filteredRegistrations.length > 0 && (
-              <button
-                onClick={() => exportToCSV(filteredRegistrations)}
-                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-              >
-                <Icon icon="mdi:download" />
-                Export CSV
-              </button>
-            )}
-              </div> */}
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -623,604 +612,703 @@ export default function RegistrationsPage() {
             </p>
           </div>
           <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            <table
-              className={`w-full divide-y divide-gray-200 table-fixed ${
-                viewMode === "expanded" ? "min-w-[1800px]" : "min-w-[1200px]"
-              }`}
-            >
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="w-12 px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
-                  <th
-                    className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      viewMode === "expanded" ? "w-80" : "w-60"
-                    }`}
-                  >
-                    Company & Contact
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      viewMode === "expanded" ? "w-48" : "w-36"
-                    }`}
-                  >
-                    Type / Season
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      viewMode === "expanded" ? "w-64" : "w-48"
-                    }`}
-                  >
-                    Event Details
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      viewMode === "expanded" ? "w-56" : "w-44"
-                    }`}
-                  >
-                    Attendees & Personnel
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      viewMode === "expanded" ? "w-48" : "w-36"
-                    }`}
-                  >
-                    Financial Details
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      viewMode === "expanded" ? "w-52" : "w-40"
-                    }`}
-                  >
-                    Status & Dates
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      viewMode === "expanded" ? "w-56" : "w-44"
-                    }`}
-                  >
-                    Additional Info
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredRegistrations.map((registration) => (
-                  <React.Fragment key={registration.id}>
-                    <tr className="hover:bg-gray-50">
-                      <td className="px-2 py-2">
-                        <button
-                          onClick={() => {
-                            const newExpanded = new Set(expandedRows);
-                            if (newExpanded.has(registration.id)) {
-                              newExpanded.delete(registration.id);
-                            } else {
-                              newExpanded.add(registration.id);
-                            }
-                            setExpandedRows(newExpanded);
-                          }}
-                          className="text-gray-500 hover:text-primary p-1 rounded"
-                          title={
-                            expandedRows.has(registration.id)
-                              ? "Collapse"
-                              : "Expand"
-                          }
-                        >
-                          <Icon
-                            icon={
-                              expandedRows.has(registration.id)
-                                ? "mdi:chevron-up"
-                                : "mdi:chevron-down"
-                            }
-                            className="text-lg"
-                          />
-                        </button>
+            {viewMode === "compact" ? (
+              // Compact Table View
+              <table className="w-full divide-y divide-gray-200 min-w-[800px]">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                      Company Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                      Contact Person
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                      Designation
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      Entity Type
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                      Registration Type
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
+                      Event/Season
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      Attendees
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">
+                      Registration Date
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredRegistrations.map((registration) => (
+                    <tr key={registration.id} className="hover:bg-gray-50">
+                      {/* Company Name */}
+                      <td className="px-4 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {registration.companyName || "N/A"}
+                        </div>
+                        {registration.industry && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {registration.industry}
+                          </div>
+                        )}
                       </td>
-                      {/* Company & Contact */}
-                      <td
-                        className={`px-4 py-4 ${
-                          viewMode === "expanded" ? "w-80" : "w-60"
-                        }`}
-                      >
-                        <div className="space-y-1 text-wrap break-words">
-                          <div className="text-sm font-medium text-gray-900">
-                            <strong>Company:</strong>{" "}
-                            {registration.companyName || "N/A"}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            <strong>Contact:</strong>{" "}
-                            {registration.primaryContactName || "N/A"}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            <strong>Email:</strong>{" "}
-                            {registration.primaryContactEmail || "N/A"}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            <strong>Phone:</strong>{" "}
-                            {registration.primaryContactPhone || "N/A"}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            <strong>Designation:</strong>{" "}
-                            {registration.primaryContactDesignation || "N/A"}
-                          </div>
-                          {registration.companyEmail && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Company Email:</strong>{" "}
-                              {registration.companyEmail}
-                            </div>
-                          )}
-                          {registration.companyPhone && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Company Phone:</strong>{" "}
-                              {registration.companyPhone}
-                            </div>
-                          )}
-                          {registration.companyAddress && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Address:</strong>{" "}
-                              {registration.companyAddress}
-                            </div>
-                          )}
-                          {registration.industry && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Industry:</strong> {registration.industry}
-                            </div>
-                          )}
-                          {registration.companySize && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Size:</strong> {registration.companySize}
-                            </div>
-                          )}
+
+                      {/* Contact Person */}
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-900">
+                          {registration.primaryContactName || "N/A"}
                         </div>
                       </td>
 
-                      {/* Type / Season */}
-                      <td
-                        className={`px-4 py-4 ${
-                          viewMode === "expanded" ? "w-48" : "w-36"
-                        }`}
-                      >
-                        <div className="space-y-2">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeBadgeColor(
-                              registration.registrationType
-                            )}`}
-                          >
-                            {registration.registrationType === "season"
-                              ? "Season"
-                              : "Single Event"}
-                          </span>
-                          {registration.registrationType === "season" && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Season:</strong> {registration.season}
-                            </div>
-                          )}
+                      {/* Designation */}
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-600">
+                          {registration.primaryContactDesignation || "N/A"}
+                        </div>
+                      </td>
+
+                      {/* Entity Type */}
+                      <td className="px-4 py-4">
+                        <div className="space-y-1">
                           {registration.companyCommunity &&
                             registration.companyCommunity !== "none" && (
                               <div className="text-sm text-gray-600">
-                                <strong>Community:</strong>{" "}
                                 {registration.companyCommunity}
                               </div>
                             )}
                           {registration.xenLevel && (
-                            <div className="text-sm text-gray-600">
-                              <strong>XEN Level:</strong>{" "}
-                              {registration.xenLevel}
+                            <div className="text-xs text-gray-500">
+                              XEN: {registration.xenLevel}
                             </div>
                           )}
-                          {registration.clientStatus &&
-                            registration.clientStatus !== "none" && (
-                              <div className="text-sm text-gray-600">
-                                <strong>Client Status:</strong>{" "}
-                                {registration.clientStatus}
-                              </div>
-                            )}
                         </div>
                       </td>
 
-                      {/* Event Details */}
-                      <td
-                        className={`px-4 py-4 ${
-                          viewMode === "expanded" ? "w-64" : "w-48"
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium text-gray-900">
-                            <strong>Event:</strong>{" "}
-                            {registration.eventTitle ||
-                              `Season ${registration.season} Events`}
-                          </div>
-                          {registration.eventId && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Event ID:</strong> {registration.eventId}
-                            </div>
-                          )}
-                          {registration.eventDate && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Event Date:</strong>{" "}
-                              {formatDate(registration.eventDate)}
-                            </div>
-                          )}
-                          {registration.eventLocation && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Location:</strong> 📍{" "}
-                              {registration.eventLocation}
-                            </div>
-                          )}
-                          {registration.registrationType === "season" &&
-                            registration.selectedEventDetails && (
-                              <div className="text-sm text-gray-600">
-                                <strong>Selected Events:</strong>{" "}
-                                {registration.selectedEventDetails.length}{" "}
-                                event(s)
-                              </div>
-                            )}
-                          {registration.registrationType === "season" &&
-                            registration.selectedEventDetails && (
-                              <div className="text-sm text-gray-500">
-                                {registration.selectedEventDetails.map(
-                                  (event, idx) => (
-                                    <div key={idx} className="ml-2 text-xs">
-                                      • {event.title} ({formatDate(event.date)})
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            )}
-                        </div>
+                      {/* Registration Type */}
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeBadgeColor(
+                            registration.registrationType
+                          )}`}
+                        >
+                          {registration.registrationType === "season"
+                            ? "Season"
+                            : "Single Event"}
+                        </span>
                       </td>
 
-                      {/* Attendees & Personnel */}
-                      <td
-                        className={`px-4 py-4 ${
-                          viewMode === "expanded" ? "w-56" : "w-44"
-                        }`}
-                      >
-                        <div className="space-y-2">
-                          <div className="text-sm text-gray-900">
-                            <strong>Total Attendees:</strong>{" "}
-                            {registration.personnel &&
-                            registration.personnel.length > 0
-                              ? registration.personnel.filter(
-                                  (p) => p.isAttending
-                                ).length
-                              : 1}
+                      {/* Event/Season */}
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-900">
+                          {registration.registrationType === "season"
+                            ? `Season ${registration.season}`
+                            : registration.eventTitle || "N/A"}
+                        </div>
+                        {registration.eventDate && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {formatDate(registration.eventDate)}
                           </div>
-                          <div className="text-sm text-gray-600">
-                            <strong>Ticket Type:</strong>{" "}
-                            {registration.ticketType === "gnp" ? "GNP" : "ASP"}
-                          </div>
+                        )}
+                      </td>
+
+                      {/* Attendees */}
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-900">
                           {registration.personnel &&
-                            registration.personnel.length > 0 && (
-                              <div className="text-sm text-gray-600">
-                                <strong>Personnel Details:</strong>
-                                <div className="mt-1 space-y-1">
-                                  {registration.personnel
-                                    .filter((p) => p.isAttending)
-                                    .slice(0, 2)
-                                    .map((person, idx) => (
-                                      <div
-                                        key={idx}
-                                        className="ml-2 text-xs bg-gray-50 p-1 rounded"
-                                      >
-                                        • {person.name} ({person.email}) -{" "}
-                                        {person.designation || "N/A"}
-                                        {person.dietaryRequirements &&
-                                          person.dietaryRequirements !==
-                                            "No restrictions" && (
-                                            <span className="text-orange-600">
-                                              {" "}
-                                              - 🍽️ {person.dietaryRequirements}
-                                            </span>
-                                          )}
-                                      </div>
-                                    ))}
-                                  {registration.personnel.filter(
-                                    (p) => p.isAttending
-                                  ).length > 2 && (
-                                    <div className="ml-2 text-xs text-blue-600">
-                                      +
-                                      {registration.personnel.filter(
-                                        (p) => p.isAttending
-                                      ).length - 2}{" "}
-                                      more...
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                          registration.personnel.length > 0
+                            ? registration.personnel.filter(
+                                (p) => p.isAttending
+                              ).length
+                            : 1}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {registration.ticketType === "gnp" ? "GNP" : "ASP"}
                         </div>
                       </td>
 
-                      {/* Financial Details */}
-                      <td
-                        className={`px-4 py-4 ${
-                          viewMode === "expanded" ? "w-48" : "w-36"
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          <div className="text-sm text-gray-900">
-                            <strong>Total Cost:</strong> ₹
-                            {(registration.totalCost || 0).toLocaleString()}
-                          </div>
-                          {registration.baseAmount && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Base Amount:</strong> ₹
-                              {registration.baseAmount.toLocaleString()}
-                            </div>
-                          )}
-                          {registration.discountAmount &&
-                            registration.discountAmount > 0 && (
-                              <div className="text-sm text-green-600">
-                                <strong>Discount:</strong> ₹
-                                {registration.discountAmount.toLocaleString()}
-                              </div>
-                            )}
-                          {registration.savings && registration.savings > 0 && (
-                            <div className="text-sm text-green-600">
-                              <strong>Savings:</strong> ₹
-                              {registration.savings.toLocaleString()}
-                            </div>
-                          )}
-                          {registration.isFree && (
-                            <div className="text-sm text-green-600 font-medium">
-                              🎉 Free Registration
-                            </div>
-                          )}
-                          {registration.paymentStatus && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Payment:</strong>{" "}
-                              {registration.paymentStatus}
-                            </div>
-                          )}
-                        </div>
+                      {/* Status */}
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(
+                            registration.status
+                          )}`}
+                        >
+                          {registration.status || "N/A"}
+                        </span>
                       </td>
 
-                      {/* Status & Dates */}
-                      <td
-                        className={`px-4 py-4 ${
-                          viewMode === "expanded" ? "w-52" : "w-40"
-                        }`}
-                      >
-                        <div className="space-y-2">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(
-                              registration.status
-                            )}`}
-                          >
-                            <strong>Status:</strong>{" "}
-                            {registration.status || "N/A"}
-                          </span>
-                          <div className="text-sm text-gray-600">
-                            <strong>Registration Date:</strong>{" "}
-                            {formatDate(
-                              registration.createdAt ||
-                                registration.registrationDate
-                            )}
-                          </div>
-                          {registration.updatedAt && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Last Updated:</strong>{" "}
-                              {formatDate(registration.updatedAt)}
-                            </div>
-                          )}
-                          {registration.termsAccepted && (
-                            <div className="text-sm text-green-600">
-                              ✓ Terms Accepted
-                            </div>
-                          )}
-                          {registration.privacyAccepted && (
-                            <div className="text-sm text-green-600">
-                              ✓ Privacy Accepted
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Additional Info */}
-                      <td
-                        className={`px-4 py-4 ${
-                          viewMode === "expanded" ? "w-56" : "w-44"
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          {registration.specialRequests && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Special Requests:</strong>{" "}
-                              {registration.specialRequests}
-                            </div>
-                          )}
-                          {registration.emergencyContact && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Emergency Contact:</strong>{" "}
-                              {registration.emergencyContact}
-                            </div>
-                          )}
-                          {registration.emergencyPhone && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Emergency Phone:</strong>{" "}
-                              {registration.emergencyPhone}
-                            </div>
-                          )}
-                          {registration.linkedinUrl && (
-                            <div className="text-sm text-gray-600">
-                              <strong>LinkedIn:</strong>
-                              <a
-                                href={registration.linkedinUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline ml-1"
-                              >
-                                View Profile
-                              </a>
-                            </div>
-                          )}
-                          {registration.pitchDeckUrl && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Pitch Deck:</strong>
-                              <a
-                                href={registration.pitchDeckUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline ml-1"
-                              >
-                                Download
-                              </a>
-                            </div>
-                          )}
-                          {registration.attendingCount && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Attending Count:</strong>{" "}
-                              {registration.attendingCount}
-                            </div>
-                          )}
-                          {registration.selectedEventCount && (
-                            <div className="text-sm text-gray-600">
-                              <strong>Event Count:</strong>{" "}
-                              {registration.selectedEventCount}
-                            </div>
+                      {/* Registration Date */}
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-600">
+                          {formatDate(
+                            registration.createdAt ||
+                              registration.registrationDate
                           )}
                         </div>
                       </td>
                     </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              // Expanded Table View (existing code)
+              <table className="w-full divide-y divide-gray-200 table-fixed min-w-[1800px]">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="w-12 px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                    <th className="w-80 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Company & Contact
+                    </th>
+                    <th className="w-48 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type / Season
+                    </th>
+                    <th className="w-64 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Event Details
+                    </th>
+                    <th className="w-56 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Attendees & Personnel
+                    </th>
+                    <th className="w-48 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Financial Details
+                    </th>
+                    <th className="w-52 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status & Dates
+                    </th>
+                    <th className="w-56 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Additional Info
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredRegistrations.map((registration) => (
+                    <React.Fragment key={registration.id}>
+                      <tr className="hover:bg-gray-50">
+                        <td className="px-2 py-2">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedRows);
+                              if (newExpanded.has(registration.id)) {
+                                newExpanded.delete(registration.id);
+                              } else {
+                                newExpanded.add(registration.id);
+                              }
+                              setExpandedRows(newExpanded);
+                            }}
+                            className="text-gray-500 hover:text-primary p-1 rounded"
+                            title={
+                              expandedRows.has(registration.id)
+                                ? "Collapse"
+                                : "Expand"
+                            }
+                          >
+                            <Icon
+                              icon={
+                                expandedRows.has(registration.id)
+                                  ? "mdi:chevron-up"
+                                  : "mdi:chevron-down"
+                              }
+                              className="text-lg"
+                            />
+                          </button>
+                        </td>
+                        {/* Company & Contact */}
+                        <td className="w-80 px-4 py-4">
+                          <div className="space-y-1 text-wrap break-words">
+                            <div className="text-sm font-medium text-gray-900">
+                              <strong>Company:</strong>{" "}
+                              {registration.companyName || "N/A"}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <strong>Contact:</strong>{" "}
+                              {registration.primaryContactName || "N/A"}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <strong>Email:</strong>{" "}
+                              {registration.primaryContactEmail || "N/A"}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <strong>Phone:</strong>{" "}
+                              {registration.primaryContactPhone || "N/A"}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <strong>Designation:</strong>{" "}
+                              {registration.primaryContactDesignation || "N/A"}
+                            </div>
+                            {registration.companyEmail && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Company Email:</strong>{" "}
+                                {registration.companyEmail}
+                              </div>
+                            )}
+                            {registration.companyPhone && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Company Phone:</strong>{" "}
+                                {registration.companyPhone}
+                              </div>
+                            )}
+                            {registration.companyAddress && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Address:</strong>{" "}
+                                {registration.companyAddress}
+                              </div>
+                            )}
+                            {registration.industry && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Industry:</strong>{" "}
+                                {registration.industry}
+                              </div>
+                            )}
+                            {registration.companySize && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Size:</strong>{" "}
+                                {registration.companySize}
+                              </div>
+                            )}
+                          </div>
+                        </td>
 
-                    {/* Expandable Row */}
-                    {expandedRows.has(registration.id) && (
-                      <tr className="bg-gray-50">
-                        <td colSpan="8" className="px-4 py-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {/* Personnel Details */}
+                        {/* Type / Season */}
+                        <td className="w-48 px-4 py-4">
+                          <div className="space-y-2">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeBadgeColor(
+                                registration.registrationType
+                              )}`}
+                            >
+                              {registration.registrationType === "season"
+                                ? "Season"
+                                : "Single Event"}
+                            </span>
+                            {registration.registrationType === "season" && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Season:</strong> {registration.season}
+                              </div>
+                            )}
+                            {registration.companyCommunity &&
+                              registration.companyCommunity !== "none" && (
+                                <div className="text-sm text-gray-600">
+                                  <strong>Community:</strong>{" "}
+                                  {registration.companyCommunity}
+                                </div>
+                              )}
+                            {registration.xenLevel && (
+                              <div className="text-sm text-gray-600">
+                                <strong>XEN Level:</strong>{" "}
+                                {registration.xenLevel}
+                              </div>
+                            )}
+                            {registration.clientStatus &&
+                              registration.clientStatus !== "none" && (
+                                <div className="text-sm text-gray-600">
+                                  <strong>Client Status:</strong>{" "}
+                                  {registration.clientStatus}
+                                </div>
+                              )}
+                          </div>
+                        </td>
+
+                        {/* Event Details */}
+                        <td className="w-64 px-4 py-4">
+                          <div className="space-y-1">
+                            <div className="text-sm font-medium text-gray-900">
+                              <strong>Event:</strong>{" "}
+                              {registration.eventTitle ||
+                                `Season ${registration.season} Events`}
+                            </div>
+                            {registration.eventId && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Event ID:</strong>{" "}
+                                {registration.eventId}
+                              </div>
+                            )}
+                            {registration.eventDate && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Event Date:</strong>{" "}
+                                {formatDate(registration.eventDate)}
+                              </div>
+                            )}
+                            {registration.eventLocation && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Location:</strong> 📍{" "}
+                                {registration.eventLocation}
+                              </div>
+                            )}
+                            {registration.registrationType === "season" &&
+                              registration.selectedEventDetails && (
+                                <div className="text-sm text-gray-600">
+                                  <strong>Selected Events:</strong>{" "}
+                                  {registration.selectedEventDetails.length}{" "}
+                                  event(s)
+                                </div>
+                              )}
+                            {registration.registrationType === "season" &&
+                              registration.selectedEventDetails && (
+                                <div className="text-sm text-gray-500">
+                                  {registration.selectedEventDetails.map(
+                                    (event, idx) => (
+                                      <div key={idx} className="ml-2 text-xs">
+                                        • {event.title} (
+                                        {formatDate(event.date)})
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              )}
+                          </div>
+                        </td>
+
+                        {/* Attendees & Personnel */}
+                        <td className="w-56 px-4 py-4">
+                          <div className="space-y-2">
+                            <div className="text-sm text-gray-900">
+                              <strong>Total Attendees:</strong>{" "}
+                              {registration.personnel &&
+                              registration.personnel.length > 0
+                                ? registration.personnel.filter(
+                                    (p) => p.isAttending
+                                  ).length
+                                : 1}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <strong>Ticket Type:</strong>{" "}
+                              {registration.ticketType === "gnp"
+                                ? "GNP"
+                                : "ASP"}
+                            </div>
                             {registration.personnel &&
                               registration.personnel.length > 0 && (
-                                <div className="bg-white p-4 rounded-lg border">
-                                  <h4 className="font-medium text-gray-900 mb-3">
-                                    Complete Personnel List
-                                  </h4>
-                                  <div className="space-y-2">
+                                <div className="text-sm text-gray-600">
+                                  <strong>Personnel Details:</strong>
+                                  <div className="mt-1 space-y-1">
                                     {registration.personnel
                                       .filter((p) => p.isAttending)
+                                      .slice(0, 2)
                                       .map((person, idx) => (
                                         <div
                                           key={idx}
-                                          className="text-sm bg-gray-50 p-2 rounded"
+                                          className="ml-2 text-xs bg-gray-50 p-1 rounded"
                                         >
-                                          <div className="font-medium">
-                                            {person.name}
-                                          </div>
-                                          <div className="text-gray-600">
-                                            Email: {person.email}
-                                          </div>
-                                          <div className="text-gray-600">
-                                            Phone: {person.phone || "N/A"}
-                                          </div>
-                                          <div className="text-gray-600">
-                                            Designation:{" "}
-                                            {person.designation || "N/A"}
-                                          </div>
+                                          • {person.name} ({person.email}) -{" "}
+                                          {person.designation || "N/A"}
                                           {person.dietaryRequirements &&
                                             person.dietaryRequirements !==
                                               "No restrictions" && (
-                                              <div className="text-orange-600">
-                                                🍽️ {person.dietaryRequirements}
-                                              </div>
+                                              <span className="text-orange-600">
+                                                {" "}
+                                                - 🍽️{" "}
+                                                {person.dietaryRequirements}
+                                              </span>
                                             )}
                                         </div>
                                       ))}
-                                  </div>
-                                </div>
-                              )}
-
-                            {/* Selected Events Details */}
-                            {registration.registrationType === "season" &&
-                              registration.selectedEventDetails && (
-                                <div className="bg-white p-4 rounded-lg border">
-                                  <h4 className="font-medium text-gray-900 mb-3">
-                                    Selected Events
-                                  </h4>
-                                  <div className="space-y-2">
-                                    {registration.selectedEventDetails.map(
-                                      (event, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="text-sm bg-gray-50 p-2 rounded"
-                                        >
-                                          <div className="font-medium">
-                                            {event.title}
-                                          </div>
-                                          <div className="text-gray-600">
-                                            Date: {formatDate(event.date)}
-                                          </div>
-                                          <div className="text-gray-600">
-                                            Location: {event.location || "N/A"}
-                                          </div>
-                                          <div className="text-gray-600">
-                                            Slug: {event.slug}
-                                          </div>
-                                        </div>
-                                      )
+                                    {registration.personnel.filter(
+                                      (p) => p.isAttending
+                                    ).length > 2 && (
+                                      <div className="ml-2 text-xs text-blue-600">
+                                        +
+                                        {registration.personnel.filter(
+                                          (p) => p.isAttending
+                                        ).length - 2}{" "}
+                                        more...
+                                      </div>
                                     )}
                                   </div>
                                 </div>
                               )}
+                          </div>
+                        </td>
 
-                            {/* Additional Details */}
-                            <div className="bg-white p-4 rounded-lg border">
-                              <h4 className="font-medium text-gray-900 mb-3">
-                                Additional Information
-                              </h4>
-                              <div className="space-y-2 text-sm">
-                                {registration.specialRequests && (
-                                  <div>
-                                    <strong>Special Requests:</strong>{" "}
-                                    {registration.specialRequests}
-                                  </div>
-                                )}
-                                {registration.emergencyContact && (
-                                  <div>
-                                    <strong>Emergency Contact:</strong>{" "}
-                                    {registration.emergencyContact}
-                                  </div>
-                                )}
-                                {registration.emergencyPhone && (
-                                  <div>
-                                    <strong>Emergency Phone:</strong>{" "}
-                                    {registration.emergencyPhone}
-                                  </div>
-                                )}
-                                {registration.linkedinUrl && (
-                                  <div>
-                                    <strong>LinkedIn:</strong>
-                                    <a
-                                      href={registration.linkedinUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:underline ml-1"
-                                    >
-                                      View Profile
-                                    </a>
-                                  </div>
-                                )}
-                                {registration.pitchDeckUrl && (
-                                  <div>
-                                    <strong>Pitch Deck:</strong>
-                                    <a
-                                      href={registration.pitchDeckUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:underline ml-1"
-                                    >
-                                      Download
-                                    </a>
-                                  </div>
-                                )}
-                              </div>
+                        {/* Financial Details */}
+                        <td className="w-48 px-4 py-4">
+                          <div className="space-y-1">
+                            <div className="text-sm text-gray-900">
+                              <strong>Total Cost:</strong> ₹
+                              {(registration.totalCost || 0).toLocaleString()}
                             </div>
+                            {registration.baseAmount && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Base Amount:</strong> ₹
+                                {registration.baseAmount.toLocaleString()}
+                              </div>
+                            )}
+                            {registration.discountAmount &&
+                              registration.discountAmount > 0 && (
+                                <div className="text-sm text-green-600">
+                                  <strong>Discount:</strong> ₹
+                                  {registration.discountAmount.toLocaleString()}
+                                </div>
+                              )}
+                            {registration.savings &&
+                              registration.savings > 0 && (
+                                <div className="text-sm text-green-600">
+                                  <strong>Savings:</strong> ₹
+                                  {registration.savings.toLocaleString()}
+                                </div>
+                              )}
+                            {registration.isFree && (
+                              <div className="text-sm text-green-600 font-medium">
+                                🎉 Free Registration
+                              </div>
+                            )}
+                            {registration.paymentStatus && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Payment:</strong>{" "}
+                                {registration.paymentStatus}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Status & Dates */}
+                        <td className="w-52 px-4 py-4">
+                          <div className="space-y-2">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(
+                                registration.status
+                              )}`}
+                            >
+                              <strong>Status:</strong>{" "}
+                              {registration.status || "N/A"}
+                            </span>
+                            <div className="text-sm text-gray-600">
+                              <strong>Registration Date:</strong>{" "}
+                              {formatDate(
+                                registration.createdAt ||
+                                  registration.registrationDate
+                              )}
+                            </div>
+                            {registration.updatedAt && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Last Updated:</strong>{" "}
+                                {formatDate(registration.updatedAt)}
+                              </div>
+                            )}
+                            {registration.termsAccepted && (
+                              <div className="text-sm text-green-600">
+                                ✓ Terms Accepted
+                              </div>
+                            )}
+                            {registration.privacyAccepted && (
+                              <div className="text-sm text-green-600">
+                                ✓ Privacy Accepted
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Additional Info */}
+                        <td className="w-56 px-4 py-4">
+                          <div className="space-y-1">
+                            {registration.specialRequests && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Special Requests:</strong>{" "}
+                                {registration.specialRequests}
+                              </div>
+                            )}
+                            {registration.emergencyContact && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Emergency Contact:</strong>{" "}
+                                {registration.emergencyContact}
+                              </div>
+                            )}
+                            {registration.emergencyPhone && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Emergency Phone:</strong>{" "}
+                                {registration.emergencyPhone}
+                              </div>
+                            )}
+                            {registration.linkedinUrl && (
+                              <div className="text-sm text-gray-600">
+                                <strong>LinkedIn:</strong>
+                                <a
+                                  href={registration.linkedinUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline ml-1"
+                                >
+                                  View Profile
+                                </a>
+                              </div>
+                            )}
+                            {registration.pitchDeckUrl && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Pitch Deck:</strong>
+                                <a
+                                  href={registration.pitchDeckUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline ml-1"
+                                >
+                                  Download
+                                </a>
+                              </div>
+                            )}
+                            {registration.attendingCount && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Attending Count:</strong>{" "}
+                                {registration.attendingCount}
+                              </div>
+                            )}
+                            {registration.selectedEventCount && (
+                              <div className="text-sm text-gray-600">
+                                <strong>Event Count:</strong>{" "}
+                                {registration.selectedEventCount}
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
+
+                      {/* Expandable Row */}
+                      {expandedRows.has(registration.id) && (
+                        <tr className="bg-gray-50">
+                          <td colSpan="8" className="px-4 py-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                              {/* Personnel Details */}
+                              {registration.personnel &&
+                                registration.personnel.length > 0 && (
+                                  <div className="bg-white p-4 rounded-lg border">
+                                    <h4 className="font-medium text-gray-900 mb-3">
+                                      Complete Personnel List
+                                    </h4>
+                                    <div className="space-y-2">
+                                      {registration.personnel
+                                        .filter((p) => p.isAttending)
+                                        .map((person, idx) => (
+                                          <div
+                                            key={idx}
+                                            className="text-sm bg-gray-50 p-2 rounded"
+                                          >
+                                            <div className="font-medium">
+                                              {person.name}
+                                            </div>
+                                            <div className="text-gray-600">
+                                              Email: {person.email}
+                                            </div>
+                                            <div className="text-gray-600">
+                                              Phone: {person.phone || "N/A"}
+                                            </div>
+                                            <div className="text-gray-600">
+                                              Designation:{" "}
+                                              {person.designation || "N/A"}
+                                            </div>
+                                            {person.dietaryRequirements &&
+                                              person.dietaryRequirements !==
+                                                "No restrictions" && (
+                                                <div className="text-orange-600">
+                                                  🍽️{" "}
+                                                  {person.dietaryRequirements}
+                                                </div>
+                                              )}
+                                          </div>
+                                        ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                              {/* Selected Events Details */}
+                              {registration.registrationType === "season" &&
+                                registration.selectedEventDetails && (
+                                  <div className="bg-white p-4 rounded-lg border">
+                                    <h4 className="font-medium text-gray-900 mb-3">
+                                      Selected Events
+                                    </h4>
+                                    <div className="space-y-2">
+                                      {registration.selectedEventDetails.map(
+                                        (event, idx) => (
+                                          <div
+                                            key={idx}
+                                            className="text-sm bg-gray-50 p-2 rounded"
+                                          >
+                                            <div className="font-medium">
+                                              {event.title}
+                                            </div>
+                                            <div className="text-gray-600">
+                                              Date: {formatDate(event.date)}
+                                            </div>
+                                            <div className="text-gray-600">
+                                              Location:{" "}
+                                              {event.location || "N/A"}
+                                            </div>
+                                            <div className="text-gray-600">
+                                              Slug: {event.slug}
+                                            </div>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                              {/* Additional Details */}
+                              <div className="bg-white p-4 rounded-lg border">
+                                <h4 className="font-medium text-gray-900 mb-3">
+                                  Additional Information
+                                </h4>
+                                <div className="space-y-2 text-sm">
+                                  {registration.specialRequests && (
+                                    <div>
+                                      <strong>Special Requests:</strong>{" "}
+                                      {registration.specialRequests}
+                                    </div>
+                                  )}
+                                  {registration.emergencyContact && (
+                                    <div>
+                                      <strong>Emergency Contact:</strong>{" "}
+                                      {registration.emergencyContact}
+                                    </div>
+                                  )}
+                                  {registration.emergencyPhone && (
+                                    <div>
+                                      <strong>Emergency Phone:</strong>{" "}
+                                      {registration.emergencyPhone}
+                                    </div>
+                                  )}
+                                  {registration.linkedinUrl && (
+                                    <div>
+                                      <strong>LinkedIn:</strong>
+                                      <a
+                                        href={registration.linkedinUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline ml-1"
+                                      >
+                                        View Profile
+                                      </a>
+                                    </div>
+                                  )}
+                                  {registration.pitchDeckUrl && (
+                                    <div>
+                                      <strong>Pitch Deck:</strong>
+                                      <a
+                                        href={registration.pitchDeckUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline ml-1"
+                                      >
+                                        Download
+                                      </a>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Empty State */}
