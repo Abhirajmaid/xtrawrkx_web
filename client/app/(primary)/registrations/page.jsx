@@ -598,9 +598,8 @@ export default function RegistrationsPage() {
                 />
                 {viewMode === "expanded" ? "Compact" : "Expanded"}
               </button>
-            </div>
-
-            {/* {filteredRegistrations.length > 0 && (
+              {/* <div>
+                {filteredRegistrations.length > 0 && (
               <button
                 onClick={() => exportToCSV(filteredRegistrations)}
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -608,7 +607,9 @@ export default function RegistrationsPage() {
                 <Icon icon="mdi:download" />
                 Export CSV
               </button>
-            )} */}
+            )}
+              </div> */}
+            </div>
           </div>
         </div>
 
