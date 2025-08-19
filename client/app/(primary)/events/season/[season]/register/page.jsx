@@ -92,6 +92,7 @@ const designations = [
 const companyTypes = [
   { id: "startup-corporate", name: "Startup and Corporates" },
   { id: "investor", name: "Investors" },
+  { id: "enablers-academia", name: "Enablers & Academia" },
 ];
 
 const subTypeOptions = {
@@ -165,6 +166,15 @@ const subTypeOptions = {
     "Strategic investor",
     "CVC",
     "HNI",
+  ],
+  "enablers-academia": [
+    "Incubator",
+    "Accelerator",
+    "Venture Studio",
+    "Academia",
+    "Government Office",
+    "Mentor",
+    "Investment Banker",
   ],
 };
 
@@ -1366,7 +1376,8 @@ export default function SeasonRegistration({ params }) {
                             type="checkbox"
                             checked={formData.selectedEvents.includes(event.id)}
                             onChange={() => handleEventSelection(event.id)}
-                            className="w-5 h-5 text-brand-primary border-gray-300 rounded focus:ring-brand-primary"
+                            onClick={() => handleEventSelection(event.id)}
+                            className="w-5 h-5 text-brand-primary border-gray-300 rounded focus:ring-brand-primary cursor-pointer"
                           />
                         </div>
                         <div className="flex-1">
