@@ -167,12 +167,10 @@ const XdDPage = ({ community }) => {
             <Button
               text="Join Community"
               type="primary"
-              className="text-lg px-8 py-4"
-            />
-            <Button
-              text="Submit Portfolio"
-              type="secondary"
-              className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-lg px-8 py-4"
+              className="text-lg"
+              onClick={() => {
+                window.open("https://forms.gle/feK3siB7oorSFzXr5", "_blank");
+              }}
             />
           </div>
         </Container>

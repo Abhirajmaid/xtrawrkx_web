@@ -137,16 +137,14 @@ const XevtgPage = ({ community }) => {
             Bridging the talent gap in EV industry through strategic
             partnerships between institutions and companies
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Button
-              text="Find Talent"
+              text="Join the Community"
               type="primary"
-              className="text-lg px-8 py-4"
-            />
-            <Button
-              text="Post Training Needs"
-              type="secondary"
-              className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-lg px-8 py-4"
+              className="text-lg"
+              onClick={() => {
+                window.open("https://forms.gle/feK3siB7oorSFzXr5", "_blank");
+              }}
             />
           </div>
         </Container>

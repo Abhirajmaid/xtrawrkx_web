@@ -236,6 +236,9 @@ const XenPage = ({ community }) => {
             <Button
               text="Join XEN Community"
               type="primary"
+              onClick={() => {
+                window.open("https://forms.gle/feK3siB7oorSFzXr5", "_blank");
+              }}
               className="text-lg px-8 py-4 bg-gradient-to-r from-[#cc9b37] to-[#b8862f] hover:from-[#b8862f] hover:to-[#a3752a]"
             />
             <Button

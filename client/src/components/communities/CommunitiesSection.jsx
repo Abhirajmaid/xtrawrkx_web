@@ -20,14 +20,10 @@ const CommunitiesSection = () => {
         );
 
   const handleJoinCommunity = useCallback((community) => {
-    // Handle join community logic here
-
-    // Handle different community join processes
     if (community.slug === "xen") {
-      // Use Next.js router instead of direct window manipulation
-      window.location.href = `/communities/xen#membership`;
+      window.open("https://forms.gle/feK3siB7oorSFzXr5", "_blank");
     } else {
-      // Default join behavior for other communities
+      window.open("https://forms.gle/feK3siB7oorSFzXr5", "_blank");
     }
   }, []);
 
