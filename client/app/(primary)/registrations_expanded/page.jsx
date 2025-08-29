@@ -18,7 +18,7 @@ export default function RegistrationsPage() {
   const [sortOrder, setSortOrder] = useState("desc");
   const [lastUpdated, setLastUpdated] = useState(null);
   const [expandedRows, setExpandedRows] = useState(new Set());
-  const [viewMode, setViewMode] = useState("compact"); // "expanded" or "compact"
+  const [viewMode, setViewMode] = useState("expanded"); // "expanded" or "compact"
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
