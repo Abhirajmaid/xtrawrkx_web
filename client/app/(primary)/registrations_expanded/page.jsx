@@ -701,7 +701,7 @@ export default function RegistrationsPage() {
           </p>
           <div className="flex items-center gap-3">
             {/* View Mode Toggle */}
-            {/* <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">View:</span>
               <button
                 onClick={() =>
@@ -716,7 +716,7 @@ export default function RegistrationsPage() {
                 />
                 {viewMode === "expanded" ? "Compact" : "Expanded"}
               </button>
-            </div> */}
+            </div>
           </div>
         </div>
 

@@ -937,10 +937,13 @@ function RegistrationManagement({
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterType, setFilterType] = useState("All"); // New filter for registration type
+  const [filterCompanyType, setFilterCompanyType] = useState("All"); // Company type filter
   const [sortBy, setSortBy] = useState("registrationDate");
   const [sortOrder, setSortOrder] = useState("desc");
   const [bulkSelection, setBulkSelection] = useState([]);
   const [showRegistrationDetails, setShowRegistrationDetails] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredRegistrations = registrations.filter((registration) => {
     // Filter by event (for single event registrations) or if no event selected
@@ -975,8 +978,32 @@ function RegistrationManagement({
     const matchesStatus =
       filterStatus === "All" || registration.status === filterStatus;
 
-    return matchesType && matchesSearch && matchesStatus;
+    // Filter by company type
+    const matchesCompanyType =
+      filterCompanyType === "All" ||
+      (filterCompanyType === "startup" &&
+        registration.companyType === "startup-corporate") ||
+      (filterCompanyType === "investor" &&
+        registration.companyType === "investor") ||
+      (filterCompanyType === "enabler" &&
+        registration.companyType === "enablers-academia");
+
+    return matchesType && matchesSearch && matchesStatus && matchesCompanyType;
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredRegistrations.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRegistrations = filteredRegistrations.slice(
+    startIndex,
+    endIndex
+  );
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterType, filterCompanyType, selectedEvent]);
 
   const getRegistrationStats = () => {
     const filtered = selectedEvent
@@ -1057,10 +1084,17 @@ function RegistrationManagement({
   };
 
   const handleSelectAllRegistrations = () => {
-    if (bulkSelection.length === filteredRegistrations.length) {
-      setBulkSelection([]);
+    const currentPageIds = paginatedRegistrations.map((r) => r.id);
+    const allCurrentSelected = currentPageIds.every((id) =>
+      bulkSelection.includes(id)
+    );
+
+    if (allCurrentSelected) {
+      setBulkSelection(
+        bulkSelection.filter((id) => !currentPageIds.includes(id))
+      );
     } else {
-      setBulkSelection(filteredRegistrations.map((r) => r.id));
+      setBulkSelection([...new Set([...bulkSelection, ...currentPageIds])]);
     }
   };
 
@@ -1408,6 +1442,22 @@ function RegistrationManagement({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              Company Type
+            </label>
+            <select
+              value={filterCompanyType}
+              onChange={(e) => setFilterCompanyType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="All">All Types</option>
+              <option value="startup">Startups</option>
+              <option value="investor">Investors</option>
+              <option value="enabler">Enablers</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Sort by
             </label>
             <select
@@ -1513,8 +1563,10 @@ function RegistrationManagement({
                   <input
                     type="checkbox"
                     checked={
-                      bulkSelection.length === filteredRegistrations.length &&
-                      filteredRegistrations.length > 0
+                      paginatedRegistrations.length > 0 &&
+                      paginatedRegistrations.every((r) =>
+                        bulkSelection.includes(r.id)
+                      )
                     }
                     onChange={handleSelectAllRegistrations}
                     className="rounded border-gray-300 text-primary focus:ring-primary"
@@ -1553,7 +1605,7 @@ function RegistrationManagement({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRegistrations.map((registration) => (
+              {paginatedRegistrations.map((registration) => (
                 <tr
                   key={registration.id}
                   className={`hover:bg-gray-50 ${
@@ -1915,21 +1967,114 @@ ${registration.companyName || "N/A"},${
           </table>
         </div>
 
-        {filteredRegistrations.length === 0 && (
-          <div className="text-center py-12">
-            <Icon
-              icon="mdi:account-multiple-outline"
-              width={48}
-              className="mx-auto text-gray-400 mb-4"
-            />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No registrations found
-            </h3>
-            <p className="text-gray-500">
-              {searchTerm || selectedEvent || filterStatus !== "All"
-                ? "Try adjusting your filters"
-                : "No registrations have been made yet"}
-            </p>
+        {paginatedRegistrations.length === 0 &&
+          filteredRegistrations.length === 0 && (
+            <div className="text-center py-12">
+              <Icon
+                icon="mdi:account-multiple-outline"
+                width={48}
+                className="mx-auto text-gray-400 mb-4"
+              />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No registrations found
+              </h3>
+              <p className="text-gray-500">
+                {searchTerm ||
+                selectedEvent ||
+                filterStatus !== "All" ||
+                filterCompanyType !== "All"
+                  ? "Try adjusting your filters"
+                  : "No registrations have been made yet"}
+              </p>
+            </div>
+          )}
+
+        {/* Pagination Controls */}
+        {filteredRegistrations.length > itemsPerPage && (
+          <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-6">
+            <div className="flex flex-1 justify-between sm:hidden">
+              <button
+                onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentPage(Math.min(currentPage + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{startIndex + 1}</span>{" "}
+                  to{" "}
+                  <span className="font-medium">
+                    {Math.min(endIndex, filteredRegistrations.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium">
+                    {filteredRegistrations.length}
+                  </span>{" "}
+                  results
+                </p>
+              </div>
+              <div>
+                <nav
+                  className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                  aria-label="Pagination"
+                >
+                  <button
+                    onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Icon icon="mdi:chevron-left" className="h-5 w-5" />
+                  </button>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                          currentPage === pageNum
+                            ? "z-10 bg-primary text-white focus:z-20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() =>
+                      setCurrentPage(Math.min(currentPage + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Icon icon="mdi:chevron-right" className="h-5 w-5" />
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         )}
       </div>
