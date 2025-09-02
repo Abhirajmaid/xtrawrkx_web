@@ -424,7 +424,7 @@ const AdminDashboard = () => {
       borderColor: "border-orange-200",
       trend: "+25%",
       trendColor: "text-green-600",
-      link: "/admin/events",
+      link: "/admin/registrations",
       subtitle: "Total event registrations",
     },
     {

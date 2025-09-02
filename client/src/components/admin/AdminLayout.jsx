@@ -74,6 +74,11 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
       icon: "solar:document-text-bold",
     },
     { name: "Events", href: "/admin/events", icon: "solar:calendar-bold" },
+    {
+      name: "Registrations",
+      href: "/admin/registrations",
+      icon: "solar:users-group-rounded-bold",
+    },
     { name: "Services", href: "/admin/services", icon: "solar:widget-bold" },
     { name: "Gallery", href: "/admin/gallery", icon: "solar:gallery-bold" },
     {

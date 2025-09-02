@@ -12,6 +12,7 @@ export default function Button({
   disabled = false,
   icon,
   hideArrow = false,
+  htmlType = "button",
   ...props
 }) {
   const baseClass =
@@ -58,6 +59,7 @@ export default function Button({
 
   return (
     <button
+      type={htmlType}
       className={`${baseClass} ${sizeClass} ${className} ${disabledClass}`}
       onClick={onClick}
       disabled={disabled}
