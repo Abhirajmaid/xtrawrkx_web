@@ -746,48 +746,71 @@ export default function EventPage({ params }) {
 
               {/* Speakers */}
               {event.speakers && event.speakers.length > 0 && (
-                <div className="mb-12">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                    {eventCompleted ? "Event Speakers" : "Featured Speakers"}
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {event.speakers.map((speaker, index) => (
-                      <div
-                        key={index}
-                        className="bg-white rounded-lg p-6 shadow-lg border"
-                      >
-                        <div className="flex items-center gap-4">
-                          {speaker.image ? (
-                            <div className="w-16 h-16 relative rounded-full overflow-hidden">
-                              <Image
-                                src={speaker.image}
-                                alt={speaker.name}
-                                fill
-                                className="object-cover"
-                              />
+                <div className="mb-12 -mx-4 md:mx-0">
+                  <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 rounded-2xl p-8 shadow-lg border border-indigo-100">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                      {eventCompleted ? "Event Speakers" : "Featured Speakers"}
+                    </h2>
+                    <div className="relative">
+                      {/* Horizontal scroll container */}
+                      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-indigo-100 pb-4">
+                        <div className="flex gap-6 min-w-max px-2">
+                          {event.speakers.map((speaker, index) => (
+                            <div
+                              key={index}
+                              className="bg-white rounded-xl p-6 shadow-lg border border-white/50 backdrop-blur-sm min-w-[320px] max-w-[320px] flex-shrink-0 hover:shadow-xl transition-all duration-300 hover:scale-105"
+                            >
+                              <div className="flex flex-col items-center text-center">
+                                {speaker.image ? (
+                                  <div className="w-20 h-20 relative rounded-full overflow-hidden mb-4 ring-4 ring-white shadow-lg">
+                                    <Image
+                                      src={speaker.image}
+                                      alt={speaker.name}
+                                      fill
+                                      className="object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-20 h-20 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full flex items-center justify-center text-white font-bold text-2xl mb-4 ring-4 ring-white shadow-lg">
+                                    {speaker.name.charAt(0)}
+                                  </div>
+                                )}
+                                <div>
+                                  <h3 className="font-bold text-gray-900 text-lg mb-1">
+                                    {speaker.name}
+                                  </h3>
+                                  <p className="text-brand-primary font-semibold mb-1">
+                                    {speaker.title}
+                                  </p>
+                                  <p className="text-sm text-gray-500 mb-3">
+                                    {speaker.company}
+                                  </p>
+                                  {speaker.bio && (
+                                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-4">
+                                      {speaker.bio}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          ) : (
-                            <div className="w-16 h-16 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full flex items-center justify-center text-white font-bold text-xl">
-                              {speaker.name.charAt(0)}
-                            </div>
-                          )}
-                          <div>
-                            <h3 className="font-semibold text-gray-900">
-                              {speaker.name}
-                            </h3>
-                            <p className="text-gray-600">{speaker.title}</p>
-                            <p className="text-sm text-gray-500">
-                              {speaker.company}
-                            </p>
-                          </div>
+                          ))}
                         </div>
-                        {speaker.bio && (
-                          <p className="text-gray-600 mt-4 text-sm">
-                            {speaker.bio}
-                          </p>
-                        )}
                       </div>
-                    ))}
+
+                      {/* Gradient fade indicators */}
+                      <div className="absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-indigo-50 to-transparent pointer-events-none"></div>
+                      <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-indigo-50 to-transparent pointer-events-none"></div>
+                    </div>
+
+                    {/* Scroll instruction */}
+                    <div className="flex items-center justify-center mt-4 text-sm text-gray-600">
+                      <Icon
+                        icon="mdi:gesture-swipe-horizontal"
+                        width={20}
+                        className="mr-2 text-indigo-400"
+                      />
+                      <span>Scroll horizontally to view all speakers</span>
+                    </div>
                   </div>
                 </div>
               )}
