@@ -305,7 +305,7 @@ export default function EventSection() {
 
         {/* Mobile Carousel */}
         <div
-          className="md:hidden relative overflow-hidden h-[300px] sm:h-[350px]"
+          className="md:hidden relative overflow-visible h-[400px] sm:h-[450px]"
           onTouchStart={() => setIsHovered(true)}
           onTouchEnd={() => setIsHovered(false)}
         >
@@ -313,7 +313,7 @@ export default function EventSection() {
             {events.map((event, idx) => (
               <div
                 key={event.id || idx}
-                className="absolute inset-0 transition-all duration-500 ease-in-out px-4"
+                className="absolute inset-0 transition-all duration-500 ease-in-out px-4 pb-4"
                 style={getMobileCardStyle(idx)}
               >
                 <EventCard

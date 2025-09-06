@@ -9,14 +9,14 @@ export default function HomeHero() {
   return (
     <Section className="relative bg-[#E3E3E3] w-full h-[100vh] min-h-[600px] md:h-[105vh] md:min-h-[700px] flex flex-col items-center justify-center !overflow-x-hidden p-0">
       {/* Background video */}
-      <div className="static md:absolute inset-0 w-full h-full z-0">
+      <div className="absolute inset-0 w-full h-full z-0">
         <video
           src="/mountain_vid1.webm"
           autoPlay
           muted
           loop
           playsInline
-          className="w-full h-full object-cover object-top md:translate-y-[-50px] scale-130"
+          className="w-full h-full object-cover object-top md:object-top md:translate-y-[-50px] md:scale-130"
         />
       </div>
 
@@ -24,20 +24,15 @@ export default function HomeHero() {
       {/* Keep subtitle and button at the bottom, between the cards */}
       <div
         className="
-          z-30 flex flex-col items-center w-full max-w-3xl px-4
-          left-1/2 -translate-x-1/2 bottom-10
-          md:bottom-20
-          md:left-1/2 md:-translate-x-1/2
-          sm:bottom-10
-          sm:left-1/2 sm:-translate-x-1/2
+          z-30 flex flex-col items-center justify-center w-full max-w-3xl px-4 -mb-[300px]
           !static
-          md:!absolute
+          md:!absolute md:bottom-20 md:left-1/2 md:-translate-x-1/2 md:justify-start md:mb-0
         "
         style={{
           position: "static",
         }}
       >
-        <div className="text-dark text-center mb-6 md:mb-2 font-heading font-extralight text-xl sm:text-2xl md:text-4xl lg:text-5xl max-w-5xl leading-tight">
+        <div className=" hidden md:block text-dark text-center mb-6 md:mb-2 font-heading font-extralight text-xl sm:text-2xl md:text-4xl lg:text-5xl max-w-5xl leading-tight">
           <p>From Complexity to Clarity</p>
           <p>We help "you" build what matters.</p>
         </div>
@@ -180,7 +175,7 @@ export default function HomeHero() {
       </div>
 
       {/* Mobile Service Cards - Simplified layout for mobile */}
-      <div className="md:hidden absolute bottom-8 left-0 right-0 z-20 px-4">
+      <div className="md:hidden absolute bottom-16 left-0 right-0 z-20 px-4">
         <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
           <div className="bg-gradient-to-b from-[#BDBDBD]/90 to-[#E3E3E3]/80 rounded-xl shadow-md p-3 border border-white/40">
             <div className="text-white text-xs font-bold text-center leading-tight mb-2">

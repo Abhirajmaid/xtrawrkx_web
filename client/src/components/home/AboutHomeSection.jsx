@@ -115,7 +115,7 @@ const cloudVariants = {
 
 export default function AboutHomeSection() {
   return (
-    <Section className="relative bg-[#E3E3E3] min-h-[80vh] md:min-h-[110vh] flex items-center justify-center py-12 md:py-20">
+    <Section className="hidden relative bg-[#E3E3E3] min-h-[80vh] md:min-h-[110vh] md:flex items-center justify-center py-12 md:py-20">
       <Container>
         {/* Main text */}
         <motion.div
