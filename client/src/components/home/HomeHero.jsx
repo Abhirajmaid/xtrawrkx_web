@@ -11,13 +11,15 @@ export default function HomeHero() {
       {/* Background video */}
       <div className="absolute inset-0 w-full h-full z-0">
         <video
-          src="/mountain_vid1.webm"
+          src="/mountain_hero.webm"
           autoPlay
           muted
           loop
           playsInline
-          className="w-full h-full object-cover object-top md:object-top md:translate-y-[-50px] md:scale-130"
+          className="w-full h-full object-cover object-top md:object-top"
         />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#E3E3E3] via-[#E3E3E3]/0 to-transparent"></div>
       </div>
 
       {/* Main content area - centered for subtitle and button */}
