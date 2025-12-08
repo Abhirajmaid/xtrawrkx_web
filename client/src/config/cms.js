@@ -8,6 +8,9 @@ export const CMS_CONFIG = {
     // Admin configuration
     ADMIN_EMAILS: process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || ['admin@xtrawrkx.com'],
 
+    // Strapi backend configuration
+    STRAPI_API_URL: 'https://xtrawrkxsuits-production.up.railway.app/api',
+
     // Firebase project configuration
     FIREBASE_CONFIG: {
         apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,

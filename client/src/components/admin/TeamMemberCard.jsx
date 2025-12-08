@@ -20,18 +20,19 @@ export default function TeamMemberCard({
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-lg transition-all duration-300 ${
+      className={`relative bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-lg transition-all duration-300 ${
         selected ? "border-primary shadow-primary/20" : "border-gray-200"
       }`}
     >
       {/* Selection Checkbox - positioned absolutely in top left */}
       {onSelect && (
-        <div className="absolute top-3 left-3 z-10">
+        <div className="absolute top-3 left-3 z-20">
           <input
             type="checkbox"
             checked={selected}
             onChange={() => onSelect(member.id)}
-            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary bg-white/80"
+            className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer bg-white shadow-md"
+            style={{ accentColor: "#6366f1" }}
           />
         </div>
       )}

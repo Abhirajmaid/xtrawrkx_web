@@ -598,6 +598,66 @@ export default function ResourceManagement() {
             </div>
           </div>
 
+          {/* Filtered Results Count */}
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-600">
+                Showing{" "}
+                <span className="font-semibold text-gray-900">
+                  {filteredResources.length}
+                </span>{" "}
+                {filteredResources.length === 1 ? "resource" : "resources"}
+                {(() => {
+                  const hasActiveFilters =
+                    searchTerm ||
+                    selectedType !== "All" ||
+                    selectedCategory !== "All" ||
+                    selectedStatus !== "All";
+                  
+                  if (hasActiveFilters) {
+                    return (
+                      <>
+                        {" "}
+                        (filtered from{" "}
+                        <span className="font-semibold text-gray-900">
+                          {resources.length}
+                        </span>{" "}
+                        total)
+                      </>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+              {(() => {
+                const hasActiveFilters =
+                  searchTerm ||
+                  selectedType !== "All" ||
+                  selectedCategory !== "All" ||
+                  selectedStatus !== "All";
+                
+                if (hasActiveFilters) {
+                  return (
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setSelectedType("All");
+                        setSelectedCategory("All");
+                        setSelectedStatus("All");
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors"
+                      title="Clear all filters"
+                    >
+                      <Icon icon="mdi:close-circle" width={16} />
+                      Clear filters
+                    </button>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          </div>
+
           {/* Bulk Actions */}
           {bulkSelection.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">

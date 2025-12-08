@@ -313,7 +313,7 @@ export default function EventSection() {
             {events.map((event, idx) => (
               <div
                 key={event.id || idx}
-                className="absolute inset-0 transition-all duration-500 ease-in-out px-4 pb-4"
+                className="absolute inset-0 transition-all duration-500 ease-in-out px-0 pb-4"
                 style={getMobileCardStyle(idx)}
               >
                 <EventCard
@@ -340,9 +340,9 @@ export default function EventSection() {
 
         {/* Navigation arrows below cards - Only show if more than 1 event */}
         {events.length > 1 && (
-          <div className="flex items-center justify-center gap-4 md:gap-6 mt-6 md:mt-8">
+          <div className="flex items-center justify-center gap-4 md:gap-6 -mt-4 md:mt-8">
             <button
-              className="bg-white border cursor-pointer border-gray-300 rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center shadow hover:bg-gray-100 transition"
+              className="bg-white border cursor-pointer border-gray-300 rounded-full w-10 h-10 md:w-10 md:h-10 flex items-center justify-center shadow hover:bg-gray-100 transition"
               onClick={prev}
               aria-label="Previous"
             >
@@ -369,7 +369,7 @@ export default function EventSection() {
               ))}
             </div>
             <button
-              className="bg-white cursor-pointer border border-gray-300 rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center shadow hover:bg-gray-100 transition"
+              className="bg-white cursor-pointer border border-gray-300 rounded-full w-10 h-10 md:w-10 md:h-10 flex items-center justify-center shadow hover:bg-gray-100 transition"
               onClick={next}
               aria-label="Next"
             >

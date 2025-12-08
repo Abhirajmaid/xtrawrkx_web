@@ -37,7 +37,10 @@ Edit `.env.local` with your actual credentials:
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
 NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
 
-# Firebase Configuration (for database & auth)
+# Strapi Backend Configuration (for authentication)
+NEXT_PUBLIC_STRAPI_API_URL=http://localhost:1337/api
+
+# Firebase Configuration (for database)
 NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
@@ -105,7 +108,7 @@ client/
 - **Framework**: Next.js 15 with App Router
 - **Styling**: Tailwind CSS 4.1
 - **Database**: Firebase Firestore
-- **Authentication**: Firebase Auth
+- **Authentication**: Strapi CMS (JWT)
 - **File Storage**: Cloudinary CDN
 - **Animation**: Framer Motion
 - **Icons**: Iconify & Lucide React
@@ -159,7 +162,9 @@ The platform is fully responsive and optimized for:
 ### Admin Login Issues
 
 - ✅ Verify your email is in `NEXT_PUBLIC_ADMIN_EMAILS`
-- ✅ Check Firebase Auth configuration
+- ✅ Check Strapi backend is running and accessible
+- ✅ Verify `NEXT_PUBLIC_STRAPI_API_URL` is correctly set
+- ✅ Ensure user exists in Strapi backend
 - ✅ Clear browser cache and cookies
 
 ### Data Not Loading

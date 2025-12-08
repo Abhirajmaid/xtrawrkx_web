@@ -1,12 +1,15 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { footerNavLinks, footerBottomLinks } from "../../data/Navlinks";
+import { EventService } from "../../services/databaseService";
 
 export default function Footer() {
   const [expandedSections, setExpandedSections] = useState({});
+  const [eventLinks, setEventLinks] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
 
   const toggleSection = (sectionTitle) => {
     setExpandedSections((prev) => ({
@@ -14,6 +17,45 @@ export default function Footer() {
       [sectionTitle]: !prev[sectionTitle],
     }));
   };
+
+  // Fetch ongoing and upcoming events
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoadingEvents(true);
+        const eventService = new EventService();
+        const allEvents = await eventService.getAll("date", "desc");
+
+        // Filter for ongoing and upcoming events
+        const activeEvents = allEvents.filter((event) => {
+          const status = event.status?.toLowerCase();
+          return status === "upcoming" || status === "ongoing";
+        });
+
+        // Limit to 5 most recent events and create links
+        const events = activeEvents.slice(0, 5).map((event) => ({
+          label: event.title,
+          href: `/events/${event.slug}`,
+        }));
+
+        // Always include "All Events" as first link
+        setEventLinks([
+          { label: "All Events", href: "/events" },
+          ...events,
+        ]);
+      } catch (error) {
+        console.error("Error fetching events for footer:", error);
+        // Fallback to static links if fetch fails
+        setEventLinks([
+          { label: "All Events", href: "/events" },
+        ]);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   return (
     <footer className="w-full mt-16 pb-10">
@@ -63,16 +105,35 @@ export default function Footer() {
                   }`}
                 >
                   <ul className="space-y-3 text-brand-dark font-primary pt-3">
-                    {col.links.map((link) => (
-                      <li key={link.label}>
-                        <Link
-                          href={link.href}
-                          className="hover:text-brand-primary transition-colors block py-1"
-                        >
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))}
+                    {col.title === "Events" ? (
+                      // Dynamic events links
+                      loadingEvents ? (
+                        <li className="text-gray-400">Loading events...</li>
+                      ) : (
+                        eventLinks.map((link) => (
+                          <li key={link.label}>
+                            <Link
+                              href={link.href}
+                              className="hover:text-brand-primary transition-colors block py-1"
+                            >
+                              {link.label}
+                            </Link>
+                          </li>
+                        ))
+                      )
+                    ) : (
+                      // Static links for other sections
+                      col.links.map((link) => (
+                        <li key={link.label}>
+                          <Link
+                            href={link.href}
+                            className="hover:text-brand-primary transition-colors block py-1"
+                          >
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))
+                    )}
                   </ul>
                 </div>
               </div>
@@ -104,16 +165,35 @@ export default function Footer() {
               <div key={col.title}>
                 <div className="font-bold mb-2 font-primary">{col.title}</div>
                 <ul className="space-y-1 text-brand-dark font-primary">
-                  {col.links.map((link) => (
-                    <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        className="hover:text-brand-primary transition-colors"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
+                  {col.title === "Events" ? (
+                    // Dynamic events links
+                    loadingEvents ? (
+                      <li className="text-gray-400">Loading events...</li>
+                    ) : (
+                      eventLinks.map((link) => (
+                        <li key={link.label}>
+                          <Link
+                            href={link.href}
+                            className="hover:text-brand-primary transition-colors"
+                          >
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))
+                    )
+                  ) : (
+                    // Static links for other sections
+                    col.links.map((link) => (
+                      <li key={link.label}>
+                        <Link
+                          href={link.href}
+                          className="hover:text-brand-primary transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))
+                  )}
                 </ul>
               </div>
             ))}

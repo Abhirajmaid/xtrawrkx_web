@@ -450,9 +450,6 @@ const ConsultationBookingsPage = () => {
               <h3 className="text-lg font-semibold text-gray-900">
                 Search & Filters
               </h3>
-              <div className="text-sm text-gray-500">
-                {filteredBookings.length} of {bookings.length} bookings
-              </div>
             </div>
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search */}
@@ -524,6 +521,63 @@ const ConsultationBookingsPage = () => {
                 }}
                 className="whitespace-nowrap"
               />
+            </div>
+          </div>
+
+          {/* Filtered Results Count */}
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-600">
+                Showing{" "}
+                <span className="font-semibold text-gray-900">
+                  {filteredBookings.length}
+                </span>{" "}
+                {filteredBookings.length === 1 ? "booking" : "bookings"}
+                {(() => {
+                  const hasActiveFilters =
+                    searchTerm ||
+                    filterType !== "all" ||
+                    filterStatus !== "all";
+                  
+                  if (hasActiveFilters) {
+                    return (
+                      <>
+                        {" "}
+                        (filtered from{" "}
+                        <span className="font-semibold text-gray-900">
+                          {bookings.length}
+                        </span>{" "}
+                        total)
+                      </>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+              {(() => {
+                const hasActiveFilters =
+                  searchTerm ||
+                  filterType !== "all" ||
+                  filterStatus !== "all";
+                
+                if (hasActiveFilters) {
+                  return (
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setFilterType("all");
+                        setFilterStatus("all");
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors"
+                      title="Clear all filters"
+                    >
+                      <Icon icon="mdi:close-circle" width={16} />
+                      Clear filters
+                    </button>
+                  );
+                }
+                return null;
+              })()}
             </div>
           </div>
 

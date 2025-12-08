@@ -212,32 +212,35 @@ const buttonVariants = {
 const mobileGridVariants = {
   hidden: { opacity: 0 },
   visible: {
-    opacity: 0.3,
+    opacity: 1,
     transition: {
       duration: 0.8,
-      staggerChildren: 0.1,
+      staggerChildren: 0.15,
     },
   },
 };
 
 const mobileImageVariants = {
   hidden: {
-    scale: 0.8,
+    scale: 0.6,
     opacity: 0,
+    y: 20,
   },
-  visible: {
+  visible: (delay = 0) => ({
     scale: 1,
     opacity: 1,
+    y: 0,
     transition: {
+      delay,
       duration: 0.6,
       ease: "easeOut",
     },
-  },
+  }),
 };
 
 export default function CommunitySection() {
   return (
-    <Section className="my-24 md:my-48 md:mt-[300px] overflow-visible py-16 md:py-0">
+    <Section className="my-24 md:my-48 md:mt-[300px] overflow-visible py-20 md:py-0 min-h-[500px] md:min-h-auto">
       <Container className="relative">
         <motion.div
           className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 sm:w-80 sm:h-80 md:w-[68rem] md:h-[68rem] opacity-20 md:opacity-40 bg-radial from-white via-primary/50 to-white blur-3xl rounded-full z-0"
@@ -275,67 +278,109 @@ export default function CommunitySection() {
           </motion.div>
         ))}
 
-        {/* Mobile decorative images grid */}
+        {/* Mobile decorative images - Semi-transparent frosted glass cards */}
         <motion.div
-          className="lg:hidden absolute inset-0 z-10 opacity-30"
+          className="lg:hidden absolute inset-0 z-10"
           variants={mobileGridVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
         >
-          <div className="grid grid-cols-2 gap-4 h-full px-8 py-8">
-            <div className="space-y-4">
-              <motion.div
-                className="w-16 h-20 bg-gray-200 rounded-lg overflow-hidden"
-                variants={mobileImageVariants}
-              >
-                <Image
-                  src="/images/hero.png"
-                  alt="Community"
-                  width={64}
-                  height={80}
-                  className="object-cover w-full h-full"
-                />
-              </motion.div>
-              <motion.div
-                className="w-20 h-24 bg-gray-200 rounded-xl overflow-hidden ml-4"
-                variants={mobileImageVariants}
-              >
-                <Image
-                  src="/images/hero.png"
-                  alt="Community"
-                  width={80}
-                  height={96}
-                  className="object-cover w-full h-full"
-                />
-              </motion.div>
-            </div>
-            <div className="space-y-4 pt-8">
-              <motion.div
-                className="w-16 h-20 bg-gray-200 rounded-lg overflow-hidden ml-auto"
-                variants={mobileImageVariants}
-              >
-                <Image
-                  src="/images/hero.png"
-                  alt="Community"
-                  width={64}
-                  height={80}
-                  className="object-cover w-full h-full"
-                />
-              </motion.div>
-              <motion.div
-                className="w-20 h-24 bg-gray-200 rounded-xl overflow-hidden mr-4"
-                variants={mobileImageVariants}
-              >
-                <Image
-                  src="/images/hero.png"
-                  alt="Community"
-                  width={80}
-                  height={96}
-                  className="object-cover w-full h-full"
-                />
-              </motion.div>
-            </div>
+          <div className="relative w-full h-full px-4 py-12">
+            {/* Top left card */}
+            <motion.div
+              className="absolute top-8 left-4 w-24 h-32 rounded-2xl overflow-hidden backdrop-blur-md bg-white/20 border border-white/30 shadow-lg"
+              variants={mobileImageVariants}
+              style={{ zIndex: 1 }}
+            >
+              <Image
+                src="/images/community/1.png"
+                alt="Community"
+                fill
+                className="object-cover blur-sm"
+                sizes="96px"
+              />
+            </motion.div>
+
+            {/* Top center card */}
+            <motion.div
+              className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-36 rounded-2xl overflow-hidden backdrop-blur-md bg-white/20 border border-white/30 shadow-lg"
+              variants={mobileImageVariants}
+              custom={0.1}
+              style={{ zIndex: 2 }}
+            >
+              <Image
+                src="/images/community/2.png"
+                alt="Community"
+                fill
+                className="object-cover blur-sm"
+                sizes="112px"
+              />
+            </motion.div>
+
+            {/* Top right card */}
+            <motion.div
+              className="absolute top-12 right-4 w-20 h-28 rounded-xl overflow-hidden backdrop-blur-md bg-white/20 border border-white/30 shadow-lg"
+              variants={mobileImageVariants}
+              custom={0.2}
+              style={{ zIndex: 1 }}
+            >
+              <Image
+                src="/images/community/3.png"
+                alt="Community"
+                fill
+                className="object-cover blur-sm"
+                sizes="80px"
+              />
+            </motion.div>
+
+            {/* Bottom left card */}
+            <motion.div
+              className="absolute bottom-16 left-6 w-28 h-36 rounded-2xl overflow-hidden backdrop-blur-md bg-white/20 border border-white/30 shadow-lg"
+              variants={mobileImageVariants}
+              custom={0.3}
+              style={{ zIndex: 1 }}
+            >
+              <Image
+                src="/images/community/4.png"
+                alt="Community"
+                fill
+                className="object-cover blur-sm"
+                sizes="112px"
+              />
+            </motion.div>
+
+            {/* Bottom right card */}
+            <motion.div
+              className="absolute bottom-20 right-6 w-24 h-32 rounded-2xl overflow-hidden backdrop-blur-md bg-white/20 border border-white/30 shadow-lg"
+              variants={mobileImageVariants}
+              custom={0.4}
+              style={{ zIndex: 1 }}
+            >
+              <Image
+                src="/images/community/5.png"
+                alt="Community"
+                fill
+                className="object-cover blur-sm"
+                sizes="96px"
+              />
+            </motion.div>
+
+            {/* Center card (behind text) */}
+            <motion.div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-40 rounded-3xl overflow-hidden backdrop-blur-md bg-white/15 border border-white/25 shadow-lg"
+              variants={mobileImageVariants}
+              custom={0.5}
+              style={{ zIndex: 0 }}
+            >
+              <Image
+                src="/images/community/6.png"
+                alt="Community"
+                fill
+                className="object-cover blur-sm"
+                sizes="128px"
+              />
+            </motion.div>
           </div>
         </motion.div>
 
@@ -348,21 +393,30 @@ export default function CommunitySection() {
           viewport={{ once: true, amount: 0.3 }}
         >
           <motion.h2
-            className="text-2xl sm:text-3xl md:text-5xl lg:text-8xl font-extrabold text-gray-900 mb-6 md:mb-8 leading-tight"
+            className="text-[50px] md:text-5xl lg:text-8xl font-extrabold text-gray-900 mb-8 md:mb-8 leading-tight px-4 md:normal-case uppercase"
             variants={textVariants}
           >
-            Meet{" "}
-            <span className="block sm:inline">
-              <br className="hidden sm:block" /> those who
-            </span>
-            <br />
-            make our{" "}
-            <span className="block sm:inline">
-              <br className="hidden sm:block" />
+            <span className="hidden md:block">
+              {" "}
+              Meet <br />
+              those who <br />
+              make our <br />
               <span className="text-primary">Community</span>
             </span>
+            <span className="block md:hidden">
+              {" "}
+              <span className="text-[42px]">
+                Meet those <br />
+                who make our
+              </span>{" "}
+              <br />
+              <span className="text-primary text-[55px]">Community</span>
+            </span>
           </motion.h2>
-          <motion.div variants={buttonVariants}>
+          <motion.div
+            variants={buttonVariants}
+            className="w-full max-w-xs px-4"
+          >
             <Button
               type="secondary"
               text="Explore The Communities"

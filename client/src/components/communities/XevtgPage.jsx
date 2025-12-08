@@ -100,7 +100,7 @@ const XevtgPage = ({ community }) => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <Section className="relative w-full h-[95vh] min-h-[600px] flex items-center justify-center overflow-hidden p-0">
+      <Section className="relative w-full h-[90vh] min-h-[600px] md:h-[95vh] flex items-center justify-center overflow-hidden p-0">
         <div className="absolute inset-0 w-full h-full">
           <Image
             src="/images/hero_services.png"
@@ -112,36 +112,36 @@ const XevtgPage = ({ community }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-green-800/80 to-green-700/90" />
         </div>
 
-        <Container className="relative z-20 text-center text-white mt-20">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-full text-lg font-semibold mb-6 shadow-lg">
-            <Icon icon="mdi:account-group" width={24} />
-            EV Talent Group
+        <Container className="relative z-20 text-center text-white mt-16 md:mt-20 px-4">
+          <div className="inline-flex items-center gap-2 md:gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 md:px-8 py-2 md:py-3 rounded-full text-sm md:text-lg font-semibold mb-4 md:mb-6 shadow-lg">
+            <Icon icon="mdi:account-group" width={18} height={18} className="md:w-6 md:h-6" />
+            <span className="text-xs md:text-base">EV Talent Group</span>
           </div>
 
           {/* XEVTG Logo Placeholder - Add logo when available */}
-          <div className="mb-6">
-            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-3xl p-6 shadow-2xl">
-              <div className="w-[120px] h-[120px] bg-green-500/20 rounded-2xl flex items-center justify-center">
+          <div className="mb-4 md:mb-6">
+            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-2xl">
+              <div className="w-[80px] h-[80px] md:w-[120px] md:h-[120px] bg-green-500/20 rounded-2xl flex items-center justify-center">
                 <Icon
                   icon="mdi:account-group"
-                  className="text-6xl text-white/80"
+                  className="text-4xl md:text-6xl text-white/80"
                 />
               </div>
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-6 drop-shadow-lg">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 drop-shadow-lg px-4">
             XEVTG
           </h1>
-          <p className="text-2xl text-white/90 max-w-4xl mx-auto mb-4 drop-shadow">
+          <p className="text-lg md:text-2xl text-white/90 max-w-4xl mx-auto mb-6 md:mb-4 drop-shadow px-4">
             Bridging the talent gap in EV industry through strategic
             partnerships between institutions and companies
           </p>
-          <div className="flex justify-center">
+          <div className="flex justify-center px-4">
             <Button
               text="Join the Community"
               type="primary"
-              className="text-lg"
+              className="text-sm md:text-lg w-full sm:w-auto"
               onClick={() => {
                 window.open("https://forms.gle/feK3siB7oorSFzXr5", "_blank");
               }}
@@ -151,30 +151,30 @@ const XevtgPage = ({ community }) => {
       </Section>
 
       {/* Talent Network Statistics */}
-      <Section className="py-20 bg-gradient-to-br from-green-50 to-green-100">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <Section className="py-8 md:py-20 bg-gradient-to-br from-green-50 to-green-100">
+        <Container className="px-4 md:px-0">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Talent Pipeline Impact
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base md:text-xl text-gray-600 px-4">
               Building the largest talent network for the EV ecosystem
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-8">
             {talentStats.map((stat, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl p-8 shadow-lg text-center hover:shadow-xl transition-shadow"
+                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg text-center hover:shadow-xl transition-shadow"
               >
-                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <Icon icon={stat.icon} className="text-3xl text-white" />
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <Icon icon={stat.icon} className="text-2xl md:text-3xl text-white" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                   {stat.value}
                 </h3>
-                <p className="text-gray-600">{stat.label}</p>
+                <p className="text-sm md:text-base text-gray-600">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -182,44 +182,44 @@ const XevtgPage = ({ community }) => {
       </Section>
 
       {/* Member Categories */}
-      <Section className="py-20">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <Section className="py-8 md:py-20">
+        <Container className="px-4 md:px-0">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Our Network
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base md:text-xl text-gray-600 px-4">
               Connecting institutions, companies, and training organizations
             </p>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-6 md:space-y-12">
             {memberCategories.map((category, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
+                className="bg-white rounded-xl md:rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
               >
-                <div className="p-8">
-                  <div className="flex items-start gap-6">
-                    <div className="bg-green-100 rounded-2xl p-6 flex-shrink-0">
+                <div className="p-4 md:p-8">
+                  <div className="flex items-start gap-3 md:gap-6">
+                    <div className="bg-green-100 rounded-xl md:rounded-2xl p-3 md:p-6 flex-shrink-0">
                       <Icon
                         icon={category.icon}
-                        className="text-green-600 text-4xl"
+                        className="text-green-600 text-2xl md:text-4xl"
                       />
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-4">
-                        <h3 className="text-2xl font-bold text-gray-900">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 md:mb-4">
+                        <h3 className="text-lg md:text-2xl font-bold text-gray-900">
                           {category.name}
                         </h3>
-                        <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+                        <span className="bg-green-100 text-green-800 px-3 md:px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-medium w-fit">
                           {category.count}
                         </span>
                       </div>
-                      <p className="text-lg text-gray-600 mb-6">
+                      <p className="text-sm md:text-lg text-gray-600 mb-4 md:mb-6">
                         {category.description}
                       </p>
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-wrap gap-2 md:gap-3">
                         {(
                           category.institutions ||
                           category.companies ||
@@ -243,33 +243,33 @@ const XevtgPage = ({ community }) => {
       </Section>
 
       {/* Skills in Demand */}
-      <Section className="py-20 bg-gradient-to-br from-slate-50 via-white to-green-50/30">
-        <Container>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+      <Section className="py-8 md:py-20 bg-gradient-to-br from-slate-50 via-white to-green-50/30">
+        <Container className="px-4 md:px-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16">
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6">
                 Skills in Demand
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-sm md:text-lg text-gray-600 mb-6 md:mb-8">
                 Current job market demands in the EV industry across different
                 skill levels and domains.
               </p>
 
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {skillDomains.map((skill, index) => (
                   <div
                     key={index}
-                    className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+                    className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-gray-100"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-2 md:mb-3">
+                      <h3 className="text-base md:text-lg font-semibold text-gray-900">
                         {skill.domain}
                       </h3>
-                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-green-100 text-green-800 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium w-fit">
                         {skill.openings} openings
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-green-600">
+                    <div className="flex items-center gap-2 text-xs md:text-sm text-green-600">
                       <Icon icon="mdi:chart-line" />
                       {skill.level} level positions
                     </div>
@@ -279,32 +279,32 @@ const XevtgPage = ({ community }) => {
             </div>
 
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6">
                 Training Programs
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-sm md:text-lg text-gray-600 mb-6 md:mb-8">
                 Specialized training programs designed to bridge the skill gap
                 in EV industry.
               </p>
 
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {trainingPrograms.map((program, index) => (
                   <div
                     key={index}
-                    className="border border-gray-200 rounded-xl p-6 hover:border-green-300 transition-colors"
+                    className="border border-gray-200 rounded-xl p-4 md:p-6 hover:border-green-300 transition-colors"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-2 md:mb-3">
+                      <h3 className="text-base md:text-lg font-semibold text-gray-900">
                         {program.program}
                       </h3>
-                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-blue-100 text-blue-800 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium w-fit">
                         {program.duration}
                       </span>
                     </div>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4">
                       Target: {program.target}
                     </p>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 text-xs md:text-sm">
                       <div className="flex items-center gap-2 text-green-600">
                         <Icon icon="mdi:chart-line" />
                         {program.placement} placement rate
@@ -318,11 +318,11 @@ const XevtgPage = ({ community }) => {
                 ))}
               </div>
 
-              <div className="mt-8">
+              <div className="mt-6 md:mt-8">
                 <Button
                   text="Explore Training Programs"
                   type="primary"
-                  className="w-full"
+                  className="w-full text-sm md:text-base"
                 />
               </div>
             </div>
@@ -331,36 +331,36 @@ const XevtgPage = ({ community }) => {
       </Section>
 
       {/* Upcoming Events */}
-      <Section className="py-20">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <Section className="py-8 md:py-20">
+        <Container className="px-4 md:px-0">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Upcoming Events
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base md:text-xl text-gray-600 px-4">
               Connect, recruit, and develop talent through our events
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
             {upcomingEvents.map((event, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8"
+                className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl md:rounded-2xl p-4 md:p-8"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-3 md:mb-4">
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900">
                     {event.title}
                   </h3>
-                  <span className="bg-white text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-white text-gray-800 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium w-fit">
                     {event.date}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-green-600 mb-4">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-green-600 mb-3 md:mb-4">
                   <Icon icon="mdi:tag" />
                   {event.type}
                 </div>
-                <div className="text-gray-600">
+                <div className="text-sm md:text-base text-gray-600">
                   {event.companies &&
                     `${event.companies} companies participating`}
                   {event.participants &&
@@ -373,29 +373,29 @@ const XevtgPage = ({ community }) => {
             ))}
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-8 md:mt-12">
             <Button
               text="Register for Events"
               type="primary"
-              className="text-lg px-8 py-4"
+              className="text-sm md:text-lg px-6 md:px-8 py-3 md:py-4 w-full sm:w-auto"
             />
           </div>
         </Container>
       </Section>
 
       {/* Success Metrics */}
-      <Section className="py-20 bg-gradient-to-br from-slate-50 via-white to-green-50/30">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <Section className="py-8 md:py-20 bg-gradient-to-br from-slate-50 via-white to-green-50/30">
+        <Container className="px-4 md:px-0">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Success Stories
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base md:text-xl text-gray-600 px-4">
               Measurable impact on EV talent development
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             {[
               {
                 metric: "Average Salary Increase",
@@ -419,18 +419,18 @@ const XevtgPage = ({ community }) => {
             ].map((story, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl p-8 shadow-lg text-center"
+                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg text-center"
               >
-                <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                  <Icon icon={story.icon} className="text-green-600 text-3xl" />
+                <div className="bg-green-100 rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-4 md:mb-6">
+                  <Icon icon={story.icon} className="text-green-600 text-2xl md:text-3xl" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                   {story.value}
                 </h3>
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">
+                <h4 className="text-base md:text-lg font-semibold text-gray-800 mb-2 md:mb-3">
                   {story.metric}
                 </h4>
-                <p className="text-gray-600">{story.description}</p>
+                <p className="text-sm md:text-base text-gray-600">{story.description}</p>
               </div>
             ))}
           </div>
@@ -438,25 +438,25 @@ const XevtgPage = ({ community }) => {
       </Section>
 
       {/* Call to Action */}
-      <Section className="py-20 bg-gradient-to-r from-green-600 to-green-700">
-        <Container className="text-center text-white">
-          <h2 className="text-4xl font-bold mb-6">
+      <Section className="py-8 md:py-20 bg-gradient-to-r from-green-600 to-green-700">
+        <Container className="text-center text-white px-4">
+          <h2 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6">
             Ready to Bridge the Talent Gap?
           </h2>
-          <p className="text-xl mb-8 text-white/90 max-w-2xl mx-auto">
+          <p className="text-base md:text-xl mb-6 md:mb-8 text-white/90 max-w-2xl mx-auto">
             Join 350+ TPOs, HR professionals, and training organizations shaping
             the future of EV talent
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <Button
               text="Join XEVTG"
               type="primary"
-              className="bg-white text-green-600 hover:bg-gray-100 text-lg"
+              className="bg-white text-green-600 hover:bg-gray-100 text-sm md:text-lg w-full sm:w-auto"
             />
             <Button
               text="Schedule Demo"
               type="secondary"
-              className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-lg"
+              className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-sm md:text-lg w-full sm:w-auto"
             />
           </div>
         </Container>

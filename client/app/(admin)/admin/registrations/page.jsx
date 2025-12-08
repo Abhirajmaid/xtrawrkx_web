@@ -135,12 +135,17 @@ export default function RegistrationManagement() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterType, setFilterType] = useState("All");
   const [filterCompanyType, setFilterCompanyType] = useState("All");
+  const [filterEvent, setFilterEvent] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [sortBy, setSortBy] = useState("registrationDate");
   const [sortOrder, setSortOrder] = useState("desc");
   const [bulkSelection, setBulkSelection] = useState([]);
   const [showRegistrationDetails, setShowRegistrationDetails] = useState(null);
   const [editRegistration, setEditRegistration] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState("table");
+  const [showSearchInput, setShowSearchInput] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -265,8 +270,99 @@ export default function RegistrationManagement() {
         filterCompanyType === "All" ||
         registration.companyCommunity === filterCompanyType;
 
+      // Event filter - matches registrations where the registrant will attend the selected event
+      let matchesEvent = true;
+      if (filterEvent !== "All") {
+        // Find the selected event from the events list
+        const selectedEvent = events.find((e) => e.id === filterEvent);
+
+        // Check if filterEvent is a season label (e.g., "Season XSOS2026")
+        const isSeasonFilter = filterEvent.startsWith("Season ");
+
+        if (isSeasonFilter) {
+          // Filter by season - show all registrations for this season
+          const seasonLabel = `Season ${registration.season}`;
+          matchesEvent = seasonLabel === filterEvent;
+        } else if (selectedEvent) {
+          // Filter by specific event - show registrations where registrant will attend this event
+          if (registration.registrationType === "season") {
+            // For season registrations, check if this event is in selectedEventDetails
+            matchesEvent =
+              registration.selectedEventDetails &&
+              Array.isArray(registration.selectedEventDetails) &&
+              registration.selectedEventDetails.some(
+                (e) =>
+                  e.id === selectedEvent.id ||
+                  e.slug === selectedEvent.slug ||
+                  String(e.id) === String(selectedEvent.id) ||
+                  String(e.slug) === String(selectedEvent.slug) ||
+                  (e.title &&
+                    selectedEvent.title &&
+                    e.title.toLowerCase().trim() ===
+                      selectedEvent.title.toLowerCase().trim())
+              );
+          } else {
+            // For single event registrations, match by eventId, eventTitle, or event slug
+            const eventIdMatch =
+              registration.eventId === selectedEvent.id ||
+              registration.eventId === selectedEvent.slug ||
+              String(registration.eventId) === String(selectedEvent.id) ||
+              String(registration.eventId) === String(selectedEvent.slug);
+
+            const eventTitleMatch =
+              registration.eventTitle &&
+              selectedEvent.title &&
+              registration.eventTitle.toLowerCase().trim() ===
+                selectedEvent.title.toLowerCase().trim();
+
+            const eventSlugMatch =
+              registration.eventSlug === selectedEvent.slug ||
+              registration.eventSlug === selectedEvent.id ||
+              String(registration.eventSlug) === String(selectedEvent.slug) ||
+              String(registration.eventSlug) === String(selectedEvent.id);
+
+            matchesEvent = eventIdMatch || eventTitleMatch || eventSlugMatch;
+          }
+        } else {
+          // Fallback: direct matching if event not found in list
+          matchesEvent =
+            registration.eventId === filterEvent ||
+            registration.eventTitle === filterEvent ||
+            registration.eventSlug === filterEvent ||
+            String(registration.eventId) === String(filterEvent) ||
+            String(registration.eventSlug) === String(filterEvent);
+        }
+      }
+
+      // Date range filter
+      const registrationDate = new Date(
+        registration.registrationDate || registration.createdAt
+      );
+      let matchesDateRange = true;
+
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        fromDate.setHours(0, 0, 0, 0);
+        if (registrationDate < fromDate) {
+          matchesDateRange = false;
+        }
+      }
+
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (registrationDate > toDate) {
+          matchesDateRange = false;
+        }
+      }
+
       return (
-        matchesType && matchesSearch && matchesStatus && matchesCompanyType
+        matchesType &&
+        matchesSearch &&
+        matchesStatus &&
+        matchesCompanyType &&
+        matchesEvent &&
+        matchesDateRange
       );
     })
     .sort((a, b) => {
@@ -329,7 +425,7 @@ export default function RegistrationManagement() {
 
   return (
     <ProtectedRoute>
-      <AdminLayout title="Registration Management">
+      <AdminLayout>
         <div className="p-6 max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
@@ -352,7 +448,7 @@ export default function RegistrationManagement() {
             </div>
           </div>
 
-          {/* Registration Overview */}
+          {/* Modern Statistics Dashboard */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">
@@ -533,20 +629,27 @@ export default function RegistrationManagement() {
             </div>
           </div>
 
-          {/* Additional Insights */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          {/* Registration Insights */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
               Registration Insights
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-700">
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                  <Icon
+                    icon="mdi:calendar-multiple"
+                    width={18}
+                    className="mr-2 text-primary"
+                  />
                   Registration Types
                 </h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Single Events:</span>
-                    <span className="font-medium">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">
+                      Single Events:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
                       {
                         filteredRegistrations.filter(
                           (r) => r.registrationType !== "season"
@@ -554,9 +657,11 @@ export default function RegistrationManagement() {
                       }
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Season Registrations:</span>
-                    <span className="font-medium">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">
+                      Season Registrations:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
                       {
                         filteredRegistrations.filter(
                           (r) => r.registrationType === "season"
@@ -567,11 +672,16 @@ export default function RegistrationManagement() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-700">
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                  <Icon
+                    icon="mdi:account-group"
+                    width={18}
+                    className="mr-2 text-primary"
+                  />
                   Community Breakdown
                 </h4>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {["xen", "xev-fin", "xevtg", "xd-d"].map((community) => {
                     const count = filteredRegistrations.filter(
                       (r) => r.companyCommunity === community
@@ -580,9 +690,9 @@ export default function RegistrationManagement() {
                       count > 0 && (
                         <div
                           key={community}
-                          className="flex justify-between text-sm"
+                          className="flex justify-between items-center p-2 bg-gray-50 rounded-lg"
                         >
-                          <span className="text-gray-600">
+                          <span className="text-sm text-gray-600">
                             {community === "xen"
                               ? "XEN"
                               : community === "xev-fin"
@@ -590,16 +700,17 @@ export default function RegistrationManagement() {
                               : community === "xevtg"
                               ? "XEVTG"
                               : "xD&D"}
-                            :
                           </span>
-                          <span className="font-medium">{count}</span>
+                          <span className="text-sm font-semibold text-gray-900">
+                            {count}
+                          </span>
                         </div>
                       )
                     );
                   })}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">No Community:</span>
-                    <span className="font-medium">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">No Community:</span>
+                    <span className="text-sm font-semibold text-gray-900">
                       {
                         filteredRegistrations.filter(
                           (r) =>
@@ -611,14 +722,19 @@ export default function RegistrationManagement() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-700">
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                  <Icon
+                    icon="mdi:ticket"
+                    width={18}
+                    className="mr-2 text-primary"
+                  />
                   Ticket Types
                 </h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">ASP Tickets:</span>
-                    <span className="font-medium">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">ASP Tickets:</span>
+                    <span className="text-sm font-semibold text-gray-900">
                       {
                         filteredRegistrations.filter(
                           (r) => r.ticketType === "asp"
@@ -626,9 +742,9 @@ export default function RegistrationManagement() {
                       }
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">GNP Tickets:</span>
-                    <span className="font-medium">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">GNP Tickets:</span>
+                    <span className="text-sm font-semibold text-gray-900">
                       {
                         filteredRegistrations.filter(
                           (r) => r.ticketType === "gnp"
@@ -636,9 +752,11 @@ export default function RegistrationManagement() {
                       }
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Free Registrations:</span>
-                    <span className="font-medium">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">
+                      Free Registrations:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
                       {
                         filteredRegistrations.filter(
                           (r) => r.isFree || r.totalCost === 0
@@ -651,57 +769,98 @@ export default function RegistrationManagement() {
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Search
-                </label>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search companies, contacts..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+          {/* Filters and Search */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="space-y-4">
+              {/* First Row: Search Bar Only */}
+              <div className="flex items-center">
+                <div className="relative flex-1 max-w-md">
+                  <Icon
+                    icon="mdi:magnify"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    width={20}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search companies, contacts..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
-                </label>
+              {/* Second Row: All Filters in One Row */}
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Type Filter */}
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  style={{ minWidth: "100px" }}
                 >
-                  <option value="All">All Types</option>
+                  <option value="All">All</option>
                   <option value="event">Single Event</option>
                   <option value="season">Season Registration</option>
                 </select>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
-                </label>
+                {/* Status Filter */}
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  style={{ minWidth: "100px" }}
                 >
-                  <option value="All">All Status</option>
+                  <option value="All">All</option>
                   <option value="confirmed">Confirmed</option>
                   <option value="pending">Pending</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sort by
-                </label>
+                {/* Event Filter */}
+                <select
+                  value={filterEvent}
+                  onChange={(e) => setFilterEvent(e.target.value)}
+                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex-shrink-0"
+                  style={{ minWidth: "150px", maxWidth: "300px" }}
+                >
+                  <option value="All">All Events</option>
+                  {/* Single Events */}
+                  {events
+                    .filter((event) => event.id && event.title)
+                    .map((event) => {
+                      // Format: "Location || Title || Season" if available
+                      let displayText = event.title;
+                      const parts = [];
+                      if (event.location) parts.push(event.location);
+                      parts.push(event.title);
+                      if (event.season) parts.push(event.season);
+                      displayText = parts.join(" || ");
+                      return (
+                        <option key={event.id} value={event.id}>
+                          {displayText}
+                        </option>
+                      );
+                    })}
+                  {/* Season Registrations */}
+                  {registrations
+                    .filter((r) => r.registrationType === "season" && r.season)
+                    .reduce((acc, reg) => {
+                      const seasonLabel = `Season ${reg.season}`;
+                      if (!acc.includes(seasonLabel)) {
+                        acc.push(seasonLabel);
+                      }
+                      return acc;
+                    }, [])
+                    .sort()
+                    .map((season) => (
+                      <option key={season} value={season}>
+                        {season}
+                      </option>
+                    ))}
+                </select>
+
+                {/* Sort */}
                 <select
                   value={`${sortBy}-${sortOrder}`}
                   onChange={(e) => {
@@ -709,18 +868,174 @@ export default function RegistrationManagement() {
                     setSortBy(field);
                     setSortOrder(order);
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  style={{ minWidth: "150px" }}
                 >
-                  <option value="registrationDate-desc">
-                    Registration Date (Newest)
-                  </option>
-                  <option value="registrationDate-asc">
-                    Registration Date (Oldest)
-                  </option>
-                  <option value="companyName-asc">Company Name (A-Z)</option>
-                  <option value="companyName-desc">Company Name (Z-A)</option>
+                  <option value="registrationDate-desc">Date (Newest)</option>
+                  <option value="registrationDate-asc">Date (Oldest)</option>
+                  <option value="companyName-asc">Name (A-Z)</option>
+                  <option value="companyName-desc">Name (Z-A)</option>
                 </select>
+
+                {/* View Mode */}
+                <div className="flex border border-gray-300 rounded-lg overflow-hidden ml-auto">
+                  <button
+                    onClick={() => setViewMode("table")}
+                    className={`px-3 py-2.5 ${
+                      viewMode === "table"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    } transition-colors`}
+                    title="Table View"
+                  >
+                    <Icon icon="mdi:view-list" width={20} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`px-3 py-2.5 border-l border-gray-300 ${
+                      viewMode === "grid"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    } transition-colors`}
+                    title="Grid View"
+                  >
+                    <Icon icon="mdi:view-grid" width={20} />
+                  </button>
+                </div>
               </div>
+
+              {/* Third Row: Date Range Filters */}
+              <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Icon
+                    icon="mdi:calendar-range"
+                    className="text-gray-500"
+                    width={20}
+                  />
+                  <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    Date Range:
+                  </span>
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-xs text-gray-500 mb-1.5">
+                    From Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white pr-10"
+                    />
+                    <Icon
+                      icon="mdi:calendar"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                      width={18}
+                    />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-xs text-gray-500 mb-1.5">
+                    To Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      min={dateFrom || undefined}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white pr-10"
+                    />
+                    <Icon
+                      icon="mdi:calendar"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                      width={18}
+                    />
+                  </div>
+                </div>
+                {(dateFrom || dateTo) && (
+                  <button
+                    onClick={() => {
+                      setDateFrom("");
+                      setDateTo("");
+                    }}
+                    className="px-4 py-2.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 mt-6"
+                    title="Clear Date Filter"
+                  >
+                    <Icon icon="mdi:close" width={16} />
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Filtered Results Count */}
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-600">
+                Showing{" "}
+                <span className="font-semibold text-gray-900">
+                  {filteredRegistrations.length}
+                </span>{" "}
+                {filteredRegistrations.length === 1
+                  ? "registration"
+                  : "registrations"}
+                {(() => {
+                  const hasActiveFilters =
+                    searchTerm ||
+                    filterType !== "All" ||
+                    filterStatus !== "All" ||
+                    filterEvent !== "All" ||
+                    dateFrom ||
+                    dateTo;
+
+                  if (hasActiveFilters) {
+                    return (
+                      <>
+                        {" "}
+                        (filtered from{" "}
+                        <span className="font-semibold text-gray-900">
+                          {registrations.length}
+                        </span>{" "}
+                        total)
+                      </>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+              {(() => {
+                const hasActiveFilters =
+                  searchTerm ||
+                  filterType !== "All" ||
+                  filterStatus !== "All" ||
+                  filterEvent !== "All" ||
+                  dateFrom ||
+                  dateTo;
+
+                if (hasActiveFilters) {
+                  return (
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setFilterType("All");
+                        setFilterStatus("All");
+                        setFilterEvent("All");
+                        setDateFrom("");
+                        setDateTo("");
+                        setCurrentPage(1);
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors"
+                      title="Clear all filters"
+                    >
+                      <Icon icon="mdi:close-circle" width={16} />
+                      Clear filters
+                    </button>
+                  );
+                }
+                return null;
+              })()}
             </div>
           </div>
 

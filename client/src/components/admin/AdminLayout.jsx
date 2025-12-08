@@ -12,7 +12,7 @@ import { notificationService } from "../../services/notificationService";
 const AdminLayout = ({ children, title = "Dashboard" }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const router = useRouter();
 
   // Load notifications on component mount
@@ -32,6 +32,22 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
 
     return unsubscribe;
   }, []);
+
+  // Refresh user data periodically to show real-time updates
+  useEffect(() => {
+    if (!user || !refreshUser) return;
+
+    // Don't refresh immediately on mount - wait a bit to avoid race conditions
+    // Refresh every 10 minutes to keep user data up-to-date (less aggressive)
+    const interval = setInterval(() => {
+      refreshUser().catch((error) => {
+        // Silently handle refresh errors - don't disrupt user experience
+        console.warn("User data refresh failed:", error);
+      });
+    }, 10 * 60 * 1000); // 10 minutes
+
+    return () => clearInterval(interval);
+  }, [user, refreshUser]);
 
   const handleSignOut = async () => {
     const loadingToast = toastUtils.loading("Signing out...");
@@ -96,11 +112,11 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
       href: "/admin/consultation-bookings",
       icon: "solar:calendar-mark-bold",
     },
-    {
-      name: "Users",
-      href: "/admin/users",
-      icon: "solar:users-group-rounded-bold",
-    },
+    // {
+    //   name: "Users",
+    //   href: "/admin/users",
+    //   icon: "solar:users-group-rounded-bold",
+    // },
     // {
     //   name: "Analytics",
     //   href: "/admin/analytics",
@@ -173,23 +189,43 @@ const AdminLayout = ({ children, title = "Dashboard" }) => {
               {/* Profile dropdown */}
               <div className="ml-3 relative">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-r from-brand-primary to-brand-secondary flex items-center justify-center">
-                    <Icon
-                      icon="solar:user-bold"
-                      width={16}
-                      className="text-white"
-                    />
+                  {/* User Avatar */}
+                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-b from-orange-400 to-pink-600 flex items-center justify-center shadow-sm">
+                    {user?.email ? (
+                      <span className="text-white font-semibold text-sm">
+                        {user.email.charAt(0).toUpperCase()}
+                      </span>
+                    ) : (
+                      <Icon
+                        icon="solar:user-bold"
+                        width={20}
+                        className="text-white"
+                      />
+                    )}
                   </div>
+
+                  {/* User Info */}
                   <div className="ml-3 hidden md:block">
                     <div className="text-sm font-medium text-gray-700">
-                      {user?.displayName || user?.email}
+                      {user?.email ||
+                        user?.username ||
+                        user?.displayName ||
+                        "User"}
                     </div>
-                    <div className="text-xs text-gray-500">Administrator</div>
+                    <div className="text-xs text-gray-500">
+                      {user?.primaryRole?.name ||
+                        user?.userRoles?.[0]?.name ||
+                        user?.role ||
+                        (user?.isAdmin ? "Administrator" : "User")}
+                    </div>
                   </div>
+
+                  {/* Logout Button */}
                   <button
                     type="button"
                     onClick={handleSignOut}
-                    className="ml-3 p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary"
+                    className="ml-3 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-colors"
+                    title="Sign out"
                   >
                     <Icon icon="solar:logout-2-bold" width={20} />
                   </button>

@@ -10,25 +10,44 @@ export default function HomeHero() {
     <Section className="relative bg-[#E3E3E3] w-full h-[100vh] min-h-[600px] md:h-[105vh] md:min-h-[700px] flex flex-col items-center justify-center !overflow-x-hidden p-0">
       {/* Background video */}
       <div className="absolute inset-0 w-full h-full z-0">
+        {/* Mobile video */}
+        <video
+          src="/mountain_vid1.webm"
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover object-top md:hidden"
+        />
+        {/* Desktop video */}
         <video
           src="/mountain_hero.webm"
           autoPlay
           muted
           loop
           playsInline
-          className="w-full h-full object-cover object-top md:object-top"
+          className="hidden md:block w-full h-full object-cover object-top"
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#E3E3E3] via-[#E3E3E3]/0 to-transparent"></div>
+      </div>
+
+      {/* GROW text - Mobile only */}
+      <div className="md:hidden absolute top-30 left-0 right-0 z-10 flex flex-col items-center justify-center ">
+        <h1 className="text-[135px] font-extrabold tracking-tighter bg-gradient-to-b from-white via-white/70 to-transparent bg-clip-text text-transparent text-center leading-tight drop-shadow-lg">
+          GROW
+        </h1>
+        <h1 className="text-[70px] font-extrabold tracking-tight bg-gradient-to-b from-white via-white/70 to-transparent bg-clip-text text-transparent text-center leading-tight drop-shadow-lg -mt-8">
+          TOGETHER
+        </h1>
       </div>
 
       {/* Main content area - centered for subtitle and button */}
       {/* Keep subtitle and button at the bottom, between the cards */}
       <div
         className="
-          z-30 flex flex-col items-center justify-center w-full max-w-3xl px-4 -mb-[300px]
-          !static
-          md:!absolute md:bottom-20 md:left-1/2 md:-translate-x-1/2 md:justify-start md:mb-0
+          z-30 flex flex-col items-center justify-center w-full max-w-3xl px-4 -mb-[50px]
+          !static md:!absolute md:bottom-20 md:left-1/2 md:-translate-x-1/2 md:justify-start md:mb-0
         "
         style={{
           position: "static",
@@ -178,33 +197,33 @@ export default function HomeHero() {
 
       {/* Mobile Service Cards - Simplified layout for mobile */}
       <div className="md:hidden absolute bottom-16 left-0 right-0 z-20 px-4">
-        <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
-          <div className="bg-gradient-to-b from-[#BDBDBD]/90 to-[#E3E3E3]/80 rounded-xl shadow-md p-3 border border-white/40">
-            <div className="text-white text-xs font-bold text-center leading-tight mb-2">
+        <div className="grid grid-cols-2 h-[280px] gap-3 max-w-sm mx-auto">
+          <div className="bg-gradient-to-b from-[#BDBDBD]/90 to-[#E3E3E3]/80 rounded-xl shadow-md p-3 border border-white/40 flex flex-col justify-between items-center">
+            <div className="text-white text-lg font-bold text-center leading-tight mb-2">
               Business Advisory
             </div>
             <button className="w-full bg-white rounded-full px-2 py-1 text-xs font-medium text-gray-800 flex items-center justify-center gap-1">
               Learn More
             </button>
           </div>
-          <div className="bg-gradient-to-b from-[#E3E3E3]/90 to-[#BDBDBD]/80 rounded-xl shadow-md p-3 border border-white/40">
-            <div className="text-white text-xs font-bold text-center leading-tight mb-2">
+          <div className="bg-gradient-to-b from-[#E3E3E3]/90 to-[#BDBDBD]/80 rounded-xl shadow-md p-3 border border-white/40 flex flex-col justify-between items-center">
+            <div className="text-white text-lg font-bold text-center leading-tight mb-2">
               Financial Analysis
             </div>
             <button className="w-full bg-white rounded-full px-2 py-1 text-xs font-medium text-gray-800 flex items-center justify-center gap-1">
               Learn More
             </button>
           </div>
-          <div className="bg-gradient-to-b from-[#E3E3E3]/80 to-[#BDBDBD]/80 rounded-xl shadow-md p-3 border border-white/40">
-            <div className="text-white text-xs font-bold text-center leading-tight mb-2">
+          <div className="bg-gradient-to-b from-[#E3E3E3]/80 to-[#BDBDBD]/80 rounded-xl shadow-md p-3 border border-white/40 flex flex-col justify-between items-center">
+            <div className="text-white text-lg font-bold text-center leading-tight mb-2">
               Manufacturing
             </div>
             <button className="w-full bg-white rounded-full px-2 py-1 text-xs font-medium text-gray-800 flex items-center justify-center gap-1">
               Learn More
             </button>
           </div>
-          <div className="bg-gradient-to-b from-[#A6A6A6]/80 to-[#E3E3E3]/80 rounded-xl shadow-md p-3 border border-white/40">
-            <div className="text-white text-xs font-bold text-center leading-tight mb-2">
+          <div className="bg-gradient-to-b from-[#A6A6A6]/80 to-[#E3E3E3]/80 rounded-xl shadow-md p-3 border border-white/40 flex flex-col justify-between items-center">
+            <div className="text-white text-lg font-bold text-center leading-tight mb-2">
               Management
             </div>
             <button className="w-full bg-white rounded-full px-2 py-1 text-xs font-medium text-gray-800 flex items-center justify-center gap-1">

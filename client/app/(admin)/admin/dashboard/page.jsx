@@ -52,16 +52,58 @@ const AdminDashboard = () => {
   const [recentResources, setRecentResources] = useState([]);
   const [recentEvents, setRecentEvents] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [systemStatus, setSystemStatus] = useState({
+    database: { status: "loading", message: "Checking..." },
+    storage: {
+      firestore: { display: "Loading...", percentage: 0, totalDocuments: 0 },
+      cloudinary: { display: "Loading...", percentage: 0 },
+    },
+    lastBackup: { text: "Loading...", hoursAgo: 0 },
+  });
+  const [systemStatusLoading, setSystemStatusLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
+    loadSystemStatus();
+
     // Update current time every minute
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
 
-    return () => clearInterval(timer);
+    // Refresh dashboard data every 5 minutes to check for new items
+    const refreshTimer = setInterval(() => {
+      loadDashboardData();
+    }, 300000); // 5 minutes
+
+    // Refresh system status every 30 seconds for real-time updates
+    const systemStatusTimer = setInterval(() => {
+      loadSystemStatus();
+    }, 30000); // 30 seconds
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(refreshTimer);
+      clearInterval(systemStatusTimer);
+    };
   }, []);
+
+  const loadSystemStatus = async () => {
+    try {
+      setSystemStatusLoading(true);
+      const response = await fetch("/api/system-status");
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        setSystemStatus(result.data);
+      }
+    } catch (error) {
+      console.error("Error loading system status:", error);
+      // Keep previous status on error
+    } finally {
+      setSystemStatusLoading(false);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -263,9 +305,22 @@ const AdminDashboard = () => {
       setRecentActivity(activities.slice(0, 8));
 
       // Generate system notifications based on current stats
-      generateSystemNotifications(stats);
+      const currentStats = {
+        resources: resourcesCount,
+        events: eventsCount,
+        services: servicesCount,
+        registrations: registrationsCount,
+        contactInquiries: contactInquiriesCount,
+        consultationBookings: consultationBookingsCount,
+        resourcesByType,
+        eventsByStatus,
+        inquiriesByStatus,
+        bookingsByStatus,
+      };
+
+      generateSystemNotifications(currentStats);
     } catch (error) {
-      // Error handled silently
+      console.error("Error loading dashboard data:", error);
     } finally {
       setLoading(false);
     }
@@ -273,33 +328,13 @@ const AdminDashboard = () => {
 
   // Generate system notifications
   const generateSystemNotifications = (currentStats) => {
-    // Check for new inquiries that need attention
-    if (currentStats.inquiriesByStatus?.new > 0) {
-      notificationService.generateEventNotification("new_inquiry", {
-        count: currentStats.inquiriesByStatus.new,
-        priority: currentStats.inquiriesByStatus.new > 5 ? "high" : "normal",
-      });
-    }
+    const existingNotifications = notificationService.getNotifications();
+    const hasWelcomeNotification = existingNotifications.some(
+      (n) => n.title === "Welcome to Admin Dashboard! 🎉"
+    );
 
-    // Check for pending bookings
-    if (currentStats.bookingsByStatus?.pending_confirmation > 0) {
-      notificationService.generateEventNotification("pending_bookings", {
-        count: currentStats.bookingsByStatus.pending_confirmation,
-        priority: "high",
-      });
-    }
-
-    // Check for upcoming events
-    if (currentStats.eventsByStatus?.upcoming > 0) {
-      notificationService.generateEventNotification("upcoming_events", {
-        count: currentStats.eventsByStatus.upcoming,
-        priority: "normal",
-      });
-    }
-
-    // Add welcome notification and demo notifications on first load
-    if (notificationService.getNotifications().length === 0) {
-      // Welcome notification
+    // Add welcome notification on first load only
+    if (!hasWelcomeNotification && existingNotifications.length === 0) {
       notificationService.addNotification({
         title: "Welcome to Admin Dashboard! 🎉",
         message:
@@ -307,39 +342,87 @@ const AdminDashboard = () => {
         type: "system",
         priority: "normal",
       });
+    }
 
-      // Add some demo notifications to showcase the system
-      setTimeout(() => {
+    // Check for new inquiries that need attention
+    if (currentStats.inquiriesByStatus?.new > 0) {
+      const hasInquiryNotification = existingNotifications.some(
+        (n) =>
+          n.title === "New Contact Inquiries" &&
+          n.message.includes(
+            `${currentStats.inquiriesByStatus.new} new contact inquiries`
+          )
+      );
+
+      if (!hasInquiryNotification) {
         notificationService.addNotification({
-          title: "System Health Check",
-          message:
-            "All systems are running optimally. Database connection is stable.",
-          type: "success",
-          priority: "normal",
+          title: "New Contact Inquiries",
+          message: `You have ${currentStats.inquiriesByStatus.new} new contact inquiries awaiting response.`,
+          type: "inquiry",
+          priority: currentStats.inquiriesByStatus.new > 5 ? "high" : "normal",
+          action: "/admin/contact-inquiries",
         });
+      }
+    }
 
-        notificationService.addNotification({
-          title: "New User Registration",
-          message:
-            "John Doe has registered for the upcoming AI Workshop event.",
-          type: "user",
-          priority: "normal",
-        });
+    // Check for pending bookings
+    if (currentStats.bookingsByStatus?.pending_confirmation > 0) {
+      const hasBookingNotification = existingNotifications.some(
+        (n) =>
+          n.title === "Pending Consultation Bookings" &&
+          n.message.includes(
+            `${currentStats.bookingsByStatus.pending_confirmation} consultation bookings`
+          )
+      );
 
+      if (!hasBookingNotification) {
         notificationService.addNotification({
-          title: "Content Review Required",
-          message: "3 new resources are pending review and approval.",
-          type: "content",
+          title: "Pending Consultation Bookings",
+          message: `${currentStats.bookingsByStatus.pending_confirmation} consultation bookings need confirmation.`,
+          type: "booking",
           priority: "high",
+          action: "/admin/consultation-bookings",
         });
+      }
+    }
 
+    // Check for upcoming events
+    if (currentStats.eventsByStatus?.upcoming > 0) {
+      const hasEventNotification = existingNotifications.some(
+        (n) =>
+          n.title === "Upcoming Events" &&
+          n.message.includes(
+            `${currentStats.eventsByStatus.upcoming} upcoming events`
+          )
+      );
+
+      if (!hasEventNotification) {
         notificationService.addNotification({
-          title: "Backup Scheduled",
-          message: "Automated backup will run tonight at 2:00 AM EST.",
-          type: "system",
+          title: "Upcoming Events",
+          message: `You have ${currentStats.eventsByStatus.upcoming} upcoming events. Make sure everything is ready!`,
+          type: "event",
           priority: "normal",
+          action: "/admin/events",
         });
-      }, 2000);
+      }
+    }
+
+    // System health check notification (only add once per day)
+    const today = new Date().toDateString();
+    const hasSystemHealthCheck = existingNotifications.some(
+      (n) =>
+        n.title === "System Health Check" &&
+        new Date(n.createdAt).toDateString() === today
+    );
+
+    if (!hasSystemHealthCheck) {
+      notificationService.addNotification({
+        title: "System Health Check",
+        message:
+          "All systems are running optimally. Database connection is stable.",
+        type: "success",
+        priority: "normal",
+      });
     }
   };
 
@@ -757,63 +840,193 @@ const AdminDashboard = () => {
                   </h3>
                 </div>
                 <div className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                      <span className="text-sm text-gray-600 flex items-center">
-                        <Icon
-                          icon="solar:database-bold"
-                          width={16}
-                          className="mr-2"
-                        />
-                        Database
-                      </span>
-                      <span className="flex items-center text-green-600 text-sm font-medium">
-                        <Icon
-                          icon="solar:check-circle-bold"
-                          width={16}
-                          className="mr-1"
-                        />
-                        Online
-                      </span>
+                  {systemStatusLoading ? (
+                    <div className="space-y-4">
+                      {[...Array(4)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg animate-pulse"
+                        >
+                          <div className="h-4 bg-gray-200 rounded w-24"></div>
+                          <div className="h-4 bg-gray-200 rounded w-20"></div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm text-gray-600 flex items-center">
-                        <Icon
-                          icon="solar:cloud-bold"
-                          width={16}
-                          className="mr-2"
-                        />
-                        Storage
-                      </span>
-                      <span className="text-sm text-gray-900 font-medium">
-                        2.3 GB / 10 GB
-                      </span>
+                  ) : (
+                    <div className="space-y-4">
+                      <div
+                        className={`flex items-center justify-between p-3 rounded-lg ${
+                          systemStatus.database.status === "online"
+                            ? "bg-green-50"
+                            : systemStatus.database.status === "offline"
+                            ? "bg-red-50"
+                            : "bg-yellow-50"
+                        }`}
+                      >
+                        <span className="text-sm text-gray-600 flex items-center">
+                          <Icon
+                            icon="solar:database-bold"
+                            width={16}
+                            className="mr-2"
+                          />
+                          Database
+                        </span>
+                        <span
+                          className={`flex items-center text-sm font-medium ${
+                            systemStatus.database.status === "online"
+                              ? "text-green-600"
+                              : systemStatus.database.status === "offline"
+                              ? "text-red-600"
+                              : "text-yellow-600"
+                          }`}
+                        >
+                          {systemStatus.database.status === "online" ? (
+                            <Icon
+                              icon="solar:check-circle-bold"
+                              width={16}
+                              className="mr-1"
+                            />
+                          ) : systemStatus.database.status === "offline" ? (
+                            <Icon
+                              icon="solar:close-circle-bold"
+                              width={16}
+                              className="mr-1"
+                            />
+                          ) : (
+                            <Icon
+                              icon="solar:clock-circle-bold"
+                              width={16}
+                              className="mr-1"
+                            />
+                          )}
+                          {systemStatus.database.message}
+                        </span>
+                      </div>
+                      {/* Firestore Storage */}
+                      <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
+                        <span className="text-sm text-gray-600 flex items-center">
+                          <Icon
+                            icon="solar:database-bold"
+                            width={16}
+                            className="mr-2"
+                          />
+                          Firestore Storage
+                        </span>
+                        <div className="flex flex-col items-end">
+                          <span className="text-sm text-gray-900 font-medium">
+                            {systemStatus.storage.firestore?.display ||
+                              "Loading..."}
+                          </span>
+                          {systemStatus.storage.firestore?.totalDocuments !==
+                            undefined && (
+                            <span className="text-xs text-gray-500 mt-0.5">
+                              {systemStatus.storage.firestore.totalDocuments.toLocaleString()}{" "}
+                              documents
+                            </span>
+                          )}
+                          <div className="w-24 h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                (systemStatus.storage.firestore?.percentage ||
+                                  0) > 80
+                                  ? "bg-red-500"
+                                  : (systemStatus.storage.firestore
+                                      ?.percentage || 0) > 60
+                                  ? "bg-yellow-500"
+                                  : "bg-indigo-500"
+                              }`}
+                              style={{
+                                width: `${Math.min(
+                                  systemStatus.storage.firestore?.percentage ||
+                                    0,
+                                  100
+                                )}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Cloudinary Storage */}
+                      <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <span className="text-sm text-gray-600 flex items-center">
+                          <Icon
+                            icon="solar:cloud-bold"
+                            width={16}
+                            className="mr-2"
+                          />
+                          Cloudinary Storage
+                        </span>
+                        <div className="flex flex-col items-end">
+                          <span className="text-sm text-gray-900 font-medium">
+                            {systemStatus.storage.cloudinary?.display ||
+                              "Loading..."}
+                          </span>
+                          {systemStatus.storage.cloudinary?.source ===
+                          "cloudinary" ? (
+                            <span className="text-xs text-gray-500 mt-0.5">
+                              From Cloudinary API
+                            </span>
+                          ) : systemStatus.storage.cloudinary?.error ? (
+                            <span className="text-xs text-red-500 mt-0.5">
+                              API Error
+                            </span>
+                          ) : null}
+                          <div className="w-24 h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                (systemStatus.storage.cloudinary?.percentage ||
+                                  0) > 80
+                                  ? "bg-red-500"
+                                  : (systemStatus.storage.cloudinary
+                                      ?.percentage || 0) > 60
+                                  ? "bg-yellow-500"
+                                  : "bg-blue-500"
+                              }`}
+                              style={{
+                                width: `${Math.min(
+                                  systemStatus.storage.cloudinary?.percentage ||
+                                    0,
+                                  100
+                                )}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                        <span className="text-sm text-gray-600 flex items-center">
+                          <Icon
+                            icon="solar:shield-check-bold"
+                            width={16}
+                            className="mr-2"
+                          />
+                          Last Backup
+                        </span>
+                        <span className="text-sm text-gray-900 font-medium">
+                          {systemStatus.lastBackup.text}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                      <span className="text-sm text-gray-600 flex items-center">
+                  )}
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>
+                        Last updated: {formatRelativeTime(new Date())}
+                      </span>
+                      <button
+                        onClick={loadSystemStatus}
+                        className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+                        disabled={systemStatusLoading}
+                      >
                         <Icon
-                          icon="solar:shield-check-bold"
-                          width={16}
-                          className="mr-2"
+                          icon="solar:refresh-bold"
+                          width={14}
+                          className={`mr-1 ${
+                            systemStatusLoading ? "animate-spin" : ""
+                          }`}
                         />
-                        Last Backup
-                      </span>
-                      <span className="text-sm text-gray-900 font-medium">
-                        2 hours ago
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                      <span className="text-sm text-gray-600 flex items-center">
-                        <Icon
-                          icon="solar:users-group-rounded-bold"
-                          width={16}
-                          className="mr-2"
-                        />
-                        Active Users
-                      </span>
-                      <span className="text-sm text-gray-900 font-medium">
-                        {stats.registrations}
-                      </span>
+                        Refresh
+                      </button>
                     </div>
                   </div>
                 </div>

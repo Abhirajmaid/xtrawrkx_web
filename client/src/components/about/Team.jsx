@@ -112,7 +112,7 @@ export default function Team() {
             text="Meet Our Full Team"
             type="primary"
             link="/teams"
-            className="w-[20%]"
+            className="w-full md:w-[20%]"
           />
         </Container>
       </Section>
@@ -171,7 +171,7 @@ export default function Team() {
           text="Meet Our Full Team"
           type="primary"
           link="/teams"
-          className="w-[20%]"
+          className="w-full md:w-[20%]"
         />
       </Container>
     </Section>

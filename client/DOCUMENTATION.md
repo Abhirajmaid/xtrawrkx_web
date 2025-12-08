@@ -27,8 +27,8 @@ Frontend:
 └── TypeScript Support
 
 Backend Services:
+├── Strapi CMS (Authentication & API)
 ├── Firebase Firestore (Database)
-├── Firebase Auth (Authentication)
 ├── Cloudinary (File Storage & CDN)
 └── Next.js API Routes
 
@@ -54,7 +54,8 @@ Data Layer
 Services Layer
 ├── Database Service
 ├── Cloudinary Service
-└── Authentication Service
+├── Strapi Authentication Service
+└── Firebase Authentication Service (legacy)
 ```
 
 ## 🔧 Environment Configuration
@@ -68,6 +69,9 @@ Create `.env.local` in the client directory with these variables:
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
 NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
 NEXT_PUBLIC_CLOUDINARY_API_KEY=your-api-key
+
+# Strapi Backend Configuration (REQUIRED for authentication)
+NEXT_PUBLIC_STRAPI_API_URL=http://localhost:1337/api
 
 # Firebase Configuration (REQUIRED for database operations)
 NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
@@ -92,6 +96,7 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 | -------------------------------------- | ----------------------------------------- | -------- |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`    | Your Cloudinary cloud name                | ✅       |
 | `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Unsigned upload preset for client uploads | ✅       |
+| `NEXT_PUBLIC_STRAPI_API_URL`           | Strapi backend API URL                    | ✅       |
 | `NEXT_PUBLIC_FIREBASE_PROJECT_ID`      | Firebase project identifier               | ✅       |
 | `NEXT_PUBLIC_ADMIN_EMAILS`             | Comma-separated admin email list          | ✅       |
 | `NEXT_PUBLIC_USE_CMS_DATA`             | Toggle between CMS and static data        | ❌       |

@@ -255,7 +255,7 @@ export default function EventPage({ params }) {
 
       <div className="min-h-screen bg-white">
         {/* Hero Section */}
-        <Section className="relative w-full h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden p-0">
+        <Section className="relative w-full h-[90vh] min-h-[600px] md:h-[70vh] md:min-h-[500px] flex items-center justify-center overflow-hidden p-0">
           {/* Background image */}
           <div className="absolute inset-0 w-full h-full">
             <Image
@@ -266,11 +266,11 @@ export default function EventPage({ params }) {
               priority
             />
             {/* Overlay for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/60" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/60" />
           </div>
 
           {/* Event Info Overlay */}
-          <Container className="relative z-20 text-center text-white">
+          <Container className="relative z-20 text-center text-white pt-8 md:pt-0">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-6 py-2 rounded-full text-sm font-semibold">
                 <Icon
@@ -324,7 +324,7 @@ export default function EventPage({ params }) {
                 <Button
                   text="Add to Calendar"
                   type="secondary"
-                  className="bg-white/20 backdrop-blur-sm hover:bg-white/30"
+                  className="bg-white/20 text-white backdrop-blur-sm hover:bg-white/30"
                   onClick={() => {
                     try {
                       // Handle Date object from Firebase or string from static data
@@ -456,30 +456,31 @@ export default function EventPage({ params }) {
         </Section>
 
         {/* Event Details Section */}
-        <Section className="py-20">
-          <Container>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <Section className="py-8 md:py-20">
+          <Container className="w-[95%] md:w-[90%]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-12">
               {/* Main Content */}
               <div className="lg:col-span-2">
                 {/* About Event */}
-                <div className="mb-12">
-                  <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50/30 rounded-2xl p-8 border border-gray-100">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-lg flex items-center justify-center">
+                <div className="mb-8 md:mb-12">
+                  <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50/30 rounded-2xl p-3 md:p-8 border border-gray-100">
+                    <div className="flex items-center gap-3 mb-4 md:mb-6">
+                      <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-lg flex items-center justify-center">
                         <Icon
                           icon="mdi:information-outline"
-                          width={24}
-                          className="text-white"
+                          width={20}
+                          height={20}
+                          className="md:w-6 md:h-6 text-white"
                         />
                       </div>
-                      <h2 className="text-3xl font-bold text-gray-900">
+                      <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
                         About This Event
                       </h2>
                     </div>
 
                     {/* Main Description */}
-                    <div className="mb-8">
-                      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div className="mb-6 md:mb-8">
+                      <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-brand-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                             <Icon
@@ -489,10 +490,10 @@ export default function EventPage({ params }) {
                             />
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                            <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2 md:mb-3">
                               Event Overview
                             </h3>
-                            <p className="text-gray-700 leading-relaxed">
+                            <p className="text-sm md:text-lg text-gray-700 leading-relaxed">
                               {event.description}
                             </p>
                           </div>
@@ -502,8 +503,8 @@ export default function EventPage({ params }) {
 
                     {/* Long Description with structured content */}
                     {event.longDescription && (
-                      <div className="space-y-6">
-                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                      <div className="space-y-4 md:space-y-6">
+                        <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
                           <div className="flex items-start gap-3">
                             <div className="w-6 h-6 bg-brand-secondary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                               <Icon
@@ -513,10 +514,10 @@ export default function EventPage({ params }) {
                               />
                             </div>
                             <div className="flex-1">
-                              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                                 Event Details
                               </h3>
-                              <div className="prose prose-gray max-w-none">
+                              <div className="prose prose-gray text-sm max-w-none">
                                 <div
                                   dangerouslySetInnerHTML={{
                                     __html: event.longDescription,
@@ -530,17 +531,18 @@ export default function EventPage({ params }) {
                     )}
 
                     {/* Key Highlights Section */}
-                    <div className="mt-8">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="mt-6 md:mt-8">
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4 flex items-center gap-2">
                         <Icon
                           icon="mdi:star-outline"
-                          width={24}
-                          className="text-brand-primary"
+                          width={20}
+                          height={20}
+                          className="md:w-6 md:h-6 text-brand-primary"
                         />
                         Event Highlights
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                        <div className="bg-white rounded-lg p-3 md:p-4 border border-gray-100 hover:border-brand-primary/20 transition-colors">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                               <Icon
@@ -703,58 +705,63 @@ export default function EventPage({ params }) {
                     </div>
 
                     {/* What You'll Learn/Gain Section */}
-                    <div className="mt-8">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="mt-6 md:mt-8">
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4 flex items-center gap-2">
                         <Icon
                           icon="mdi:trophy-outline"
-                          width={24}
-                          className="text-brand-primary"
+                          width={20}
+                          height={20}
+                          className="md:w-6 md:h-6 text-brand-primary"
                         />
                         What You'll Gain
                       </h3>
-                      <div className="bg-white rounded-xl p-6 border border-gray-100">
-                        <ul className="space-y-3">
-                          <li className="flex items-start gap-3">
+                      <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-100">
+                        <ul className="space-y-2 md:space-y-3">
+                          <li className="flex items-start gap-2 md:gap-3">
                             <Icon
                               icon="mdi:check-circle"
-                              width={20}
-                              className="text-green-500 flex-shrink-0 mt-0.5"
+                              width={18}
+                              height={18}
+                              className="md:w-5 md:h-5 text-green-500 flex-shrink-0 mt-0.5"
                             />
-                            <span className="text-gray-700">
+                            <span className="text-sm md:text-base text-gray-700">
                               Deep understanding of EV market trends and
                               investment opportunities
                             </span>
                           </li>
-                          <li className="flex items-start gap-3">
+                          <li className="flex items-start gap-2 md:gap-3">
                             <Icon
                               icon="mdi:check-circle"
-                              width={20}
-                              className="text-green-500 flex-shrink-0 mt-0.5"
+                              width={18}
+                              height={18}
+                              className="md:w-5 md:h-5 text-green-500 flex-shrink-0 mt-0.5"
                             />
-                            <span className="text-gray-700">
+                            <span className="text-sm md:text-base text-gray-700">
                               Direct access to potential investors and funding
                               partners
                             </span>
                           </li>
 
-                          <li className="flex items-start gap-3">
+                          <li className="flex items-start gap-2 md:gap-3">
                             <Icon
                               icon="mdi:check-circle"
-                              width={20}
-                              className="text-green-500 flex-shrink-0 mt-0.5"
+                              width={18}
+                              height={18}
+                              className="md:w-5 md:h-5 text-green-500 flex-shrink-0 mt-0.5"
                             />
-                            <span className="text-gray-700">
+                            <span className="text-sm md:text-base text-gray-700">
                               Strategic partnerships with established EV
                               companies
                             </span>
                           </li>
-                          <li className="flex items-start gap-3">
+                          <li className="flex items-start gap-2 md:gap-3">
                             <Icon
                               icon="mdi:check-circle"
-                              width={20}
-                              className="text-green-500 flex-shrink-0 mt-0.5"
+                              width={18}
+                              height={18}
+                              className="md:w-5 md:h-5 text-green-500 flex-shrink-0 mt-0.5"
                             />
-                            <span className="text-gray-700">
+                            <span className="text-sm md:text-base text-gray-700">
                               Actionable insights to accelerate your startup
                               growth
                             </span>
@@ -767,9 +774,9 @@ export default function EventPage({ params }) {
 
                 {/* Event Gallery - Only show for completed events */}
                 {eventCompleted && eventGallery && eventGallery.length > 0 && (
-                  <div className="mb-12">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-3xl font-bold text-gray-900">
+                  <div className="mb-8 md:mb-12">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 md:mb-6">
+                      <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
                         Event Gallery
                       </h2>
                       <Button
@@ -777,10 +784,10 @@ export default function EventPage({ params }) {
                         type="secondary"
                         link={`/events/${slug}/gallery`}
                         icon="mdi:arrow-right"
-                        className="text-sm"
+                        className="text-xs md:text-sm"
                       />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                       {eventGallery.slice(0, 6).map((galleryItem, index) => (
                         <div
                           key={galleryItem.id}
@@ -819,27 +826,29 @@ export default function EventPage({ params }) {
 
                 {/* Agenda - Hide for completed events unless specifically needed */}
                 {!eventCompleted && event.agenda && event.agenda.length > 0 && (
-                  <div className="mb-12">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                  <div className="mb-8 md:mb-12">
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6">
                       Event Agenda
                     </h2>
-                    <div className="max-h-[600px] overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                    <div className="max-h-[500px] md:max-h-[600px] overflow-y-auto space-y-3 md:space-y-4 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                       {event.agenda.map((item, index) => (
                         <div
                           key={index}
-                          className="bg-gray-50 rounded-lg p-6 border-l-4 border-brand-primary"
+                          className="bg-gray-50 rounded-lg p-4 md:p-6 border-l-4 border-brand-primary"
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-xl font-semibold text-gray-900">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                            <h3 className="text-lg md:text-xl font-semibold text-gray-900">
                               {item.title}
                             </h3>
-                            <span className="text-brand-primary font-medium">
+                            <span className="text-brand-primary font-medium text-sm md:text-base">
                               {item.time}
                             </span>
                           </div>
-                          <p className="text-gray-600">{item.description}</p>
+                          <p className="text-sm md:text-base text-gray-600">
+                            {item.description}
+                          </p>
                           {item.speaker && (
-                            <p className="text-sm text-gray-500 mt-2">
+                            <p className="text-xs md:text-sm text-gray-500 mt-2">
                               Speaker: {item.speaker}
                             </p>
                           )}
@@ -851,9 +860,9 @@ export default function EventPage({ params }) {
 
                 {/* Speakers */}
                 {event.speakers && event.speakers.length > 0 && (
-                  <div className="mb-8 -mx-4 md:mx-0">
+                  <div className="mb-6 md:mb-8 -mx-4 md:mx-0">
                     <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 rounded-2xl p-4 md:p-6 shadow-lg border border-indigo-100">
-                      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 text-center">
+                      <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 md:mb-4 text-center">
                         {eventCompleted
                           ? "Event Speakers"
                           : "Featured Speakers"}
@@ -868,12 +877,12 @@ export default function EventPage({ params }) {
                             msOverflowStyle: "none",
                           }}
                         >
-                          <div className="flex gap-4 min-w-max px-4 py-2">
+                          <div className="flex gap-3 md:gap-4 min-w-max px-2 md:px-4 py-2">
                             {/* First set of speakers */}
                             {event.speakers.map((speaker, index) => (
                               <div
                                 key={`speaker-${index}`}
-                                className="bg-white rounded-xl p-4 shadow-lg border border-white/50 backdrop-blur-sm min-w-[280px] max-w-[280px] flex-shrink-0 hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                className="bg-white rounded-xl p-4 shadow-lg border border-white/50 backdrop-blur-sm min-w-[350px] max-w-[280px] flex-shrink-0 hover:shadow-xl transition-all duration-300 hover:scale-105"
                               >
                                 <div className="flex flex-col items-center text-center h-full">
                                   {speaker.image ? (
@@ -915,7 +924,7 @@ export default function EventPage({ params }) {
                             {event.speakers.map((speaker, index) => (
                               <div
                                 key={`speaker-duplicate-${index}`}
-                                className="bg-white rounded-xl p-4 shadow-lg border border-white/50 backdrop-blur-sm min-w-[280px] max-w-[280px] flex-shrink-0 hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                className="bg-white rounded-xl p-4 shadow-lg border border-white/50 backdrop-blur-sm min-w-[350px] max-w-[280px] flex-shrink-0 hover:shadow-xl transition-all duration-300 hover:scale-105"
                               >
                                 <div className="flex flex-col items-center text-center h-full">
                                   {speaker.image ? (
@@ -962,14 +971,17 @@ export default function EventPage({ params }) {
                       </div>
 
                       {/* Auto-scroll instruction */}
-                      <div className="flex items-center justify-center mt-3 text-xs text-gray-600">
+                      <div className="flex items-center justify-center mt-2 md:mt-3 text-xs text-gray-600">
                         <div className="flex items-center gap-2">
                           <Icon
                             icon="mdi:gesture-swipe-horizontal"
-                            width={16}
-                            className="text-indigo-400"
+                            width={14}
+                            height={14}
+                            className="md:w-4 md:h-4 text-indigo-400"
                           />
-                          <span>Auto-scrolling • Hover to pause</span>
+                          <span className="text-xs">
+                            Auto-scrolling • Hover to pause
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -980,79 +992,98 @@ export default function EventPage({ params }) {
               {/* Sidebar */}
               <div className="lg:col-span-1">
                 {/* Event Info Card */}
-                <div className="bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-2xl p-6 mb-8 sticky top-8">
-                  <h3 className="text-xl font-bold text-gray-900 mb-6">
+                <div className="bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-2xl p-4 md:p-6 mb-6 md:mb-8 lg:sticky lg:top-8">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">
                     Event Information
                   </h3>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex items-center gap-2 md:gap-3">
                       <Icon
                         icon="mdi:calendar-month-outline"
-                        className="text-brand-primary"
-                        width={24}
+                        className="text-brand-primary md:w-6 md:h-6"
+                        width={20}
+                        height={20}
                       />
                       <div>
-                        <p className="font-medium text-gray-900">Date</p>
-                        <p className="text-gray-600">
+                        <p className="text-sm md:text-base font-medium text-gray-900">
+                          Date
+                        </p>
+                        <p className="text-xs md:text-sm text-gray-600">
                           {formatEventDate(event.date) || event.date}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                       <Icon
                         icon="mdi:clock-outline"
-                        className="text-brand-primary"
-                        width={24}
+                        className="text-brand-primary md:w-6 md:h-6"
+                        width={20}
+                        height={20}
                       />
                       <div>
-                        <p className="font-medium text-gray-900">Time</p>
-                        <p className="text-gray-600">{event.time}</p>
+                        <p className="text-sm md:text-base font-medium text-gray-900">
+                          Time
+                        </p>
+                        <p className="text-xs md:text-sm text-gray-600">
+                          {event.time}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                       <Icon
                         icon="mdi:map-marker-outline"
-                        className="text-brand-primary"
-                        width={24}
+                        className="text-brand-primary md:w-6 md:h-6"
+                        width={20}
+                        height={20}
                       />
                       <div>
-                        <p className="font-medium text-gray-900">Location</p>
-                        <p className="text-gray-600">{event.location}</p>
+                        <p className="text-sm md:text-base font-medium text-gray-900">
+                          Location
+                        </p>
+                        <p className="text-xs md:text-sm text-gray-600">
+                          {event.location}
+                        </p>
                         {event.venue && (
-                          <p className="text-sm text-gray-500">{event.venue}</p>
+                          <p className="text-xs text-gray-500">{event.venue}</p>
                         )}
                       </div>
                     </div>
 
                     {event.price && (
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 md:gap-3">
                         <Icon
                           icon="mdi:currency-inr"
-                          className="text-brand-primary"
-                          width={24}
+                          className="text-brand-primary md:w-6 md:h-6"
+                          width={20}
+                          height={20}
                         />
                         <div>
-                          <p className="font-medium text-gray-900">Price</p>
-                          <p className="text-gray-600">
-                            {event.price} for all events
+                          <p className="text-sm md:text-base font-medium text-gray-900">
+                            Price
+                          </p>
+                          <p className="text-xs md:text-sm text-gray-600">
+                            {event.price} for all events
                           </p>
                         </div>
                       </div>
                     )}
 
                     {event.capacity && (
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 md:gap-3">
                         <Icon
                           icon="mdi:account-group"
-                          className="text-brand-primary"
-                          width={24}
+                          className="text-brand-primary md:w-6 md:h-6"
+                          width={20}
+                          height={20}
                         />
                         <div>
-                          <p className="font-medium text-gray-900">Capacity</p>
-                          <p className="text-gray-600">
+                          <p className="text-sm md:text-base font-medium text-gray-900">
+                            Capacity
+                          </p>
+                          <p className="text-xs md:text-sm text-gray-600">
                             {event.capacity} attendees
                           </p>
                         </div>
@@ -1061,7 +1092,7 @@ export default function EventPage({ params }) {
                   </div>
 
                   {/* Action buttons - conditional based on event status */}
-                  <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200">
                     {!eventCompleted ? (
                       <>
                         <Button
@@ -1107,18 +1138,18 @@ export default function EventPage({ params }) {
                 </div>
 
                 {/* Contact Info */}
-                <div className="bg-white rounded-2xl p-6 shadow-lg border">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">
+                <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg border">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">
                     Need Help?
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4">
                     Have questions about this event? Get in touch with our team.
                   </p>
                   <Button
                     text="Contact Us"
                     type="secondary"
                     link="/contact-us"
-                    className="w-full"
+                    className="w-full text-sm md:text-base"
                   />
                 </div>
               </div>
@@ -1128,18 +1159,18 @@ export default function EventPage({ params }) {
 
         {/* Season Events */}
         {event.season && seasonEvents.length > 0 && (
-          <Section className="py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50/30">
+          <Section className="py-8 md:py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50/30">
             <Container>
-              <div className="text-center mb-12">
-                <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              <div className="text-center mb-8 md:mb-12">
+                <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
                   Other Events in Season {event.season}
                 </h2>
-                <p className="text-xl text-gray-600">
+                <p className="text-base md:text-xl text-gray-600 px-4">
                   Register once for the entire season and choose which events to
                   attend
                 </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                 {seasonEvents.map((seasonEvent, index) => (
                   <div
                     key={seasonEvent.id || index}
@@ -1160,20 +1191,30 @@ export default function EventPage({ params }) {
                           Season {seasonEvent.season}
                         </div>
                       </div>
-                      <div className="p-6">
-                        <h3 className="font-bold text-gray-900 mb-2">
+                      <div className="p-4 md:p-6">
+                        <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2">
                           {seasonEvent.title}
                         </h3>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
                           <div className="flex items-center gap-1">
-                            <Icon icon="mdi:calendar" width={16} />
+                            <Icon
+                              icon="mdi:calendar"
+                              width={14}
+                              height={14}
+                              className="md:w-4 md:h-4"
+                            />
                             <span>
                               {formatEventDate(seasonEvent.date) ||
                                 seasonEvent.date}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Icon icon="mdi:map-marker" width={16} />
+                            <Icon
+                              icon="mdi:map-marker"
+                              width={14}
+                              height={14}
+                              className="md:w-4 md:h-4"
+                            />
                             <span>{seasonEvent.location}</span>
                           </div>
                         </div>
@@ -1181,19 +1222,19 @@ export default function EventPage({ params }) {
                           text="View Details"
                           type="secondary"
                           link={`/events/${seasonEvent.slug}`}
-                          className="w-full"
+                          className="w-full text-xs md:text-sm"
                         />
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-6">
+              <div className="mt-4 md:mt-6">
                 <Button
                   text={`Register for Season ${event.season}`}
                   type="primary"
                   link={`/events/season/${event.season}/register?from=${slug}`}
-                  className="bg-gradient-to-r from-brand-primary to-brand-secondary w-[30%] mx-auto"
+                  className="bg-gradient-to-r from-brand-primary to-brand-secondary w-full md:w-[30%] mx-auto text-sm md:text-base"
                 />
               </div>
             </Container>
@@ -1201,19 +1242,19 @@ export default function EventPage({ params }) {
         )}
 
         {/* Related Events */}
-        <Section className="py-20 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
+        <Section className="py-8 md:py-20 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
           <Container>
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
                 Related Events
               </h2>
-              <p className="text-xl text-gray-600">
+              <p className="text-base md:text-xl text-gray-600 px-4">
                 Discover more events you might be interested in
               </p>
             </div>
 
             {relatedEvents.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                 {relatedEvents.map((relatedEvent, index) => (
                   <div
                     key={relatedEvent.id || index}
@@ -1231,20 +1272,30 @@ export default function EventPage({ params }) {
                           {relatedEvent.category}
                         </div>
                       </div>
-                      <div className="p-6">
-                        <h3 className="font-bold text-gray-900 mb-2">
+                      <div className="p-4 md:p-6">
+                        <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2">
                           {relatedEvent.title}
                         </h3>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
                           <div className="flex items-center gap-1">
-                            <Icon icon="mdi:calendar" width={16} />
+                            <Icon
+                              icon="mdi:calendar"
+                              width={14}
+                              height={14}
+                              className="md:w-4 md:h-4"
+                            />
                             <span>
                               {formatEventDate(relatedEvent.date) ||
                                 relatedEvent.date}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Icon icon="mdi:map-marker" width={16} />
+                            <Icon
+                              icon="mdi:map-marker"
+                              width={14}
+                              height={14}
+                              className="md:w-4 md:h-4"
+                            />
                             <span>{relatedEvent.location}</span>
                           </div>
                         </div>
@@ -1252,7 +1303,7 @@ export default function EventPage({ params }) {
                           text="View Details"
                           type="secondary"
                           link={`/events/${relatedEvent.slug}`}
-                          className="w-full"
+                          className="w-full text-xs md:text-sm"
                         />
                       </div>
                     </div>
@@ -1260,16 +1311,17 @@ export default function EventPage({ params }) {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
+              <div className="text-center py-8 md:py-12">
                 <Icon
                   icon="mdi:calendar-blank"
-                  className="text-gray-400 mx-auto mb-4"
-                  width={64}
+                  className="text-gray-400 mx-auto mb-3 md:mb-4 md:w-16 md:h-16"
+                  width={48}
+                  height={48}
                 />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                <h3 className="text-lg md:text-xl font-semibold text-gray-600 mb-2">
                   No related events found
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-sm md:text-base text-gray-500 px-4">
                   Check back later for more events in this category
                 </p>
               </div>

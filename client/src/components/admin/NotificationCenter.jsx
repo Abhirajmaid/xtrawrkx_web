@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { formatRelativeTime } from "../../utils/dateUtils";
 
@@ -12,6 +13,7 @@ const NotificationCenter = ({
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState("all"); // all, unread, important
   const dropdownRef = useRef(null);
+  const router = useRouter();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -201,7 +203,13 @@ const NotificationCenter = ({
                     className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
                       !notification.read ? "bg-blue-50/50" : ""
                     }`}
-                    onClick={() => onMarkAsRead(notification.id)}
+                    onClick={() => {
+                      onMarkAsRead(notification.id);
+                      if (notification.action) {
+                        router.push(notification.action);
+                        setIsOpen(false);
+                      }
+                    }}
                   >
                     <div className="flex items-start space-x-3">
                       {/* Icon */}

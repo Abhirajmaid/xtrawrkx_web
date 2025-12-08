@@ -124,7 +124,7 @@ const XdDPage = ({ community }) => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <Section className="relative w-full h-[95vh] min-h-[600px] flex items-center justify-center overflow-hidden p-0">
+      <Section className="relative w-full h-[90vh] min-h-[600px] md:h-[95vh] flex items-center justify-center overflow-hidden p-0">
         <div className="absolute inset-0 w-full h-full">
           <Image
             src="/images/hero_services.png"
@@ -136,38 +136,38 @@ const XdDPage = ({ community }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-[#f5f37f]/95 via-[#f5f37f]/85 to-[#e6e06b]/90" />
         </div>
 
-        <Container className="relative z-20 text-center text-white mt-20">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-[#f5f37f] to-[#e6e06b] text-gray-900 px-8 py-3 rounded-full text-lg font-semibold mb-6 shadow-lg">
-            <Icon icon="mdi:palette" width={24} />
-            Design & Development
+        <Container className="relative z-20 text-center text-white mt-16 md:mt-20 px-4">
+          <div className="inline-flex items-center gap-2 md:gap-3 bg-gradient-to-r from-[#f5f37f] to-[#e6e06b] text-gray-900 px-4 md:px-8 py-2 md:py-3 rounded-full text-sm md:text-lg font-semibold mb-4 md:mb-6 shadow-lg">
+            <Icon icon="mdi:palette" width={18} height={18} className="md:w-6 md:h-6" />
+            <span className="text-xs md:text-base">Design & Development</span>
           </div>
 
           {/* xD&D Logo */}
-          <div className="mb-6">
-            <div className="inline-block bg-gray-900/10 backdrop-blur-sm rounded-3xl p-6 shadow-2xl">
+          <div className="mb-4 md:mb-6">
+            <div className="inline-block bg-gray-900/10 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-2xl">
               <Image
                 src="/images/xd&d.png"
                 alt="xD&D Logo"
-                width={120}
-                height={120}
-                className="mx-auto"
+                width={80}
+                height={80}
+                className="md:w-[120px] md:h-[120px] mx-auto"
                 priority
               />
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-6 drop-shadow-lg">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 drop-shadow-lg px-4">
             xD&D
           </h1>
-          <p className="text-2xl text-white/90 max-w-4xl mx-auto mb-4 drop-shadow">
+          <p className="text-lg md:text-2xl text-white/90 max-w-4xl mx-auto mb-6 md:mb-4 drop-shadow px-4">
             Where creativity meets innovation - designing the future of
             sustainable mobility
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
             <Button
               text="Join Community"
               type="primary"
-              className="text-lg"
+              className="text-sm md:text-lg w-full sm:w-auto"
               onClick={() => {
                 window.open("https://forms.gle/feK3siB7oorSFzXr5", "_blank");
               }}
@@ -177,30 +177,30 @@ const XdDPage = ({ community }) => {
       </Section>
 
       {/* Creative Statistics */}
-      <Section className="py-20 bg-gradient-to-br from-[#f5f37f]/10 to-[#f5f37f]/20">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <Section className="py-8 md:py-20 bg-gradient-to-br from-[#f5f37f]/10 to-[#f5f37f]/20">
+        <Container className="px-4 md:px-0">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Creative Impact
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base md:text-xl text-gray-600 px-4">
               Fostering innovation through design thinking and rapid prototyping
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-8">
             {creativeStats.map((stat, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl p-8 shadow-lg text-center hover:shadow-xl transition-shadow"
+                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg text-center hover:shadow-xl transition-shadow"
               >
-                <div className="bg-gradient-to-br from-[#f5f37f] to-[#e6e06b] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <Icon icon={stat.icon} className="text-3xl text-gray-900" />
+                <div className="bg-gradient-to-br from-[#f5f37f] to-[#e6e06b] rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <Icon icon={stat.icon} className="text-2xl md:text-3xl text-gray-900" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                   {stat.value}
                 </h3>
-                <p className="text-gray-600">{stat.label}</p>
+                <p className="text-sm md:text-base text-gray-600">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -208,47 +208,47 @@ const XdDPage = ({ community }) => {
       </Section>
 
       {/* Design Disciplines */}
-      <Section className="py-20">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <Section className="py-8 md:py-20">
+        <Container className="px-4 md:px-0">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Our Creative Community
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base md:text-xl text-gray-600 px-4">
               Diverse design and development professionals shaping EV innovation
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
             {designDisciplines.map((discipline, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+                className="bg-white rounded-xl md:rounded-2xl shadow-lg border border-gray-100 p-4 md:p-8"
               >
-                <div className="flex items-start gap-6">
-                  <div className="bg-[#f5f37f]/20 rounded-2xl p-4 flex-shrink-0">
+                <div className="flex items-start gap-3 md:gap-6">
+                  <div className="bg-[#f5f37f]/20 rounded-xl md:rounded-2xl p-3 md:p-4 flex-shrink-0">
                     <Icon
                       icon={discipline.icon}
-                      className="text-[#d4d054] text-3xl"
+                      className="text-[#d4d054] text-2xl md:text-3xl"
                     />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h3 className="text-xl font-bold text-gray-900">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2 md:mb-3">
+                      <h3 className="text-lg md:text-xl font-bold text-gray-900">
                         {discipline.name}
                       </h3>
-                      <span className="bg-[#f5f37f]/20 text-[#d4d054] px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-[#f5f37f]/20 text-[#d4d054] px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium w-fit">
                         {discipline.count}
                       </span>
                     </div>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4">
                       {discipline.description}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {discipline.focus.map((area, idx) => (
                         <span
                           key={idx}
-                          className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm"
+                          className="bg-gray-100 text-gray-700 px-2 md:px-3 py-1 rounded-lg text-xs md:text-sm"
                         >
                           {area}
                         </span>
@@ -263,33 +263,33 @@ const XdDPage = ({ community }) => {
       </Section>
 
       {/* Active Projects & Challenges */}
-      <Section className="py-20 bg-gradient-to-br from-slate-50 via-white to-[#f5f37f]/5">
-        <Container>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+      <Section className="py-8 md:py-20 bg-gradient-to-br from-slate-50 via-white to-[#f5f37f]/5">
+        <Container className="px-4 md:px-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16">
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6">
                 Active Projects
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-sm md:text-lg text-gray-600 mb-6 md:mb-8">
                 Collaborative design projects where community members work
                 together on real-world challenges.
               </p>
 
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {activeProjects.map((project, index) => (
                   <div
                     key={index}
-                    className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+                    className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-gray-100"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-2 md:mb-3">
+                      <h3 className="text-base md:text-lg font-semibold text-gray-900">
                         {project.title}
                       </h3>
-                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-blue-100 text-blue-800 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium w-fit">
                         {project.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm text-gray-600 mb-2 md:mb-3">
                       <div className="flex items-center gap-1">
                         <Icon icon="mdi:tag" />
                         {project.type}
@@ -299,7 +299,7 @@ const XdDPage = ({ community }) => {
                         {project.participants} participants
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-[#d4d054]">
+                    <div className="flex items-center gap-2 text-xs md:text-sm text-[#d4d054]">
                       <Icon icon="mdi:calendar" />
                       Due: {project.deadline}
                     </div>
@@ -307,35 +307,35 @@ const XdDPage = ({ community }) => {
                 ))}
               </div>
 
-              <div className="mt-8">
-                <Button text="Join a Project" type="primary" />
+              <div className="mt-6 md:mt-8">
+                <Button text="Join a Project" type="primary" className="w-full text-sm md:text-base" />
               </div>
             </div>
 
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6">
                 Innovation Challenges
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-sm md:text-lg text-gray-600 mb-6 md:mb-8">
                 Monthly design challenges with cash prizes and industry
                 recognition.
               </p>
 
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {innovationChallenges.map((challenge, index) => (
                   <div
                     key={index}
-                    className="bg-gradient-to-br from-[#f5f37f]/10 to-[#f5f37f]/20 rounded-xl p-6"
+                    className="bg-gradient-to-br from-[#f5f37f]/10 to-[#f5f37f]/20 rounded-xl p-4 md:p-6"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-2 md:mb-3">
+                      <h3 className="text-base md:text-lg font-semibold text-gray-900">
                         {challenge.challenge}
                       </h3>
-                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-green-100 text-green-800 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium w-fit">
                         {challenge.prize}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm text-gray-600 mb-2 md:mb-3">
                       <div className="flex items-center gap-1">
                         <Icon icon="mdi:trophy" />
                         {challenge.category}
@@ -345,7 +345,7 @@ const XdDPage = ({ community }) => {
                         {challenge.submissions} submissions
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-[#d4d054]">
+                    <div className="flex items-center gap-2 text-xs md:text-sm text-[#d4d054]">
                       <Icon icon="mdi:clock" />
                       {challenge.deadline} left
                     </div>
@@ -353,11 +353,11 @@ const XdDPage = ({ community }) => {
                 ))}
               </div>
 
-              <div className="mt-8">
+              <div className="mt-6 md:mt-8">
                 <Button
                   text="Submit Design"
                   type="secondary"
-                  className="w-full"
+                  className="w-full text-sm md:text-base"
                 />
               </div>
             </div>
@@ -366,30 +366,30 @@ const XdDPage = ({ community }) => {
       </Section>
 
       {/* Design Tools & Resources */}
-      <Section className="py-20">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <Section className="py-8 md:py-20">
+        <Container className="px-4 md:px-0">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Design Tools & Resources
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base md:text-xl text-gray-600 px-4">
               Popular tools and platforms used by our community
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             {designTools.map((tool, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-gray-100"
               >
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2">
                   {tool.tool}
                 </h3>
-                <p className="text-gray-600 mb-4">{tool.usage}</p>
+                <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4">{tool.usage}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Community Usage</span>
-                  <span className="bg-[#f5f37f]/20 text-[#d4d054] px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="text-xs md:text-sm text-gray-500">Community Usage</span>
+                  <span className="bg-[#f5f37f]/20 text-[#d4d054] px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium">
                     {tool.popularity}
                   </span>
                 </div>
@@ -397,29 +397,29 @@ const XdDPage = ({ community }) => {
             ))}
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-8 md:mt-12">
             <Button
               text="Access Tool Library"
               type="secondary"
-              className="text-lg px-8 py-4"
+              className="text-sm md:text-lg px-6 md:px-8 py-3 md:py-4 w-full sm:w-auto"
             />
           </div>
         </Container>
       </Section>
 
       {/* Portfolio Showcase */}
-      <Section className="py-20 bg-gradient-to-br from-slate-50 via-white to-[#f5f37f]/5">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <Section className="py-8 md:py-20 bg-gradient-to-br from-slate-50 via-white to-[#f5f37f]/5">
+        <Container className="px-4 md:px-0">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Featured Work
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base md:text-xl text-gray-600 px-4">
               Outstanding designs from our community members
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             {[
               {
                 project: "EcoCharge Interface",
@@ -445,35 +445,35 @@ const XdDPage = ({ community }) => {
             ].map((work, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden"
+                className="bg-white rounded-xl md:rounded-2xl shadow-lg overflow-hidden"
               >
-                <div className="h-48 bg-gradient-to-br from-[#f5f37f]/20 to-[#f5f37f]/30 flex items-center justify-center">
-                  <Icon icon="mdi:image" className="text-6xl text-[#d4d054]" />
+                <div className="h-32 md:h-48 bg-gradient-to-br from-[#f5f37f]/20 to-[#f5f37f]/30 flex items-center justify-center">
+                  <Icon icon="mdi:image" className="text-4xl md:text-6xl text-[#d4d054]" />
                 </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <div className="p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2">
                     {work.project}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-xs md:text-sm text-gray-600 mb-2">
                     by {work.designer}
                   </p>
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-2 md:mb-3">
                     <span className="bg-[#f5f37f]/20 text-[#d4d054] px-2 py-1 rounded text-xs">
                       {work.category}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4">
+                  <p className="text-gray-600 text-xs md:text-sm mb-3 md:mb-4">
                     {work.description}
                   </p>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 text-xs md:text-sm text-gray-500">
                       <Icon icon="mdi:heart" />
                       {work.likes} likes
                     </div>
                     <Button
                       text="View Details"
                       type="secondary"
-                      className="text-sm"
+                      className="text-xs md:text-sm"
                     />
                   </div>
                 </div>
@@ -484,25 +484,25 @@ const XdDPage = ({ community }) => {
       </Section>
 
       {/* Call to Action */}
-      <Section className="py-20 bg-gradient-to-r from-[#f5f37f] to-[#e6e06b]">
-        <Container className="text-center text-gray-900">
-          <h2 className="text-4xl font-bold mb-6">
+      <Section className="py-8 md:py-20 bg-gradient-to-r from-[#f5f37f] to-[#e6e06b]">
+        <Container className="text-center text-gray-900 px-4">
+          <h2 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6">
             Ready to Design the Future?
           </h2>
-          <p className="text-xl mb-8 text-gray-800 max-w-2xl mx-auto">
+          <p className="text-base md:text-xl mb-6 md:mb-8 text-gray-800 max-w-2xl mx-auto">
             Join 400+ designers and developers creating innovative solutions for
             sustainable mobility
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <Button
               text="Join xD&D"
               type="primary"
-              className="bg-gray-900 text-white hover:bg-gray-800 text-lg"
+              className="bg-gray-900 text-white hover:bg-gray-800 text-sm md:text-lg w-full sm:w-auto"
             />
             <Button
               text="View Portfolio Guidelines"
               type="secondary"
-              className="bg-gray-900/20 backdrop-blur-sm hover:bg-gray-900/30 text-gray-900 border border-gray-900 text-lg"
+              className="bg-gray-900/20 backdrop-blur-sm hover:bg-gray-900/30 text-gray-900 border border-gray-900 text-sm md:text-lg w-full sm:w-auto"
             />
           </div>
         </Container>

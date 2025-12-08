@@ -18,7 +18,7 @@ const VerticalsSection = () => {
         "Comprehensive management consulting services to accelerate your business growth and operational excellence.",
       icon: "mdi:chart-line",
       color: "from-blue-500 to-blue-600",
-      website: "https://xmc.xtrawrkx.com", // Replace with actual URL
+      // website: "https://xtrawrkx.com",
       features: [
         "Strategic Consulting",
         "Business Growth",
@@ -33,7 +33,7 @@ const VerticalsSection = () => {
         "Global venture capital and investment solutions for emerging businesses and innovative startups.",
       icon: "mdi:rocket-launch",
       color: "from-green-500 to-green-600",
-      website: "https://xgv.xtrawrkx.com", // Replace with actual URL
+      // website: "https://xgv.xtrawrkx.com",
       features: ["Venture Capital", "Investment Solutions", "Startup Support"],
     },
     {
@@ -44,7 +44,7 @@ const VerticalsSection = () => {
         "End-to-end manufacturing solutions from design to production, leveraging cutting-edge technology.",
       icon: "mdi:factory",
       color: "from-orange-500 to-orange-600",
-      website: "https://xmb.xtrawrkx.com", // Replace with actual URL
+      website: "https://xmb.xtrawrkx.com",
       features: [
         "Manufacturing Solutions",
         "Design to Production",
@@ -166,15 +166,17 @@ const VerticalsSection = () => {
                 </p>
 
                 {/* Bottom Section */}
-                <div className="flex items-center justify-between">
-                  <Button
-                    text="Know More"
-                    type="secondary"
-                    onClick={() => {
-                      window.location.href = "/about";
-                    }}
-                  />
-                </div>
+                {vertical.website && (
+                  <div className="flex items-center justify-between">
+                    <Button
+                      text="Know More"
+                      type="secondary"
+                      onClick={() => {
+                        window.location.href = "/about";
+                      }}
+                    />
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>

@@ -676,7 +676,7 @@ export default function Navbar() {
                 src="/logo.png"
                 alt="xtrawrkx"
                 fill
-                className="rounded-full object-cover"
+                className="rounded-none object-cover"
                 priority
               />
             </motion.div>
@@ -746,7 +746,7 @@ export default function Navbar() {
                       src="/logo.png"
                       alt="xtrawrkx"
                       fill
-                      className="rounded-full object-cover"
+                      className="rounded-none object-cover"
                       priority
                     />
                   </motion.div>

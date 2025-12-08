@@ -239,6 +239,27 @@ export class NotificationService {
                 });
                 break;
 
+            case "new_inquiry":
+                // Handle both single inquiry and count-based notifications
+                if (data.count) {
+                    this.addNotification({
+                        title: "New Contact Inquiries",
+                        message: `You have ${data.count} new contact inquiries awaiting response.`,
+                        type: "inquiry",
+                        priority: data.priority === "high" ? "high" : "normal",
+                        action: "/admin/contact-inquiries"
+                    });
+                } else if (data.firstName && data.lastName) {
+                    this.addNotification({
+                        title: "New Contact Inquiry",
+                        message: `${data.firstName} ${data.lastName} submitted a ${data.inquiryType || "general"} inquiry`,
+                        type: "inquiry",
+                        priority: data.priority === "high" ? "high" : "normal",
+                        action: "/admin/contact-inquiries"
+                    });
+                }
+                break;
+
             default:
                 break;
         }

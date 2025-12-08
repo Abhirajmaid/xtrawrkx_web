@@ -377,9 +377,6 @@ const ContactInquiriesPage = () => {
               <h3 className="text-lg font-semibold text-gray-900">
                 Search & Filters
               </h3>
-              <div className="text-sm text-gray-500">
-                {filteredInquiries.length} of {inquiries.length} inquiries
-              </div>
             </div>
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search */}
@@ -454,6 +451,63 @@ const ContactInquiriesPage = () => {
             </div>
           </div>
 
+          {/* Filtered Results Count */}
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-600">
+                Showing{" "}
+                <span className="font-semibold text-gray-900">
+                  {filteredInquiries.length}
+                </span>{" "}
+                {filteredInquiries.length === 1 ? "inquiry" : "inquiries"}
+                {(() => {
+                  const hasActiveFilters =
+                    searchTerm ||
+                    filterType !== "all" ||
+                    filterStatus !== "all";
+                  
+                  if (hasActiveFilters) {
+                    return (
+                      <>
+                        {" "}
+                        (filtered from{" "}
+                        <span className="font-semibold text-gray-900">
+                          {inquiries.length}
+                        </span>{" "}
+                        total)
+                      </>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+              {(() => {
+                const hasActiveFilters =
+                  searchTerm ||
+                  filterType !== "all" ||
+                  filterStatus !== "all";
+                
+                if (hasActiveFilters) {
+                  return (
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setFilterType("all");
+                        setFilterStatus("all");
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors"
+                      title="Clear all filters"
+                    >
+                      <Icon icon="mdi:close-circle" width={16} />
+                      Clear filters
+                    </button>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          </div>
+
           {/* Inquiries List */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="p-6">
@@ -473,8 +527,8 @@ const ContactInquiriesPage = () => {
                       className="border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:border-brand-primary/20 transition-all duration-200 cursor-pointer group"
                       onClick={() => setSelectedInquiry(inquiry)}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4 flex-1">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start space-x-4 flex-1 min-w-0">
                           <div className="flex-shrink-0">
                             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                               <Icon
@@ -484,20 +538,20 @@ const ContactInquiriesPage = () => {
                               />
                             </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h3 className="text-lg font-medium text-gray-900">
+                          <div className="flex-1 min-w-0 overflow-hidden">
+                            <div className="flex items-center space-x-2 mb-2 flex-wrap">
+                              <h3 className="text-lg font-medium text-gray-900 break-words">
                                 {inquiry.firstName} {inquiry.lastName}
                               </h3>
                               <span
-                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(
                                   inquiry.priority
                                 )}`}
                               >
                                 {inquiry.priority?.toUpperCase()}
                               </span>
                               <span
-                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${getStatusColor(
                                   inquiry.status
                                 )}`}
                               >
@@ -506,23 +560,23 @@ const ContactInquiriesPage = () => {
                                   .toUpperCase()}
                               </span>
                             </div>
-                            <div className="text-sm text-gray-600 mb-2">
-                              <p>
+                            <div className="text-sm text-gray-600 mb-2 space-y-1">
+                              <p className="break-words">
                                 <strong>Email:</strong> {inquiry.email}
                               </p>
                               {inquiry.company && (
-                                <p>
+                                <p className="break-words">
                                   <strong>Company:</strong> {inquiry.company}
                                 </p>
                               )}
-                              <p>
+                              <p className="break-words">
                                 <strong>Type:</strong>{" "}
                                 {formatInquiryType(
                                   inquiry.inquiryType || "general"
                                 )}
                               </p>
                             </div>
-                            <p className="text-gray-700 truncate">
+                            <p className="text-gray-700 line-clamp-2 break-words">
                               {inquiry.message}
                             </p>
                             <div className="mt-2 text-xs text-gray-500">
@@ -530,7 +584,7 @@ const ContactInquiriesPage = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 flex-shrink-0">
                           <select
                             value={inquiry.status || "new"}
                             onChange={(e) => {
@@ -546,7 +600,7 @@ const ContactInquiriesPage = () => {
                           </select>
                           <a
                             href={`mailto:${inquiry.email}?subject=Re: Your Inquiry&body=Hello ${inquiry.firstName},%0A%0AThank you for contacting XtraWrkx...`}
-                            className="text-brand-primary hover:text-brand-secondary"
+                            className="text-brand-primary hover:text-brand-secondary flex-shrink-0"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Icon icon="solar:letter-bold" width={20} />
