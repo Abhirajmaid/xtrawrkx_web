@@ -13,13 +13,12 @@ export const CMS_CONFIG = {
 
     // Firebase project configuration
     FIREBASE_CONFIG: {
-        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-
-        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-        measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+        apiKey: "AIzaSyCRyooUo6KheeDUEuEV9Add_XozmN_p--0",
+        authDomain: "xtrawrkx.firebaseapp.com",
+        projectId: "xtrawrkx",
+        messagingSenderId: "647527626177",
+        appId: "1:647527626177:web:7a791b0e6a5d8c14f9ab40",
+        measurementId: "G-NS76C2JWEQ"
     }
 };
 
