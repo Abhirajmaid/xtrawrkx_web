@@ -370,14 +370,47 @@ export default function RegistrationManagement() {
       let bValue = b[sortBy];
 
       if (sortBy === "registrationDate" || sortBy === "createdAt") {
-        aValue = new Date(aValue);
-        bValue = new Date(bValue);
+        // Fallback to createdAt if registrationDate doesn't exist
+        if (sortBy === "registrationDate") {
+          aValue = aValue || a.createdAt || a.registrationDate;
+          bValue = bValue || b.createdAt || b.registrationDate;
+        }
+        
+        // Convert to Date objects, handling null/undefined
+        const aDate = aValue ? new Date(aValue) : null;
+        const bDate = bValue ? new Date(bValue) : null;
+        
+        // Check for invalid dates and convert to timestamps for comparison
+        if (!aDate || isNaN(aDate.getTime())) {
+          aValue = 0; // Put invalid dates at the end
+        } else {
+          aValue = aDate.getTime();
+        }
+        
+        if (!bDate || isNaN(bDate.getTime())) {
+          bValue = 0; // Put invalid dates at the end
+        } else {
+          bValue = bDate.getTime();
+        }
+      } else {
+        // Handle null/undefined values for non-date fields
+        if (aValue == null) aValue = "";
+        if (bValue == null) bValue = "";
+        
+        // Convert to strings for comparison if not already
+        aValue = String(aValue).toLowerCase();
+        bValue = String(bValue).toLowerCase();
       }
 
+      // Compare values
       if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1;
+        if (aValue < bValue) return -1;
+        if (aValue > bValue) return 1;
+        return 0;
       } else {
-        return aValue < bValue ? 1 : -1;
+        if (aValue > bValue) return -1;
+        if (aValue < bValue) return 1;
+        return 0;
       }
     });
 
