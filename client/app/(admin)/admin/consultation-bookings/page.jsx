@@ -537,7 +537,8 @@ const ConsultationBookingsPage = () => {
                   const hasActiveFilters =
                     searchTerm ||
                     filterType !== "all" ||
-                    filterStatus !== "all";
+                    filterStatus !== "all" ||
+                    filterMode !== "all";
                   
                   if (hasActiveFilters) {
                     return (
@@ -558,7 +559,8 @@ const ConsultationBookingsPage = () => {
                 const hasActiveFilters =
                   searchTerm ||
                   filterType !== "all" ||
-                  filterStatus !== "all";
+                  filterStatus !== "all" ||
+                  filterMode !== "all";
                 
                 if (hasActiveFilters) {
                   return (
@@ -567,6 +569,7 @@ const ConsultationBookingsPage = () => {
                         setSearchTerm("");
                         setFilterType("all");
                         setFilterStatus("all");
+                        setFilterMode("all");
                       }}
                       className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors"
                       title="Clear all filters"

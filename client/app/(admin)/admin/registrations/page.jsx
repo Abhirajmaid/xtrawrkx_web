@@ -987,6 +987,7 @@ export default function RegistrationManagement() {
                     filterType !== "All" ||
                     filterStatus !== "All" ||
                     filterEvent !== "All" ||
+                    filterCompanyType !== "All" ||
                     dateFrom ||
                     dateTo;
 
@@ -1011,6 +1012,7 @@ export default function RegistrationManagement() {
                   filterType !== "All" ||
                   filterStatus !== "All" ||
                   filterEvent !== "All" ||
+                  filterCompanyType !== "All" ||
                   dateFrom ||
                   dateTo;
 
@@ -1022,6 +1024,7 @@ export default function RegistrationManagement() {
                         setFilterType("All");
                         setFilterStatus("All");
                         setFilterEvent("All");
+                        setFilterCompanyType("All");
                         setDateFrom("");
                         setDateTo("");
                         setCurrentPage(1);

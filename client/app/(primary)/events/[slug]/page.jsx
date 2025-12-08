@@ -882,7 +882,7 @@ export default function EventPage({ params }) {
                             {event.speakers.map((speaker, index) => (
                               <div
                                 key={`speaker-${index}`}
-                                className="bg-white rounded-xl p-4 shadow-lg border border-white/50 backdrop-blur-sm min-w-[350px] max-w-[280px] flex-shrink-0 hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                className="bg-white rounded-xl p-4 shadow-lg border border-white/50 backdrop-blur-sm min-w-[350px] max-w-[400px] flex-shrink-0 hover:shadow-xl transition-all duration-300 hover:scale-105"
                               >
                                 <div className="flex flex-col items-center text-center h-full">
                                   {speaker.image ? (
@@ -924,7 +924,7 @@ export default function EventPage({ params }) {
                             {event.speakers.map((speaker, index) => (
                               <div
                                 key={`speaker-duplicate-${index}`}
-                                className="bg-white rounded-xl p-4 shadow-lg border border-white/50 backdrop-blur-sm min-w-[350px] max-w-[280px] flex-shrink-0 hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                className="bg-white rounded-xl p-4 shadow-lg border border-white/50 backdrop-blur-sm min-w-[350px] max-w-[400px] flex-shrink-0 hover:shadow-xl transition-all duration-300 hover:scale-105"
                               >
                                 <div className="flex flex-col items-center text-center h-full">
                                   {speaker.image ? (

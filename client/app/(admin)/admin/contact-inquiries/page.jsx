@@ -464,7 +464,8 @@ const ContactInquiriesPage = () => {
                   const hasActiveFilters =
                     searchTerm ||
                     filterType !== "all" ||
-                    filterStatus !== "all";
+                    filterStatus !== "all" ||
+                    filterPriority !== "all";
                   
                   if (hasActiveFilters) {
                     return (
@@ -485,7 +486,8 @@ const ContactInquiriesPage = () => {
                 const hasActiveFilters =
                   searchTerm ||
                   filterType !== "all" ||
-                  filterStatus !== "all";
+                  filterStatus !== "all" ||
+                  filterPriority !== "all";
                 
                 if (hasActiveFilters) {
                   return (
@@ -494,6 +496,7 @@ const ContactInquiriesPage = () => {
                         setSearchTerm("");
                         setFilterType("all");
                         setFilterStatus("all");
+                        setFilterPriority("all");
                       }}
                       className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors"
                       title="Clear all filters"
