@@ -311,14 +311,20 @@ export default function EventPage({ params }) {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   text={
-                    event.season
+                    event.season === "individual"
+                      ? "Register Now"
+                      : event.season
                       ? `Register for Season ${event.season}`
                       : "Register Now"
                   }
                   type="primary"
-                  link={`/events/season/${
-                    event.season || "current"
-                  }/register?from=${slug}`}
+                  link={
+                    event.season === "individual"
+                      ? `/events/${slug}/register`
+                      : `/events/season/${
+                          event.season || "current"
+                        }/register?from=${slug}`
+                  }
                   className="bg-gradient-to-r from-brand-primary to-brand-secondary"
                 />
                 <Button
@@ -1097,15 +1103,21 @@ export default function EventPage({ params }) {
                       <>
                         <Button
                           text={
-                            event.season
+                            event.season === "individual"
+                              ? "Company Registration"
+                              : event.season
                               ? `Season ${event.season} Registration`
                               : "Company Registration"
                           }
                           type="primary"
                           className="w-full mb-3"
-                          link={`/events/season/${
-                            event.season || "current"
-                          }/register?from=${event.slug}`}
+                          link={
+                            event.season === "individual"
+                              ? `/events/${event.slug}/register`
+                              : `/events/season/${
+                                  event.season || "current"
+                                }/register?from=${event.slug}`
+                          }
                         />
                         {/* <Button
                         text="Share Event"

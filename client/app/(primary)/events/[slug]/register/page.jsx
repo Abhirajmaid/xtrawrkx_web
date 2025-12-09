@@ -13,35 +13,12 @@ import {
 } from "@/src/services/databaseService";
 import { formatEventDate } from "@/src/utils/dateUtils";
 import Script from "next/script";
+import Image from "next/image";
 import { commonToasts, toastUtils } from "@/src/utils/toast";
 import {
   sendRegistrationEmail,
   sendPaymentConfirmationEmail,
 } from "@/src/utils/emailUtils";
-
-const communityOptions = [
-  { id: "none", name: "Not a member", discount: 0, freeSlots: 0 },
-  { id: "xen", name: "XEN Community", discount: 0, freeSlots: 1 },
-  { id: "xev-fin", name: "XEV.FiN Community", discount: 10, freeSlots: 0 },
-  { id: "xevtg", name: "XEVTG Community", discount: 5, freeSlots: 0 },
-  { id: "xd-d", name: "xD&D Community", discount: 15, freeSlots: 0 },
-];
-
-const ticketTypes = [
-  {
-    id: "gnp",
-    name: "General Networking Pass (GNP)",
-    price: 8000,
-    description: "Access to networking sessions and general event activities",
-  },
-  {
-    id: "asp",
-    name: "Active Support Pass (ASP)",
-    price: 60000,
-    description:
-      "Full access to all sessions, workshops, and premium networking opportunities",
-  },
-];
 
 const designations = [
   "CEO/Founder",
@@ -55,6 +32,95 @@ const designations = [
   "Consultant",
   "Other",
 ];
+
+const companyTypes = [
+  { id: "startup-corporate", name: "Startup and Corporates" },
+  { id: "investor", name: "Investors" },
+  { id: "enablers-academia", name: "Enablers & Academia" },
+];
+
+const subTypeOptions = {
+  "startup-corporate": [
+    "EV 2W",
+    "EV 3W",
+    "EV OEM",
+    "EV 4W",
+    "Motor OEM",
+    "Motor Controller OEM",
+    "Batteries",
+    "Charging Infra",
+    "Drones",
+    "AGVs",
+    "Consumer electronics",
+    "Incubator / accelerator",
+    "Power electronics",
+    "Other OE",
+    "Group",
+    "EV Fleet",
+    "E-commerce companies",
+    "3rd party logistics",
+    "Vehicle Smarts",
+    "Swapping",
+    "EV Leasing",
+    "EV Rentals",
+    "EV NBFC",
+    "Power electronics+Vechicle smart",
+    "Electronics Components",
+    "1DL/MDL",
+    "Franchisee",
+    "Smart Battery",
+    "Dealer",
+    "Motor Parts",
+    "Spare Part",
+    "Traditional Auto",
+    "Smart Electronic",
+    "Mech Parts",
+    "Energy Storing",
+    "Automotive Parts_ EV manufacturers",
+    "IOT",
+    "Inverter",
+    "Aggregator",
+  ],
+  investor: [
+    "Future Founder",
+    "Private Lender P2P",
+    "Angel",
+    "Angel Network",
+    "Micro VC",
+    "VC",
+    "Family Office",
+    "Private Equity PE",
+    "Debt",
+    "WC Working Capital",
+    "NBFC",
+    "Bill discounting",
+    "Investment Bank",
+    "Banks",
+    "Asset Investor",
+    "Asset Financier",
+    "Asset Leasing",
+    "Op Franchisee",
+    "Franchise Network",
+    "Incubation Center",
+    "Accelerator",
+    "Industry body",
+    "Gov Body",
+    "Gov Policy",
+    "Alternative Investment Platform",
+    "Strategic investor",
+    "CVC",
+    "HNI",
+  ],
+  "enablers-academia": [
+    "Incubator",
+    "Accelerator",
+    "Venture Studio",
+    "Academia",
+    "Government Office",
+    "Mentor",
+    "Investment Banker",
+  ],
+};
 
 export default function CompanyEventRegistration({ params }) {
   const { slug } = use(params);
@@ -121,45 +187,21 @@ export default function CompanyEventRegistration({ params }) {
   }, [slug]);
 
   const [formData, setFormData] = useState({
+    // Personal Information
+    name: "",
+    email: "",
+    phone: "",
+    designation: "",
+
     // Company Information
     companyName: "",
     companyEmail: "",
     companyPhone: "",
     companyAddress: "",
-    industry: "",
+    companyType: "",
+    subType: "",
     companySize: "",
-    companyCommunity: "none", // Company-level community membership
-
-    // Ticket Information
-    ticketType: "gnp", // Default to General Networking Pass
-
-    // Primary Contact
-    primaryContactName: "",
-    primaryContactEmail: "",
-    primaryContactPhone: "",
-    primaryContactDesignation: "",
-
-    // Personnel List (for seasonal events, this represents attendees under the company ticket)
-    personnel: [
-      {
-        id: 1,
-        name: "",
-        email: "",
-        phone: "",
-        designation: "",
-        dietaryRequirements: "No restrictions",
-        isAttending: true,
-      },
-    ],
-
-    // Additional Information
-    specialRequests: "",
-    emergencyContact: "",
-    emergencyPhone: "",
-
-    // Agreement
-    termsAccepted: false,
-    privacyAccepted: false,
+    linkedinUrl: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -169,10 +211,10 @@ export default function CompanyEventRegistration({ params }) {
   const [successData, setSuccessData] = useState(null);
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
 
     // Clear errors
@@ -181,148 +223,66 @@ export default function CompanyEventRegistration({ params }) {
     }
   };
 
-  const handlePersonnelChange = (index, field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      personnel: prev.personnel.map((person, i) =>
-        i === index ? { ...person, [field]: value } : person
-      ),
-    }));
-
-    // Clear errors
-    if (errors[`personnel_${index}_${field}`]) {
-      setErrors((prev) => ({ ...prev, [`personnel_${index}_${field}`]: "" }));
-    }
-  };
-
-  const addPersonnel = () => {
-    const newId = Math.max(...formData.personnel.map((p) => p.id)) + 1;
-    setFormData((prev) => ({
-      ...prev,
-      personnel: [
-        ...prev.personnel,
-        {
-          id: newId,
-          name: "",
-          email: "",
-          phone: "",
-          designation: "",
-          dietaryRequirements: "No restrictions",
-          isAttending: true,
-        },
-      ],
-    }));
-  };
-
-  const removePersonnel = (index) => {
-    if (formData.personnel.length > 1) {
-      setFormData((prev) => ({
-        ...prev,
-        personnel: prev.personnel.filter((_, i) => i !== index),
-      }));
-    }
-  };
-
-  const calculatePricing = () => {
-    const selectedTicket = ticketTypes.find(
-      (t) => t.id === formData.ticketType
-    );
-    const basePrice = selectedTicket ? selectedTicket.price : 8000; // Default to GNP price
-    let totalCost = basePrice;
-    let discountAmount = 0;
-    let isFree = false;
-
-    const attendingCount = formData.personnel.filter(
-      (p) => p.isAttending
-    ).length;
-    const companyCommunity = communityOptions.find(
-      (c) => c.id === formData.companyCommunity
-    );
-
-    // Apply company-level community benefits to the ticket
-    if (formData.companyCommunity === "xen") {
-      // XEN companies get the ticket for free
-      isFree = true;
-      totalCost = 0;
-      discountAmount = basePrice;
-    } else if (companyCommunity && companyCommunity.discount > 0) {
-      // Apply company discount to the ticket price
-      discountAmount = basePrice * (companyCommunity.discount / 100);
-      totalCost = basePrice - discountAmount;
+  // Parse price from event data
+  const parseEventPrice = () => {
+    if (!event || !event.price) {
+      return { amount: 0, isFree: true };
     }
 
-    return {
-      attendingCount,
-      ticketType: selectedTicket
-        ? selectedTicket.name
-        : "General Networking Pass (GNP)",
-      baseAmount: basePrice,
-      discountAmount,
-      totalCost,
-      savings: basePrice - totalCost,
-      companyCommunity: companyCommunity.name,
-      isFree,
-    };
+    const priceStr = String(event.price).toLowerCase().trim();
+
+    // Check if it's free
+    if (priceStr === "free" || priceStr === "₹0" || priceStr === "0") {
+      return { amount: 0, isFree: true };
+    }
+
+    // Extract number from price string (e.g., "₹5,000" or "5000" or "₹5000")
+    const priceMatch = priceStr.match(/[\d,]+/);
+    if (priceMatch) {
+      const amount = parseInt(priceMatch[0].replace(/,/g, ""), 10);
+      return { amount: isNaN(amount) ? 0 : amount, isFree: false };
+    }
+
+    return { amount: 0, isFree: true };
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    // Company validation
+    // Personal Information Validation
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      newErrors.email = "Please enter a valid email address";
+    if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+
+    // Company Information Validation
     if (!formData.companyName.trim())
       newErrors.companyName = "Company name is required";
     if (!formData.companyEmail.trim())
       newErrors.companyEmail = "Company email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.companyEmail))
+      newErrors.companyEmail = "Please enter a valid company email address";
     if (!formData.companyPhone.trim())
       newErrors.companyPhone = "Company phone is required";
-
-    // Primary contact validation
-    if (!formData.primaryContactName.trim())
-      newErrors.primaryContactName = "Primary contact name is required";
-    if (!formData.primaryContactEmail.trim())
-      newErrors.primaryContactEmail = "Primary contact email is required";
-    if (!formData.primaryContactPhone.trim())
-      newErrors.primaryContactPhone = "Primary contact phone is required";
-
-    // Personnel validation
-    formData.personnel.forEach((person, index) => {
-      if (person.isAttending) {
-        if (!person.name.trim())
-          newErrors[`personnel_${index}_name`] = "Name is required";
-        if (!person.email.trim())
-          newErrors[`personnel_${index}_email`] = "Email is required";
-        if (!person.phone.trim())
-          newErrors[`personnel_${index}_phone`] = "Phone is required";
-        if (!person.designation.trim())
-          newErrors[`personnel_${index}_designation`] =
-            "Designation is required";
-      }
-    });
-
-    // Terms validation
-    if (!formData.termsAccepted)
-      newErrors.termsAccepted = "You must accept the terms and conditions";
-    if (!formData.privacyAccepted)
-      newErrors.privacyAccepted = "You must accept the privacy policy";
+    if (!formData.companyType)
+      newErrors.companyType = "Company type is required";
+    if (formData.companyType && !formData.subType)
+      newErrors.subType = "Sub-type is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const processPayment = (registrationData, registrationId, pricing) => {
+  const processPayment = (registrationData, registrationId, priceInfo) => {
     return new Promise((resolve, reject) => {
-      // Enhanced validation with ad blocker detection
       if (!window.Razorpay) {
         console.error(
           "Razorpay SDK not loaded - possible ad blocker interference"
         );
         reject(
           new Error(
-            "🚫 Payment gateway blocked! This usually happens due to:\n\n" +
-              "1. Ad Blocker (most common) - Please disable ad blocker for this site\n" +
-              "2. Browser security settings - Try incognito/private mode\n" +
-              "3. Network restrictions - Try different network/device\n\n" +
-              "After fixing, please refresh the page and try again."
+            "🚫 Payment gateway blocked! Please disable ad blocker and try again."
           )
         );
         return;
@@ -332,52 +292,41 @@ export default function CompanyEventRegistration({ params }) {
         console.error("Razorpay script not fully loaded");
         reject(
           new Error(
-            "🔄 Payment gateway still loading. Please wait a moment and try again.\n\n" +
-              "If this persists, try:\n" +
-              "1. Refreshing the page\n" +
-              "2. Checking your internet connection\n" +
-              "3. Disabling ad blocker"
+            "🔄 Payment gateway still loading. Please wait a moment and try again."
           )
         );
         return;
       }
 
-      // Validate amount
-      if (!pricing.totalCost || pricing.totalCost <= 0) {
-        console.error("Invalid amount:", pricing.totalCost);
-        reject(
-          new Error("Invalid payment amount. Please refresh and try again.")
-        );
+      if (priceInfo.isFree || priceInfo.amount <= 0) {
+        reject(new Error("Invalid payment amount."));
         return;
       }
 
-      // Validate registration ID
       if (!registrationId) {
-        console.error("Registration ID missing");
         reject(new Error("Registration error. Please try again."));
         return;
       }
 
-      const amountInPaise = Math.round(pricing.totalCost * 100);
+      const amountInPaise = Math.round(priceInfo.amount * 100);
 
       console.log("Processing payment:", {
         registrationId,
-        amount: pricing.totalCost,
+        amount: priceInfo.amount,
         amountInPaise,
         eventTitle: event.title,
       });
 
       const options = {
-        key: "rzp_live_JB7S2UmHSR0kL5", // Live Razorpay API Key
-        amount: amountInPaise, // Amount in paise (must be integer)
+        key: "rzp_live_JB7S2UmHSR0kL5",
+        amount: amountInPaise,
         currency: "INR",
         name: "XtraWrkx Events",
-        description: `${event.title} - ${pricing.ticketType}`,
-        order_id: `event_${registrationId}_${Date.now()}`, // You might want to create this via Razorpay Orders API
+        description: `${event.title} - Event Registration`,
+        order_id: `event_${registrationId}_${Date.now()}`,
         handler: async function (response) {
           console.log("Payment successful:", response);
           try {
-            // Update registration with payment details
             const updatedRegistrationData = {
               ...registrationData,
               paymentStatus: "completed",
@@ -413,23 +362,12 @@ export default function CompanyEventRegistration({ params }) {
                 );
 
                 if (retryCount < maxRetries) {
-                  // Wait for 1 second before retrying
                   await new Promise((resolve) => setTimeout(resolve, 1000));
                 }
               }
             }
 
             if (!updateSuccess) {
-              // Log detailed error for debugging
-              console.error(
-                "Failed to update registration after",
-                maxRetries,
-                "attempts"
-              );
-              console.error("Registration ID:", registrationId);
-              console.error("Payment ID:", response.razorpay_payment_id);
-
-              // Log this for manual admin review
               try {
                 await eventRegistrationService.createFailedPaymentLog({
                   registrationId,
@@ -462,7 +400,6 @@ export default function CompanyEventRegistration({ params }) {
                 "Failed to send payment confirmation email:",
                 emailError
               );
-              // Don't fail the payment process due to email issues
             }
 
             resolve(response);
@@ -476,9 +413,9 @@ export default function CompanyEventRegistration({ params }) {
           }
         },
         prefill: {
-          name: formData.primaryContactName || "",
-          email: formData.primaryContactEmail || "",
-          contact: formData.primaryContactPhone || "",
+          name: formData.name || "",
+          email: formData.email || "",
+          contact: formData.phone || "",
         },
         notes: {
           registrationId: registrationId,
@@ -486,7 +423,7 @@ export default function CompanyEventRegistration({ params }) {
           companyName: formData.companyName || "",
         },
         theme: {
-          color: "#3B82F6", // Brand primary color
+          color: "#3B82F6",
         },
         modal: {
           ondismiss: function () {
@@ -501,97 +438,37 @@ export default function CompanyEventRegistration({ params }) {
       try {
         const razorpay = new window.Razorpay(options);
 
-        // Enhanced error handling for different failure types
         razorpay.on("payment.failed", function (response) {
           console.error("Payment failed:", response.error);
           const error = response.error;
-
           let errorMessage = "❌ Payment Failed\n\n";
 
           if (error.code === "BAD_REQUEST_ERROR") {
-            errorMessage += "🚫 Bad Request Error - This usually indicates:\n";
-            errorMessage += "• Ad blocker corrupting payment data\n";
-            errorMessage += "• Browser security blocking requests\n";
-            errorMessage += "• Network interference\n\n";
-            errorMessage += "Please disable ad blocker and try again.";
+            errorMessage +=
+              "🚫 Bad Request Error - Please disable ad blocker and try again.";
           } else if (error.code === "GATEWAY_ERROR") {
             errorMessage +=
               "🏦 Bank/Gateway Issue - Please try a different payment method.";
           } else if (error.code === "NETWORK_ERROR") {
             errorMessage +=
-              "🌐 Network Issue - Please check your internet connection and try again.";
-          } else if (
-            error.description &&
-            error.description.includes("blocked")
-          ) {
-            errorMessage +=
-              "🚫 Payment blocked - Please check with your bank or try a different card.";
-          } else if (error.description && error.description.includes("400")) {
-            errorMessage +=
-              "🚫 Request Error (400) - This indicates ad blocker interference:\n";
-            errorMessage += "• Please disable ad blocker for this website\n";
-            errorMessage += "• Try incognito/private browsing mode\n";
-            errorMessage += "• Clear browser cache and try again";
+              "🌐 Network Issue - Please check your internet connection.";
           } else {
             const desc =
               error.description || error.reason || "Unknown payment error";
             errorMessage += `Details: ${desc}`;
-
-            // Check if it might be ad blocker related
-            if (
-              desc.includes("400") ||
-              desc.includes("Bad Request") ||
-              desc.includes("blocked")
-            ) {
-              errorMessage +=
-                "\n\n💡 This looks like ad blocker interference. Please disable ad blocker and try again.";
-            }
           }
-
-          errorMessage +=
-            "\n\nTip: Try incognito mode, disable ad blocker, or contact support if issue persists.";
 
           reject(new Error(errorMessage));
         });
 
-        // Add network error detection
-        const originalOpen = razorpay.open;
-        razorpay.open = function () {
-          try {
-            return originalOpen.call(this);
-          } catch (networkError) {
-            console.error("Network error opening Razorpay:", networkError);
-            reject(
-              new Error(
-                "🌐 Network Error: Unable to connect to payment gateway.\n\n" +
-                  "This often happens due to:\n" +
-                  "1. Ad blocker blocking payment scripts\n" +
-                  "2. Poor internet connectivity\n" +
-                  "3. Firewall/proxy restrictions\n\n" +
-                  "Please disable ad blocker and try again."
-              )
-            );
-          }
-        };
-
         razorpay.open();
       } catch (error) {
         console.error("Error creating/opening Razorpay:", error);
-        let errorMessage = "🚫 Failed to open payment gateway.\n\n";
-
-        if (error.message && error.message.includes("blocked")) {
-          errorMessage +=
-            "This is typically caused by ad blockers or browser security settings.\n\n";
-          errorMessage += "Please:\n";
-          errorMessage += "1. Disable ad blocker for this website\n";
-          errorMessage += "2. Try incognito/private browsing mode\n";
-          errorMessage += "3. Check your internet connection";
-        } else {
-          errorMessage += "Error: " + error.message + "\n\n";
-          errorMessage += "Please refresh the page and try again.";
-        }
-
-        reject(new Error(errorMessage));
+        reject(
+          new Error(
+            "🚫 Failed to open payment gateway. Please refresh the page and try again."
+          )
+        );
       }
     });
   };
@@ -609,75 +486,59 @@ export default function CompanyEventRegistration({ params }) {
     setIsSubmitting(true);
 
     try {
-      const pricing = calculatePricing();
+      const priceInfo = parseEventPrice();
 
       // Prepare registration data for database
       const registrationData = {
+        // Registration Type
+        registrationType: "individual",
+
         // Event Information
-        eventId: event.id || event.slug, // Use event ID if available, fallback to slug
+        eventId: event.id || event.slug,
         eventTitle: event.title,
         eventDate: event.date,
         eventLocation: event.location,
+
+        // Personal Information (Primary Contact)
+        primaryContactName: formData.name,
+        primaryContactEmail: formData.email,
+        primaryContactPhone: formData.phone,
+        primaryContactDesignation: formData.designation,
 
         // Company Information
         companyName: formData.companyName,
         companyEmail: formData.companyEmail,
         companyPhone: formData.companyPhone,
         companyAddress: formData.companyAddress,
-        industry: formData.industry,
+        companyType: formData.companyType,
+        subType: formData.subType,
         companySize: formData.companySize,
-        companyCommunity: formData.companyCommunity,
-
-        // Ticket Information
-        ticketType: formData.ticketType,
-        ticketName: pricing.ticketType,
-
-        // Primary Contact
-        primaryContactName: formData.primaryContactName,
-        primaryContactEmail: formData.primaryContactEmail,
-        primaryContactPhone: formData.primaryContactPhone,
-        primaryContactDesignation: formData.primaryContactDesignation,
-
-        // Personnel List
-        personnel: formData.personnel.filter((p) => p.isAttending),
-
-        // Additional Information
-        specialRequests: formData.specialRequests,
-        emergencyContact: formData.emergencyContact,
-        emergencyPhone: formData.emergencyPhone,
+        linkedinUrl: formData.linkedinUrl,
 
         // Pricing Information
-        totalCost: pricing.totalCost,
-        baseAmount: pricing.baseAmount,
-        discountAmount: pricing.discountAmount,
-        isFree: pricing.isFree,
-        attendingCount: pricing.attendingCount,
-
-        // Agreement
-        termsAccepted: formData.termsAccepted,
-        privacyAccepted: formData.privacyAccepted,
+        totalCost: priceInfo.amount,
+        isFree: priceInfo.isFree,
+        eventPrice: event.price,
 
         // Registration Status
-        status: pricing.isFree ? "confirmed" : "pending", // Free registrations are confirmed immediately
-        paymentStatus: pricing.isFree ? "completed" : "pending",
+        status: priceInfo.isFree ? "confirmed" : "pending",
+        paymentStatus: priceInfo.isFree ? "completed" : "pending",
       };
 
       // Save registration to database
-      const registrationId = await eventRegistrationService.createRegistration(
-        registrationData
-      );
+      const registrationResult =
+        await eventRegistrationService.createRegistration(registrationData);
+      const registrationId = registrationResult.id;
 
       console.log("Registration saved with ID:", registrationId);
 
       // If it's a free registration, complete immediately
-      if (pricing.isFree) {
-        // Send registration confirmation email for free registrations
+      if (priceInfo.isFree) {
         const emailSent = await sendRegistrationEmail(
           registrationData,
           registrationId
         );
 
-        // Show success toast and page for free registrations
         toastUtils.success(
           `🎉 Registration completed successfully! Your registration ID is: ${registrationId}. Welcome to ${
             event.title
@@ -693,48 +554,30 @@ export default function CompanyEventRegistration({ params }) {
           registrationId,
           companyName: formData.companyName,
           eventTitle: event.title,
-          ticketType: pricing.ticketType,
           totalCost: 0,
         });
         setShowSuccessPage(true);
 
-        // Reset form after successful free registration
+        // Reset form
         setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          designation: "",
           companyName: "",
           companyEmail: "",
           companyPhone: "",
           companyAddress: "",
-          industry: "",
+          companyType: "",
+          subType: "",
           companySize: "",
-          companyCommunity: "none",
-          ticketType: "gnp",
-          primaryContactName: "",
-          primaryContactEmail: "",
-          primaryContactPhone: "",
-          primaryContactDesignation: "",
-          personnel: [
-            {
-              id: 1,
-              name: "",
-              email: "",
-              phone: "",
-              designation: "",
-              dietaryRequirements: "No restrictions",
-              isAttending: true,
-            },
-          ],
-          specialRequests: "",
-          emergencyContact: "",
-          emergencyPhone: "",
-          termsAccepted: false,
-          privacyAccepted: false,
+          linkedinUrl: "",
         });
       } else {
         // Process payment for paid registrations
         try {
-          await processPayment(registrationData, registrationId, pricing);
+          await processPayment(registrationData, registrationId, priceInfo);
 
-          // Show success toast and page for paid registrations
           toastUtils.success(
             `🎉 Payment successful! Registration completed for ${event.title}. Registration ID: ${registrationId}. You'll receive a confirmation email shortly.`,
             { autoClose: 12000 }
@@ -744,58 +587,31 @@ export default function CompanyEventRegistration({ params }) {
             registrationId,
             companyName: formData.companyName,
             eventTitle: event.title,
-            ticketType: pricing.ticketType,
-            totalCost: pricing.totalCost,
+            totalCost: priceInfo.amount,
           });
           setShowSuccessPage(true);
 
-          // Reset form after successful paid registration
+          // Reset form
           setFormData({
+            name: "",
+            email: "",
+            phone: "",
+            designation: "",
             companyName: "",
             companyEmail: "",
             companyPhone: "",
             companyAddress: "",
-            industry: "",
+            companyType: "",
+            subType: "",
             companySize: "",
-            companyCommunity: "none",
-            ticketType: "gnp",
-            primaryContactName: "",
-            primaryContactEmail: "",
-            primaryContactPhone: "",
-            primaryContactDesignation: "",
-            personnel: [
-              {
-                id: 1,
-                name: "",
-                email: "",
-                phone: "",
-                designation: "",
-                dietaryRequirements: "No restrictions",
-                isAttending: true,
-              },
-            ],
-            specialRequests: "",
-            emergencyContact: "",
-            emergencyPhone: "",
-            termsAccepted: false,
-            privacyAccepted: false,
+            linkedinUrl: "",
           });
         } catch (paymentError) {
           console.error("Payment error:", paymentError);
 
           if (paymentError.message === "Payment cancelled by user") {
             toastUtils.warning(
-              `💳 Payment was cancelled. Your registration has been saved and you can complete the payment later. Registration ID: ${registrationId}. You can contact support to complete payment if needed.`,
-              { autoClose: 10000 }
-            );
-          } else if (paymentError.message.includes("Payment gateway")) {
-            toastUtils.error(
-              `🔄 ${paymentError.message}. Registration ID: ${registrationId}. Please try again in a moment.`,
-              { autoClose: 8000 }
-            );
-          } else if (paymentError.message.includes("Payment failed:")) {
-            toastUtils.error(
-              `❌ ${paymentError.message}. Registration ID: ${registrationId}. Please try a different payment method or contact support.`,
+              `💳 Payment was cancelled. Your registration has been saved and you can complete the payment later. Registration ID: ${registrationId}.`,
               { autoClose: 10000 }
             );
           } else {
@@ -866,38 +682,59 @@ export default function CompanyEventRegistration({ params }) {
     );
   }
 
-  const pricing = calculatePricing();
+  const priceInfo = parseEventPrice();
+  const displayPrice = priceInfo.isFree
+    ? "FREE"
+    : `₹${priceInfo.amount.toLocaleString()}`;
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Section className="bg-white border-b">
-        <Container>
-          <div className="py-6 pt-[100px]">
+      <Section className="relative border-b overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 w-full h-full">
+          <Image
+            src="/images/reg_hero.svg"
+            alt="Registration Header Background"
+            className="object-cover object-right"
+            fill
+            priority
+          />
+          {/* Overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
+        </div>
+
+        <Container className="relative z-10">
+          <div className="py-6 pt-[170px]">
             <div className="flex items-center space-x-3 mb-4">
               <Button
                 text="← Back to Event"
                 type="secondary"
                 link={`/events/${slug}`}
-                className="text-sm"
+                className="text-sm bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-white/30"
               />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Company Registration
+            <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
+              Event Registration
             </h1>
-            <div className="flex items-center space-x-6 text-gray-600">
+            <p className="text-white/90 mb-4 drop-shadow">
+              Register for {event.title} and secure your spot
+            </p>
+            <div className="flex items-center space-x-6 text-white/80">
               <div className="flex items-center space-x-2">
-                <Icon icon="solar:calendar-bold" width={20} />
-                <span>{event.title}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Icon icon="solar:calendar-bold" width={16} />
+                <Icon icon="mdi:calendar" width={20} />
                 <span>{formatEventDate(event.date) || event.date}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Icon icon="solar:map-point-bold" width={16} />
+                <Icon icon="mdi:map-marker" width={16} />
                 <span>{event.location}</span>
               </div>
+              {event.time && (
+                <div className="flex items-center space-x-2">
+                  <Icon icon="mdi:clock-outline" width={16} />
+                  <span>{event.time}</span>
+                </div>
+              )}
             </div>
           </div>
         </Container>
@@ -908,6 +745,106 @@ export default function CompanyEventRegistration({ params }) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Form */}
             <div className="lg:col-span-2 space-y-8">
+              {/* Personal Information */}
+              <div className="bg-white rounded-xl p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                  <Icon
+                    icon="solar:user-bold"
+                    width={24}
+                    className="mr-2 text-brand-primary"
+                  />
+                  Personal Information
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                        errors.name
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Enter your full name"
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                        errors.email
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="your.email@example.com"
+                    />
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mobile Number *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                        errors.phone
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="+91 98765 43210"
+                    />
+                    {errors.phone && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.phone}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Designation
+                    </label>
+                    <select
+                      name="designation"
+                      value={formData.designation}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    >
+                      <option value="">Select designation</option>
+                      {designations.map((designation) => (
+                        <option key={designation} value={designation}>
+                          {designation}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               {/* Company Information */}
               <div className="bg-white rounded-xl p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
@@ -929,12 +866,12 @@ export default function CompanyEventRegistration({ params }) {
                       name="companyName"
                       value={formData.companyName}
                       onChange={handleInputChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
                         errors.companyName
-                          ? "border-red-500"
+                          ? "border-red-300 bg-red-50"
                           : "border-gray-300"
                       }`}
-                      placeholder="Enter company name"
+                      placeholder="Your company name"
                     />
                     {errors.companyName && (
                       <p className="text-red-500 text-sm mt-1">
@@ -952,9 +889,9 @@ export default function CompanyEventRegistration({ params }) {
                       name="companyEmail"
                       value={formData.companyEmail}
                       onChange={handleInputChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
                         errors.companyEmail
-                          ? "border-red-500"
+                          ? "border-red-300 bg-red-50"
                           : "border-gray-300"
                       }`}
                       placeholder="company@example.com"
@@ -975,9 +912,9 @@ export default function CompanyEventRegistration({ params }) {
                       name="companyPhone"
                       value={formData.companyPhone}
                       onChange={handleInputChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
                         errors.companyPhone
-                          ? "border-red-500"
+                          ? "border-red-300 bg-red-50"
                           : "border-gray-300"
                       }`}
                       placeholder="+91 98765 43210"
@@ -991,23 +928,64 @@ export default function CompanyEventRegistration({ params }) {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Industry
+                      Company Type *
                     </label>
                     <select
-                      name="industry"
-                      value={formData.industry}
+                      name="companyType"
+                      value={formData.companyType}
                       onChange={handleInputChange}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                        errors.companyType
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
                     >
-                      <option value="">Select industry</option>
-                      <option value="automotive">Automotive</option>
-                      <option value="technology">Technology</option>
-                      <option value="finance">Finance</option>
-                      <option value="energy">Energy</option>
-                      <option value="manufacturing">Manufacturing</option>
-                      <option value="consulting">Consulting</option>
-                      <option value="other">Other</option>
+                      <option value="">Select company type</option>
+                      {companyTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
                     </select>
+                    {errors.companyType && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.companyType}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Sub-type *
+                    </label>
+                    <select
+                      name="subType"
+                      value={formData.subType}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                        errors.subType
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
+                      disabled={!formData.companyType}
+                    >
+                      <option value="">
+                        {formData.companyType
+                          ? "Select sub-type"
+                          : "Please select company type first"}
+                      </option>
+                      {formData.companyType &&
+                        subTypeOptions[formData.companyType]?.map((subType) => (
+                          <option key={subType} value={subType}>
+                            {subType}
+                          </option>
+                        ))}
+                    </select>
+                    {errors.subType && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.subType}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -1018,35 +996,14 @@ export default function CompanyEventRegistration({ params }) {
                       name="companySize"
                       value={formData.companySize}
                       onChange={handleInputChange}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary"
                     >
-                      <option value="">Select size</option>
+                      <option value="">Select company size</option>
                       <option value="1-10">1-10 employees</option>
                       <option value="11-50">11-50 employees</option>
                       <option value="51-200">51-200 employees</option>
                       <option value="201-1000">201-1000 employees</option>
                       <option value="1000+">1000+ employees</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Community Membership
-                    </label>
-                    <select
-                      name="companyCommunity"
-                      value={formData.companyCommunity}
-                      onChange={handleInputChange}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
-                    >
-                      {communityOptions.map((community) => (
-                        <option key={community.id} value={community.id}>
-                          {community.name}
-                          {community.freeSlots > 0 && " (Free for 1 person)"}
-                          {community.discount > 0 &&
-                            ` (${community.discount}% discount)`}
-                        </option>
-                      ))}
                     </select>
                   </div>
 
@@ -1058,529 +1015,43 @@ export default function CompanyEventRegistration({ params }) {
                       name="companyAddress"
                       value={formData.companyAddress}
                       onChange={handleInputChange}
-                      rows={2}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors resize-none"
-                      placeholder="Enter company address"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Ticket Selection */}
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Icon
-                    icon="solar:ticket-bold"
-                    width={24}
-                    className="mr-2 text-brand-primary"
-                  />
-                  Ticket Selection
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {ticketTypes.map((ticket) => (
-                    <div
-                      key={ticket.id}
-                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                        formData.ticketType === ticket.id
-                          ? "border-brand-primary bg-brand-primary/5"
-                          : "border-gray-300 hover:border-gray-400"
-                      }`}
-                      onClick={() =>
-                        handleInputChange({
-                          target: { name: "ticketType", value: ticket.id },
-                        })
-                      }
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <input
-                              type="radio"
-                              name="ticketType"
-                              value={ticket.id}
-                              checked={formData.ticketType === ticket.id}
-                              onChange={handleInputChange}
-                              className="text-brand-primary"
-                            />
-                            <h3 className="font-semibold text-gray-900">
-                              {ticket.name}
-                            </h3>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-3">
-                            {ticket.description}
-                          </p>
-                          <div className="text-2xl font-bold text-brand-primary">
-                            ₹{ticket.price.toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Primary Contact */}
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Icon
-                    icon="solar:user-bold"
-                    width={24}
-                    className="mr-2 text-brand-primary"
-                  />
-                  Primary Contact Person
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="primaryContactName"
-                      value={formData.primaryContactName}
-                      onChange={handleInputChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
-                        errors.primaryContactName
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="Enter full name"
-                    />
-                    {errors.primaryContactName && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.primaryContactName}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      name="primaryContactEmail"
-                      value={formData.primaryContactEmail}
-                      onChange={handleInputChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
-                        errors.primaryContactEmail
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="contact@example.com"
-                    />
-                    {errors.primaryContactEmail && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.primaryContactEmail}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      name="primaryContactPhone"
-                      value={formData.primaryContactPhone}
-                      onChange={handleInputChange}
-                      className={`w-full border-2 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
-                        errors.primaryContactPhone
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="+91 98765 43210"
-                    />
-                    {errors.primaryContactPhone && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.primaryContactPhone}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Designation
-                    </label>
-                    <select
-                      name="primaryContactDesignation"
-                      value={formData.primaryContactDesignation}
-                      onChange={handleInputChange}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
-                    >
-                      <option value="">Select designation</option>
-                      {designations.map((designation) => (
-                        <option key={designation} value={designation}>
-                          {designation}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Personnel List */}
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-                    <Icon
-                      icon="solar:users-group-rounded-bold"
-                      width={24}
-                      className="mr-2 text-brand-primary"
-                    />
-                    Event Attendees
-                  </h2>
-                  <Button
-                    text="+ Add Person"
-                    type="primary"
-                    onClick={addPersonnel}
-                    className="text-sm"
-                  />
-                </div>
-
-                <div className="space-y-6">
-                  {formData.personnel.map((person, index) => (
-                    <div
-                      key={person.id}
-                      className="border border-gray-200 rounded-lg p-4"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-medium text-gray-900">
-                          Attendee {index + 1}
-                        </h3>
-                        <div className="flex items-center space-x-2">
-                          <label className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              checked={person.isAttending}
-                              onChange={(e) =>
-                                handlePersonnelChange(
-                                  index,
-                                  "isAttending",
-                                  e.target.checked
-                                )
-                              }
-                              className="rounded"
-                            />
-                            <span className="text-sm text-gray-600">
-                              Attending
-                            </span>
-                          </label>
-                          {formData.personnel.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removePersonnel(index)}
-                              className="text-red-500 hover:text-red-700 p-1"
-                            >
-                              <Icon
-                                icon="solar:trash-bin-minimalistic-bold"
-                                width={16}
-                              />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {person.isAttending && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Full Name *
-                            </label>
-                            <input
-                              type="text"
-                              value={person.name}
-                              onChange={(e) =>
-                                handlePersonnelChange(
-                                  index,
-                                  "name",
-                                  e.target.value
-                                )
-                              }
-                              className={`w-full border rounded-lg py-2 px-3 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
-                                errors[`personnel_${index}_name`]
-                                  ? "border-red-500"
-                                  : "border-gray-300"
-                              }`}
-                              placeholder="Enter full name"
-                            />
-                            {errors[`personnel_${index}_name`] && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {errors[`personnel_${index}_name`]}
-                              </p>
-                            )}
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Email *
-                            </label>
-                            <input
-                              type="email"
-                              value={person.email}
-                              onChange={(e) =>
-                                handlePersonnelChange(
-                                  index,
-                                  "email",
-                                  e.target.value
-                                )
-                              }
-                              className={`w-full border rounded-lg py-2 px-3 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
-                                errors[`personnel_${index}_email`]
-                                  ? "border-red-500"
-                                  : "border-gray-300"
-                              }`}
-                              placeholder="email@example.com"
-                            />
-                            {errors[`personnel_${index}_email`] && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {errors[`personnel_${index}_email`]}
-                              </p>
-                            )}
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Phone *
-                            </label>
-                            <input
-                              type="tel"
-                              value={person.phone}
-                              onChange={(e) =>
-                                handlePersonnelChange(
-                                  index,
-                                  "phone",
-                                  e.target.value
-                                )
-                              }
-                              className={`w-full border rounded-lg py-2 px-3 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
-                                errors[`personnel_${index}_phone`]
-                                  ? "border-red-500"
-                                  : "border-gray-300"
-                              }`}
-                              placeholder="+91 98765 43210"
-                            />
-                            {errors[`personnel_${index}_phone`] && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {errors[`personnel_${index}_phone`]}
-                              </p>
-                            )}
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Designation *
-                            </label>
-                            <select
-                              value={person.designation}
-                              onChange={(e) =>
-                                handlePersonnelChange(
-                                  index,
-                                  "designation",
-                                  e.target.value
-                                )
-                              }
-                              className={`w-full border rounded-lg py-2 px-3 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors ${
-                                errors[`personnel_${index}_designation`]
-                                  ? "border-red-500"
-                                  : "border-gray-300"
-                              }`}
-                            >
-                              <option value="">Select designation</option>
-                              {designations.map((designation) => (
-                                <option key={designation} value={designation}>
-                                  {designation}
-                                </option>
-                              ))}
-                            </select>
-                            {errors[`personnel_${index}_designation`] && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {errors[`personnel_${index}_designation`]}
-                              </p>
-                            )}
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Dietary Requirements
-                            </label>
-                            <select
-                              value={person.dietaryRequirements}
-                              onChange={(e) =>
-                                handlePersonnelChange(
-                                  index,
-                                  "dietaryRequirements",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full border border-gray-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
-                            >
-                              <option value="No restrictions">
-                                No restrictions
-                              </option>
-                              <option value="Vegetarian">Vegetarian</option>
-                              <option value="Vegan">Vegan</option>
-                              <option value="Gluten-free">Gluten-free</option>
-                              <option value="Halal">Halal</option>
-                              <option value="Other">Other</option>
-                            </select>
-                          </div>
-
-                          <div className="lg:col-span-1 flex items-center">
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm">
-                              <span className="text-blue-700 font-medium">
-                                Company Benefit:{" "}
-                                {formData.companyCommunity === "xen"
-                                  ? "FREE Ticket"
-                                  : formData.companyCommunity !== "none"
-                                  ? `${
-                                      communityOptions.find(
-                                        (c) =>
-                                          c.id === formData.companyCommunity
-                                      )?.discount || 0
-                                    }% OFF Ticket`
-                                  : "No discount"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Additional Information */}
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Icon
-                    icon="solar:document-text-bold"
-                    width={24}
-                    className="mr-2 text-brand-primary"
-                  />
-                  Additional Information
-                </h2>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Special Requests or Requirements
-                    </label>
-                    <textarea
-                      name="specialRequests"
-                      value={formData.specialRequests}
-                      onChange={handleInputChange}
                       rows={3}
-                      className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors resize-none"
-                      placeholder="Any special accommodation needs, accessibility requirements, or other requests..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
+                      placeholder="Complete company address"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Emergency Contact Name
-                      </label>
-                      <input
-                        type="text"
-                        name="emergencyContact"
-                        value={formData.emergencyContact}
-                        onChange={handleInputChange}
-                        className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
-                        placeholder="Emergency contact person"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Emergency Contact Phone
-                      </label>
-                      <input
-                        type="tel"
-                        name="emergencyPhone"
-                        value={formData.emergencyPhone}
-                        onChange={handleInputChange}
-                        className="w-full border-2 border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-colors"
-                        placeholder="+91 98765 43210"
-                      />
-                    </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company LinkedIn URL
+                    </label>
+                    <input
+                      type="url"
+                      name="linkedinUrl"
+                      value={formData.linkedinUrl}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors ${
+                        errors.linkedinUrl
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="https://linkedin.com/company/your-company"
+                    />
+                    {errors.linkedinUrl && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.linkedinUrl}
+                      </p>
+                    )}
                   </div>
-                </div>
-              </div>
-
-              {/* Terms and Conditions */}
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                  <Icon
-                    icon="solar:shield-check-bold"
-                    width={24}
-                    className="mr-2 text-brand-primary"
-                  />
-                  Terms & Conditions
-                </h2>
-
-                <div className="space-y-4">
-                  <label className="flex items-start space-x-3">
-                    <input
-                      type="checkbox"
-                      name="termsAccepted"
-                      checked={formData.termsAccepted}
-                      onChange={handleInputChange}
-                      className="mt-1"
-                    />
-                    <span className="text-sm text-gray-700">
-                      I agree to the{" "}
-                      <a
-                        href="/terms-of-service"
-                        className="text-brand-primary hover:underline"
-                      >
-                        Terms and Conditions
-                      </a>{" "}
-                      for event registration and attendance *
-                    </span>
-                  </label>
-                  {errors.termsAccepted && (
-                    <p className="text-red-500 text-sm">
-                      {errors.termsAccepted}
-                    </p>
-                  )}
-
-                  <label className="flex items-start space-x-3">
-                    <input
-                      type="checkbox"
-                      name="privacyAccepted"
-                      checked={formData.privacyAccepted}
-                      onChange={handleInputChange}
-                      className="mt-1"
-                    />
-                    <span className="text-sm text-gray-700">
-                      I agree to the{" "}
-                      <a
-                        href="/privacy-policy"
-                        className="text-brand-primary hover:underline"
-                      >
-                        Privacy Policy
-                      </a>{" "}
-                      and consent to data processing *
-                    </span>
-                  </label>
-                  {errors.privacyAccepted && (
-                    <p className="text-red-500 text-sm">
-                      {errors.privacyAccepted}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
 
             {/* Pricing Sidebar */}
             <div className="lg:col-span-1">
-              <div className="sticky top-8 space-y-6">
-                {/* Pricing Summary */}
-                <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="sticky top-24 space-y-6">
+                {/* Registration Summary */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <Icon
                       icon="solar:calculator-bold"
@@ -1590,122 +1061,75 @@ export default function CompanyEventRegistration({ params }) {
                     Registration Summary
                   </h3>
 
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Selected Ticket:</span>
-                      <span className="font-medium text-right">
-                        {pricing.ticketType}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Total Attendees:</span>
-                      <span className="font-medium">
-                        {pricing.attendingCount}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Base Amount:</span>
-                      <span>₹{pricing.baseAmount.toLocaleString()}</span>
-                    </div>
-
-                    {pricing.isFree && (
-                      <div className="flex justify-between text-sm text-green-600">
-                        <span>XEN Member (Free Ticket):</span>
-                        <span>-₹{pricing.baseAmount.toLocaleString()}</span>
-                      </div>
-                    )}
-
-                    {pricing.discountAmount > 0 && !pricing.isFree && (
-                      <div className="flex justify-between text-sm text-green-600">
-                        <span>{pricing.companyCommunity} Discount:</span>
-                        <span>-₹{pricing.discountAmount.toLocaleString()}</span>
-                      </div>
-                    )}
-
-                    <div className="border-t pt-3">
-                      <div className="flex justify-between text-lg font-bold">
-                        <span>Total Amount:</span>
-                        <span className="text-brand-primary">
-                          {pricing.isFree
-                            ? "FREE"
-                            : `₹${pricing.totalCost.toLocaleString()}`}
+                  <div className="space-y-4">
+                    {/* Event Details */}
+                    <div className="space-y-3 pb-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Event:</span>
+                        <span className="font-medium text-right text-gray-900">
+                          {event.title}
                         </span>
                       </div>
 
-                      {pricing.savings > 0 && (
-                        <div className="text-sm text-green-600 text-right">
-                          You save ₹{pricing.savings.toLocaleString()}!
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Date:</span>
+                        <span className="font-medium text-gray-900">
+                          {formatEventDate(event.date) || event.date}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Location:</span>
+                        <span className="font-medium text-gray-900">
+                          {event.location}
+                        </span>
+                      </div>
+
+                      {event.time && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Time:</span>
+                          <span className="font-medium text-gray-900">
+                            {event.time}
+                          </span>
                         </div>
                       )}
                     </div>
-                  </div>
-                </div>
 
-                {/* Community Benefits */}
-                <div className="bg-blue-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Icon
-                      icon="solar:users-group-rounded-bold"
-                      width={20}
-                      className="mr-2 text-blue-600"
-                    />
-                    Community Benefits
-                  </h3>
+                    {/* Pricing */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Registration Fee:</span>
+                        <span className="font-medium text-gray-900">
+                          {displayPrice}
+                        </span>
+                      </div>
 
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <Icon
-                        icon="solar:check-circle-bold"
-                        width={16}
-                        className="text-green-500"
-                      />
-                      <span>XEN Companies: FREE ticket (any pass)</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Icon
-                        icon="solar:check-circle-bold"
-                        width={16}
-                        className="text-green-500"
-                      />
-                      <span>xD&D Companies: 15% discount on ticket price</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Icon
-                        icon="solar:check-circle-bold"
-                        width={16}
-                        className="text-green-500"
-                      />
-                      <span>
-                        XEV.FiN Companies: 10% discount on ticket price
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Icon
-                        icon="solar:check-circle-bold"
-                        width={16}
-                        className="text-green-500"
-                      />
-                      <span>XEVTG Companies: 5% discount on ticket price</span>
+                      <div className="border-t border-gray-200 pt-3">
+                        <div className="flex items-center justify-between text-lg font-bold text-gray-900">
+                          <span>Total Amount:</span>
+                          <span className="text-brand-primary">
+                            {displayPrice}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Submit Button */}
-                <Button
-                  text={
-                    isSubmitting
-                      ? "Processing..."
-                      : pricing.isFree
-                      ? "Complete Registration (FREE)"
-                      : `Complete Registration (₹${pricing.totalCost.toLocaleString()})`
-                  }
-                  type="primary"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="w-full text-center py-4"
-                />
+                  {/* Submit Button */}
+                  <Button
+                    text={
+                      isSubmitting
+                        ? "Processing..."
+                        : priceInfo.isFree
+                        ? "Complete Registration (FREE)"
+                        : `Complete Registration (${displayPrice})`
+                    }
+                    type="primary"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="w-full mt-6"
+                  />
+                </div>
               </div>
             </div>
           </div>

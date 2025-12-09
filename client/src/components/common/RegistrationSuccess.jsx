@@ -13,14 +13,14 @@ const RegistrationSuccess = ({ registrationData, onRedirect }) => {
   };
 
   return (
-    <div className="min-h-screen mt-[150px] bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen pt-[150px] bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4">
       <div className="max-w-2xl w-full">
         {/* Success Animation Container */}
         <div className="text-center mb-8">
           <div className="relative inline-flex items-center justify-center">
             {/* Animated Success Circle */}
             <div className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
-              <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+              <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center">
                 <Icon
                   icon="mdi:check-bold"
                   className="text-white text-4xl"
@@ -96,12 +96,14 @@ const RegistrationSuccess = ({ registrationData, onRedirect }) => {
                 </span>
               </div>
 
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Ticket Type:</span>
-                <span className="font-medium text-gray-900">
-                  {registrationData?.ticketType === "asp" ? "ASP" : "GNP"}
-                </span>
-              </div>
+              {registrationData?.ticketType && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Ticket Type:</span>
+                  <span className="font-medium text-gray-900">
+                    {registrationData.ticketType === "asp" ? "ASP" : "GNP"}
+                  </span>
+                </div>
+              )}
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Total Cost:</span>
@@ -147,7 +149,7 @@ const RegistrationSuccess = ({ registrationData, onRedirect }) => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={handleManualRedirect}
-              className="flex items-center justify-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
+              className="flex items-center justify-center px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors font-medium cursor-pointer"
             >
               <Icon icon="mdi:arrow-right" className="mr-2" width={20} />
               Continue to Events
@@ -164,7 +166,7 @@ const RegistrationSuccess = ({ registrationData, onRedirect }) => {
         </div>
 
         {/* Support Information */}
-        <div className="text-center mt-8">
+        <div className="text-center my-8">
           <p className="text-gray-500 text-sm mb-2">
             Need help? Contact our support team
           </p>

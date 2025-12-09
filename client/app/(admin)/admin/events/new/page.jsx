@@ -14,7 +14,7 @@ export default function NewEvent() {
     title: "",
     slug: "",
     category: "Summit",
-    season: "2025",
+    season: "individual",
     date: "",
     time: "",
     location: "",
@@ -52,6 +52,7 @@ export default function NewEvent() {
   const statusOptions = ["upcoming", "ongoing", "completed", "cancelled"];
 
   const seasonOptions = [
+    "individual",
     "XSOS2024",
     "XSOS2025",
     "XSOS2026",
@@ -360,7 +361,7 @@ export default function NewEvent() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Season
+                    Season / Registration Type
                   </label>
                   <select
                     name="season"
@@ -370,10 +371,15 @@ export default function NewEvent() {
                   >
                     {seasonOptions.map((season) => (
                       <option key={season} value={season}>
-                        {season}
+                        {season === "individual" ? "Individual Event" : season}
                       </option>
                     ))}
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.season === "individual"
+                      ? "Individual event registration form will be shown"
+                      : "Season registration form will be shown"}
+                  </p>
                 </div>
 
                 <div>

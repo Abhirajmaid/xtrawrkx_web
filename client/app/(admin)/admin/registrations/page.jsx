@@ -210,10 +210,7 @@ export default function RegistrationManagement() {
   const handleDeleteRegistration = async (registrationId) => {
     if (confirm("Are you sure you want to delete this registration?")) {
       try {
-        await eventRegistrationService.delete(
-          "event_registrations",
-          registrationId
-        );
+        await eventRegistrationService.delete(registrationId);
         loadRegistrations();
       } catch (error) {
         console.error("Error deleting registration:", error);

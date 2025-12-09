@@ -781,7 +781,7 @@ export default function EventManagement() {
                         searchTerm ||
                         selectedCategory !== "All" ||
                         selectedStatus !== "All";
-                      
+
                       if (hasActiveFilters) {
                         return (
                           <>
@@ -802,7 +802,7 @@ export default function EventManagement() {
                       searchTerm ||
                       selectedCategory !== "All" ||
                       selectedStatus !== "All";
-                    
+
                     if (hasActiveFilters) {
                       return (
                         <button
@@ -1120,10 +1120,7 @@ function RegistrationManagement({
   const handleDeleteRegistration = async (registrationId) => {
     if (confirm("Are you sure you want to delete this registration?")) {
       try {
-        await eventRegistrationService.delete(
-          "event_registrations",
-          registrationId
-        );
+        await eventRegistrationService.delete(registrationId);
         onLoadRegistrations();
       } catch (error) {
         console.error("Error deleting registration:", error);
@@ -3034,6 +3031,7 @@ function EventRow({
 // Event Modal Component
 function EventModal({ isOpen, onClose, event, onSave }) {
   const seasonOptions = [
+    "individual",
     "XSOS2024",
     "XSOS2025",
     "XSOS2026",
@@ -3045,7 +3043,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
     title: "",
     slug: "",
     category: "Summit",
-    season: "2025",
+    season: "individual",
     date: "",
     time: "",
     location: "",
@@ -3082,7 +3080,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
         title: event.title || "",
         slug: event.slug || "",
         category: event.category || "Summit",
-        season: event.season || "2025",
+        season: event.season || "individual",
         date: event.date ? String(event.date) : "",
         time: event.time ? String(event.time) : "",
         location: event.location || "",
@@ -3103,7 +3101,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
         title: "",
         slug: "",
         category: "Summit",
-        season: "2025",
+        season: "individual",
         date: "",
         time: "",
         location: "",
@@ -3519,7 +3517,7 @@ function EventModal({ isOpen, onClose, event, onSave }) {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Season
+                      Season / Registration Type
                     </label>
                     <select
                       name="season"
@@ -3529,10 +3527,17 @@ function EventModal({ isOpen, onClose, event, onSave }) {
                     >
                       {seasonOptions.map((season) => (
                         <option key={season} value={season}>
-                          {season}
+                          {season === "individual"
+                            ? "Individual Event"
+                            : season}
                         </option>
                       ))}
                     </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formData.season === "individual"
+                        ? "Individual event registration form will be shown"
+                        : "Season registration form will be shown"}
+                    </p>
                   </div>
 
                   <div>
