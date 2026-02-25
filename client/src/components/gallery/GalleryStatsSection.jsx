@@ -106,7 +106,7 @@ const GalleryStatsSection = () => {
             loading={loading}
             error={error}
             value={galleryStats.events}
-            label="Events"
+            label="Event Images"
             icon="mdi:calendar-star"
             colorClass="bg-gradient-to-br from-green-500 to-green-600"
           />
@@ -114,7 +114,7 @@ const GalleryStatsSection = () => {
             loading={loading}
             error={error}
             value={galleryStats.communities}
-            label="Communities"
+            label="Community Images"
             icon="mdi:account-group"
             colorClass="bg-gradient-to-br from-purple-500 to-purple-600"
           />
@@ -122,7 +122,7 @@ const GalleryStatsSection = () => {
             loading={loading}
             error={error}
             value={galleryStats.achievements}
-            label="Achievements"
+            label="Achievement Images"
             icon="mdi:trophy"
             colorClass="bg-gradient-to-br from-orange-500 to-orange-600"
           />
@@ -130,7 +130,7 @@ const GalleryStatsSection = () => {
             loading={loading}
             error={error}
             value={galleryStats.team}
-            label="Team"
+            label="Team Images"
             icon="mdi:account-multiple"
             colorClass="bg-gradient-to-br from-indigo-500 to-indigo-600"
           />
@@ -138,7 +138,7 @@ const GalleryStatsSection = () => {
             loading={loading}
             error={error}
             value={galleryStats.featured}
-            label="Featured"
+            label="Featured Images"
             icon="mdi:star"
             colorClass="bg-gradient-to-br from-yellow-500 to-yellow-600"
           />

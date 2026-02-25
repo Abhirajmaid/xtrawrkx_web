@@ -19,8 +19,10 @@ const ServicesPage = () => {
       />
       <Marquee />
       <OurServices />
-      <EngagementModels />
-      <FeatureTable />
+      {/* Engagement models section temporarily hidden
+          <EngagementModels /> */}
+      {/* Feature table section temporarily hidden
+          <FeatureTable /> */}
       <CTASection />
     </div>
   );

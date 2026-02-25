@@ -21,10 +21,9 @@ export const getServicesDropdownData = async () => {
             middleTitle: "What we do",
             middleList: servicesDropdownList,
             rightTitle: "How we work",
+            // Temporarily show a single "Coming soon" entry for this column
             rightList: [
-                { label: "Complementary Support", slug: "/modals/complementary-support", price: "₹0", subtitle: "Best for starting up" },
-                { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
-                { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
+                { label: "Coming soon", slug: "#", price: "", subtitle: "" },
             ],
             exploreModalsButton: {
                 text: "Explore models",
@@ -40,9 +39,7 @@ export const getServicesDropdownData = async () => {
             middleList: [],
             rightTitle: "How we work",
             rightList: [
-                { label: "Complementary Support", slug: "/modals/complementary-support", price: "₹0", subtitle: "Best for starting up" },
-                { label: "Membership Advisory", slug: "/modals/membership-advisory", price: "Rs. 31lac", subtitle: "Best for growing use" },
-                { label: "Consulting", slug: "/modals/consulting", price: "Rs. 24lac", subtitle: "Best for enterprise use" },
+                { label: "Coming soon", slug: "#", price: "", subtitle: "" },
             ],
             exploreModalsButton: {
                 text: "Explore modals",
