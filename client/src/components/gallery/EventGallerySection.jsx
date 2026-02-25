@@ -94,7 +94,19 @@ const EventGallerySection = () => {
       });
     }
 
-    return result;
+    // Sort event groups by event date (latest first). Keep non-event groups (like "Other Images") at the end.
+    const eventGroups = result.filter((g) => g.isEvent);
+    const otherGroups = result.filter((g) => !g.isEvent);
+
+    const getEventTime = (e) => {
+      if (!e) return 0;
+      const d = e.date ? (e.date instanceof Date ? e.date : new Date(e.date)) : e.createdAt ? (e.createdAt instanceof Date ? e.createdAt : new Date(e.createdAt)) : null;
+      return d && !isNaN(d.getTime()) ? d.getTime() : 0;
+    };
+
+    eventGroups.sort((a, b) => getEventTime(b.event) - getEventTime(a.event));
+
+    return [...eventGroups, ...otherGroups];
   }, [galleryItems, events, searchQuery]);
 
   const toggleEventExpanded = (eventId) => {

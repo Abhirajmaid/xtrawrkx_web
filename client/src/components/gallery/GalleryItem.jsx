@@ -189,79 +189,34 @@ const GalleryItem = ({ item, viewMode = "grid" }) => {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Modal: show only the image on dark backdrop */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
           onClick={() => setIsModalOpen(false)}
         >
-          <div
-            className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {item.title}
-              </h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <Icon
-                  icon="solar:close-circle-bold"
-                  width={24}
-                  className="text-gray-600"
-                />
-              </button>
-            </div>
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              aria-label="Close"
+              className="absolute top-3 right-3 z-50 p-2 bg-black/40 hover:bg-black/50 text-white rounded-full transition-colors"
+            >
+              <Icon icon="solar:close-circle-bold" width={28} />
+            </button>
 
-            {/* Modal Content */}
-            <div className="p-6">
-              <div className="relative h-64 md:h-96 min-w-[500px] mb-6 rounded-lg overflow-hidden">
-                <Image
-                  src={imageUrl}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(
-                      item.category
-                    )}`}
-                  >
-                    {item.category}
-                  </span>
-                  <span className="text-gray-500 text-sm">
-                    {formatDate(item.date)}
-                  </span>
-                </div>
-                {item.description && (
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">
-                      Description
-                    </h4>
-                    <p className="text-gray-700">{item.description}</p>
-                  </div>
-                )}
-                {item.tags && item.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {item.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <img
+              src={imageUrl}
+              alt={item.title}
+              className="rounded-sm shadow-lg"
+              style={{
+                display: 'block',
+                maxWidth: '90vw',
+                maxHeight: '90vh',
+                width: 'auto',
+                height: 'auto',
+                objectFit: 'contain',
+              }}
+            />
           </div>
         </div>
       )}
