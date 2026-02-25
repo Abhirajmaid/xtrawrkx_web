@@ -55,7 +55,7 @@ const SimpleGalleryItem = ({ item }) => {
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="relative max-w-4xl max-h-[90vh] w-full"
+            className="relative w-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
@@ -66,14 +66,13 @@ const SimpleGalleryItem = ({ item }) => {
               <Icon icon="mdi:close" width={24} className="text-white" />
             </button>
 
-            {/* Modal Image */}
-            <div className="relative h-full w-full max-h-[90vh]">
-              <Image
+            {/* Modal Image - scale responsively up to 90% of viewport */}
+            <div className="flex items-center justify-center">
+              <img
                 src={imageUrl}
                 alt={item.title || "Gallery image"}
-                width={1200}
-                height={800}
-                className="object-contain w-full h-full rounded-lg"
+                style={{ maxWidth: "90vw", maxHeight: "90vh" }}
+                className="object-contain rounded-lg"
               />
             </div>
 

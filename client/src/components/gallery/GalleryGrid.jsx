@@ -63,21 +63,36 @@ const GalleryGrid = ({
     }
   };
 
-  // Filter gallery items based on selected category and search query
+  // Filter gallery items based on selected category and search query,
+  // then sort by date (latest first) to ensure newest images appear on top.
   const filteredItems = useMemo(() => {
-    return galleryItems.filter((item) => {
+    const filtered = galleryItems.filter((item) => {
       const matchesCategory =
         selectedCategory === "all" || item.category === selectedCategory;
       const matchesSearch =
         searchQuery === "" ||
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.tags.some((tag) =>
-          tag.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        (item.title && item.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.description &&
+          item.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.tags &&
+          item.tags.some((tag) =>
+            tag.toLowerCase().includes(searchQuery.toLowerCase())
+          ));
 
       return matchesCategory && matchesSearch;
     });
+
+    // Sort by date descending (latest first). Use `date` if available, otherwise fallback to `createdAt`.
+    filtered.sort((a, b) => {
+      const getTime = (obj) => {
+        const d = obj && (obj.date || obj.createdAt) ? (obj.date instanceof Date ? obj.date : new Date(obj.date || obj.createdAt)) : new Date(0);
+        return isNaN(d.getTime()) ? 0 : d.getTime();
+      };
+
+      return getTime(b) - getTime(a);
+    });
+
+    return filtered;
   }, [selectedCategory, searchQuery, galleryItems]);
 
   const handleClearFilters = () => {
